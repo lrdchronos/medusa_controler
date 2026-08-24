@@ -1,0 +1,56 @@
+{
+    "uid": "encounter_240820261511",
+    "title": "Emboscada em Túnel",
+    "description": "Três kobolds e dois cultistas esperam emboscar aventureiros desavisados.",
+    "map_file": "assets/maps/open_field_grass_trees.jpg",
+    "environment": {
+        "is_sunlight": true,
+        "is_raining": false
+    },
+    "combatants": [
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold A",
+            "position": {
+                "x": 2,
+                "y": 5
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold B",
+            "position": {
+                "x": 3,
+                "y": 5
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold C",
+            "position": {
+                "x": 2,
+                "y": 6
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "basic_cultist",
+            "instance_name": "Cultista Líder",
+            "position": {
+                "x": 5,
+                "y": 8
+            }
+        },
+        {
+            "entity_type": "playable_character",
+            "character_id": "char_240820261336",
+            "position": {
+                "x": 10,
+                "y": 2
+            }
+        }
+    ]
+}

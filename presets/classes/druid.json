@@ -1,0 +1,78 @@
+{
+    "class_name": "Druid",
+    "hit_die": 8,
+    "primary_ability": "WIS",
+    "saving_throw_proficiencies": [
+        "INT",
+        "WIS"
+    ],
+    "armor_proficiencies": [
+        "light",
+        "medium",
+        "shields"
+    ],
+    "weapon_proficiencies": [
+        "clubs",
+        "daggers",
+        "darts",
+        "javelins",
+        "maces",
+        "quarterstaffs",
+        "scimitars",
+        "sickles",
+        "slings",
+        "spears"
+    ],
+    "armor_restrictions": "Druids will not wear armor or use shields made of metal",
+    "spellcasting": {
+        "ability": "WIS",
+        "cantrips_known_by_level": {
+            "1": 2,
+            "2": 2,
+            "3": 3,
+            "4": 3
+        },
+        "slots_by_level": {
+            "1": {
+                "1st": 2
+            },
+            "2": {
+                "1st": 3
+            },
+            "3": {
+                "1st": 4,
+                "2nd": 2
+            },
+            "4": {
+                "1st": 4,
+                "2nd": 3
+            }
+        }
+    },
+    "features_by_level": {
+        "1": [
+            {
+                "name": "Druidic",
+                "description": "Você conhece o Druídico, o idioma secreto dos druidas."
+            },
+            {
+                "name": "Spellcasting",
+                "description": "Capacidade de conjurar magias divinas de druida."
+            }
+        ],
+        "2": [
+            {
+                "name": "Wild Shape",
+                "type": "CLASS_FEATURE",
+                "max_uses": 2,
+                "recharge_on": "SHORT_REST",
+                "description": "Pode se transformar em uma besta que já tenha visto."
+            },
+            {
+                "name": "Druid Circle",
+                "type": "SUBCLASS_SELECTION",
+                "description": "Escolha do Círculo Druídico (ex: Circle of the Land, Circle of the Moon)."
+            }
+        ]
+    }
+}

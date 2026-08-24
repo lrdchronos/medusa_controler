@@ -1,0 +1,91 @@
+{
+    "uid": "kobold",
+    "source": "monster_manual",
+    "page": 194,
+    "name": "Kobold",
+    "alignment": "LE",
+    "size": "Small",
+    "type": "Humanoid",
+    "sub_type": "dragonborn",
+    "armor_class": {
+        "value": 12,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 5,
+        "formula": "2d6-2"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 7,
+        "DEX": 15,
+        "CON": 9,
+        "INT": 8,
+        "WIS": 7,
+        "CHA": 8
+    },
+    "skills": {},
+    "senses": {
+        "darkvision": 60
+    },
+    "languages": [
+        "Comum",
+        "Dracônico"
+    ],
+    "challenge_rating": 0.125,
+    "xp": 25,
+    "features": [
+        {
+            "name": "Sensibilidade à Luz Solar",
+            "description": "Enquanto estiver sob luz solar, o kobold tem desvantagem nas jogadas de ataque e em testes de Percepção baseados em visão.",
+            "disadvantages": [
+                {
+                    "type": "attack_roll",
+                    "self_condition": "in_sunlight"
+                },
+                {
+                    "type": "skill_check",
+                    "skill": "perception",
+                    "self_condition": "in_sunlight"
+                }
+            ]
+        },
+        {
+            "name": "Tática de Matilha",
+            "description": "Tem vantagem nas jogadas de ataque contra uma criatura se pelo menos um aliado do kobold estiver a 1,5m do alvo e não estiver incapacitado.",
+            "advantages": [
+                {
+                    "type": "attack_roll",
+                    "target_condition": "has_engaged_ally"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "Adaga",
+            "type": "melee_attack",
+            "attack_bonus": 4,
+            "reach": 5,
+            "damage_dice": "1d4",
+            "damage_bonus": 2,
+            "damage_type": "piercing"
+        },
+        {
+            "name": "Arco Curto",
+            "type": "ranged_attack",
+            "attack_bonus": 4,
+            "range": {
+                "normal": 80,
+                "long": 320
+            },
+            "damage_dice": "1d6",
+            "damage_bonus": 2,
+            "damage_type": "piercing"
+        }
+    ]
+}

@@ -1,0 +1,68 @@
+{
+    "uid": "basic_culstist",
+    "source": "monster_manual",
+    "page": 344,
+    "name": "Cultista",
+    "alignment": "LE",
+    "size": "Médio",
+    "type": "Humanoide",
+    "sub_type": "Any",
+    "armor_class": {
+        "value": 12,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 9,
+        "formula": "2d8"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 15
+    },
+    "ability_scores": {
+        "STR": 11,
+        "DEX": 12,
+        "CON": 10,
+        "INT": 10,
+        "WIS": 11,
+        "CHA": 10
+    },
+    "skills": {
+        "deception": 2,
+        "religion": 2
+    },
+    "senses": {},
+    "languages": [
+        "Comum"
+    ],
+    "challenge_rating": 0.125,
+    "xp": 25,
+    "features": {
+        "Devoção sombria": {
+            "description": "Vantagem em testes de resistência contra ser enfeitçado ou amedrontado.",
+            "advantages": [
+                {
+                    "type": "saving_throw",
+                    "ability": "WIS",
+                    "condition": "enchant"
+                },
+                {
+                    "type": "saving_throw",
+                    "ability": "WIS",
+                    "condition": "frightened"
+                }
+            ]
+        }
+    },
+    "actions": [
+        {
+            "name": "Cimitarra",
+            "type": "melee_attack",
+            "hit_bonus": 3,
+            "damage_dice": "1d6",
+            "damage_bonus": 1,
+            "damage_type": "slashing"
+        }
+    ]
+}
