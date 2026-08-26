@@ -1,8 +1,11 @@
+import logging
 import json
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from ..models.monster import Monster
 from ..builders.monster_builder import MonsterBuilder
+
+logger = logging.getLogger(__name__)
 
 
 class MonsterLoader:
@@ -63,12 +66,16 @@ class MonsterLoader:
 
         resolved = self.resolve_preset_path(monster_id)
         if resolved is None:
+            logger.error(
+                f"Preset de monstro '{monster_id}' não foi encontrado em: {self._preset_dirs}"
+            )
             raise FileNotFoundError(
                 f"Preset de monstro '{monster_id}' não foi encontrado em: {self._preset_dirs}"
             )
 
         with open(resolved, "r", encoding="utf-8") as f:
             data: Dict[str, Any] = json.load(f)
+
 
         self._cached_presets[monster_id] = data
         return data.copy()

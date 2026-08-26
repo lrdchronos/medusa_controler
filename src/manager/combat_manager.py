@@ -1,7 +1,10 @@
+import logging
 import random
 from typing import List, Dict, Any, Optional, Callable
 from ..domain.models.entity import Entity
 from ..domain.loaders.encounter_loader import EncounterLoader
+
+logger = logging.getLogger(__name__)
 
 
 class CombatManager:
@@ -92,7 +95,7 @@ class CombatManager:
             try:
                 listener()
             except Exception as e:
-                print(f"[CombatManager] Erro no listener {listener}: {e}")
+                logger.error(f"Erro no listener {listener}: {e}")
 
     # --- Carregamento de Encontro ---
 
@@ -111,6 +114,9 @@ class CombatManager:
         self.__current_turn_index = -1
         self.__round_number = 1
 
+        logger.info(
+            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) com {len(self.__combatants)} combatentes."
+        )
         self.notify_listeners()
 
     # --- Sistema de Iniciativas e Ordenação ---
@@ -151,6 +157,10 @@ class CombatManager:
         else:
             self.__current_turn_index = -1
 
+        active_name = self.active_character.name if self.active_character else "Nenhum"
+        logger.info(
+            f"Rolar Iniciativas: {len(self.__combatants)} combatentes ordenados. Turno ativo: '{active_name}'."
+        )
         self.notify_listeners()
         return list(self.__turn_order)
 
@@ -172,6 +182,8 @@ class CombatManager:
             if self.__current_turn_index == 0:
                 self.__round_number += 1
 
+        active_name = self.active_character.name if self.active_character else "Nenhum"
+        logger.info(f"Passar Turno: combatente ativo '{active_name}' (Rodada {self.__round_number}).")
         self.notify_listeners()
         return self.active_character
 
@@ -187,6 +199,8 @@ class CombatManager:
         else:
             self.__current_turn_index -= 1
 
+        active_name = self.active_character.name if self.active_character else "Nenhum"
+        logger.info(f"Retroceder Turno: combatente ativo '{active_name}' (Rodada {self.__round_number}).")
         self.notify_listeners()
         return self.active_character
 
@@ -210,8 +224,12 @@ class CombatManager:
         combatant = self.get_combatant(uid_or_name)
         if combatant is not None:
             combatant.take_damage(amount)
+            logger.info(
+                f"Dano aplicado: {amount} em {combatant.name} (HP: {combatant.current_hp}/{combatant.max_hp})"
+            )
             self.notify_listeners()
             return True
+        logger.warning(f"Combatente '{uid_or_name}' não encontrado para aplicar {amount} de dano.")
         return False
 
     def apply_heal(self, uid_or_name: str, amount: int) -> bool:
@@ -219,6 +237,11 @@ class CombatManager:
         combatant = self.get_combatant(uid_or_name)
         if combatant is not None:
             combatant.heal(amount)
+            logger.info(
+                f"Cura aplicada: {amount} em {combatant.name} (HP: {combatant.current_hp}/{combatant.max_hp})"
+            )
             self.notify_listeners()
             return True
+        logger.warning(f"Combatente '{uid_or_name}' não encontrado para aplicar {amount} de cura.")
         return False
+

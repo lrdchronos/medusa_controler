@@ -1,9 +1,12 @@
+import logging
 import json
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from ..models.entity import Entity
 from .character_loader import CharacterLoader
 from .monster_loader import MonsterLoader
+
+logger = logging.getLogger(__name__)
 
 
 class EncounterLoader:
@@ -85,12 +88,16 @@ class EncounterLoader:
         """
         resolved = self.resolve_encounter_path(encounter_id_or_path)
         if resolved is None:
+            logger.error(
+                f"Encontro '{encounter_id_or_path}' não foi encontrado em: {self._encounter_dirs}"
+            )
             raise FileNotFoundError(
                 f"Encontro '{encounter_id_or_path}' não foi encontrado em: {self._encounter_dirs}"
             )
 
         with open(resolved, "r", encoding="utf-8") as f:
             raw_data: Dict[str, Any] = json.load(f)
+
 
         title = raw_data.get("title", resolved.stem)
         description = raw_data.get("description", "")

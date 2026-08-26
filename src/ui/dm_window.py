@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from typing import Optional, List, Dict, Any
@@ -6,6 +7,9 @@ from ..manager.session_manager import SessionManager, DisplayState
 from ..domain.models.playablechar import PlayableCharacter
 from ..domain.models.monster import Monster
 from ..domain.models.entity import Entity
+
+logger = logging.getLogger(__name__)
+
 
 
 class DMWindow:

@@ -1,8 +1,11 @@
+import logging
 from enum import Enum
 from pathlib import Path
 import json
 from typing import Optional, List, Dict, Any, Callable
 from .combat_manager import CombatManager
+
+logger = logging.getLogger(__name__)
 
 
 class DisplayState(Enum):
@@ -78,13 +81,14 @@ class SessionManager:
             try:
                 listener()
             except Exception as e:
-                print(f"[SessionManager] Erro no listener {listener}: {e}")
+                logger.error(f"Erro no listener {listener}: {e}")
 
     # --- Controle de Estados e Projeção ---
 
     def set_display_state(self, state: DisplayState) -> None:
         """Altera diretamente o estado de exibição e notifica ouvintes."""
         if self.__display_state != state:
+            logger.info(f"Transição de estado de exibição: {self.__display_state.value} -> {state.value}")
             self.__display_state = state
             self.notify_listeners()
 
@@ -94,10 +98,11 @@ class SessionManager:
         """
         p = Path(image_path)
         if not p.is_file():
-            print(f"[SessionManager] Arquivo de imagem não encontrado: {image_path}")
+            logger.error(f"Arquivo de imagem não encontrado: {image_path}")
             return False
 
         self.__projected_image_path = str(p.resolve())
+        logger.info(f"Projetando imagem: '{p.name}' ({self.__projected_image_path})")
         self.__display_state = DisplayState.PROJECTION
         self.notify_listeners()
         return True
@@ -106,6 +111,7 @@ class SessionManager:
         """
         Carrega o encontro no CombatManager e altera a exibição dos jogadores para COMBAT.
         """
+        logger.info(f"Iniciando encontro: {encounter_id_or_path}")
         self.__combat_manager.load_encounter(encounter_id_or_path)
         self.__display_state = DisplayState.COMBAT
         self.notify_listeners()
@@ -114,11 +120,13 @@ class SessionManager:
         """
         Encerra o combate ativo e retorna a tela dos jogadores para IDLE (ou PROJECTION).
         """
+        logger.info(f"Encerrando combate e retornando exibição para: {return_to.value}")
         self.__display_state = return_to
         self.notify_listeners()
 
     def clear_display_to_idle(self) -> None:
         """Retorna a Tela dos Jogadores para a tela de espera / descanso (IDLE)."""
+        logger.info("Retornando Tela dos Jogadores para IDLE")
         self.__projected_image_path = None
         self.__display_state = DisplayState.IDLE
         self.notify_listeners()
@@ -156,7 +164,7 @@ class SessionManager:
                             "map_file": data.get("map_file", "Padrão"),
                         })
                 except Exception as e:
-                    print(f"[SessionManager] Falha ao ler encontro '{file}': {e}")
+                    logger.error(f"Falha ao ler encontro '{file}': {e}")
 
         return encounters
 

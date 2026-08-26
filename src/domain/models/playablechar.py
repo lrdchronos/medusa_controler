@@ -1,8 +1,11 @@
+import logging
 from typing import Dict, Any, List, Optional
 try:
     from .entity import Entity
 except ImportError:
     from entity import Entity
+
+logger = logging.getLogger(__name__)
 
 
 class PlayableCharacter(Entity):
@@ -141,7 +144,7 @@ class PlayableCharacter(Entity):
         if 1 <= level <= 20:
             self.__level = level
             return True
-        print(f"Aviso: Nível {level} inválido. Deve estar entre 1 e 20.")
+        logger.warning(f"Aviso: Nível {level} inválido para {self.name}. Deve estar entre 1 e 20.")
         return False
 
     def set_classes(self, classes: List[Dict[str, Any]]) -> None:
@@ -179,6 +182,11 @@ class PlayableCharacter(Entity):
             if current >= amount:
                 res["current_uses"] = current - amount
                 return True
+            logger.warning(
+                f"Tentativa de usar recurso '{resource_name}' esgotado ou sem cargas ({current}/{amount}) para {self.name}."
+            )
+            return False
+        logger.warning(f"Tentativa de consumir recurso inexistente: '{resource_name}' para {self.name}.")
         return False
 
     def restore_resources(self, recharge_type: Optional[str] = None) -> None:
@@ -188,3 +196,4 @@ class PlayableCharacter(Entity):
                 r_type = res.get("recharge_on", "LONG_REST")
                 if recharge_type is None or r_type == recharge_type or recharge_type == "LONG_REST":
                     res["current_uses"] = res.get("max_uses", 0)
+

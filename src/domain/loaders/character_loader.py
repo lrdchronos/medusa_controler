@@ -1,9 +1,12 @@
+import logging
 import json
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from ..models.playablechar import PlayableCharacter
 from ..builders.character_builder import CharacterBuilder
+
+logger = logging.getLogger(__name__)
 
 
 class CharacterLoader:
@@ -62,7 +65,11 @@ class CharacterLoader:
         """Busca um personagem por seu UID ou nome de arquivo e o instancia."""
         resolved = self.resolve_path(character_id)
         if resolved is None:
+            logger.error(
+                f"Ficha de personagem '{character_id}' não foi encontrada nos diretórios: {self._base_dirs}"
+            )
             raise FileNotFoundError(
                 f"Ficha de personagem '{character_id}' não foi encontrada nos diretórios: {self._base_dirs}"
             )
         return self.load_from_file(resolved)
+

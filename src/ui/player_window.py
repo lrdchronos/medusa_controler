@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import time
@@ -5,6 +6,8 @@ from typing import Optional, Dict, Any
 import arcade
 from ..manager.session_manager import SessionManager, DisplayState
 from .initiative_hud import InitiativeHUD
+
+logger = logging.getLogger(__name__)
 
 
 class PlayerWindow(arcade.Window):
@@ -33,6 +36,38 @@ class PlayerWindow(arcade.Window):
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
 
+        # Sprite animado do Sigil Místico para a tela IDLE
+        self.idle_sprites = arcade.SpriteList()
+        sheet_path = os.path.join("assets", "sprites", "medusa_idle_1.png")
+        if not os.path.isfile(sheet_path):
+            root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            sheet_path = os.path.join(root, "assets", "sprites", "medusa_idle_1.png")
+
+        self.sigil_sprite = arcade.Sprite()
+        self.sigil_sprite.scale = 92.0 / 48.0  # Escala de 48px originais para 92px na tela
+        try:
+            base_tex = arcade.load_texture(sheet_path)
+            self.sigil_sprite.textures = [
+                base_tex.crop(i * 48, 0, 48, 48) for i in range(5)
+            ]
+        except TypeError:
+            self.sigil_sprite.textures = [
+                arcade.load_texture(sheet_path, x=i * 48, y=0, width=48, height=48)
+                for i in range(5)
+            ]
+        except Exception as e:
+            logger.error(f"Erro ao carregar spritesheet do Sigil '{sheet_path}': {e}")
+            self.sigil_sprite.textures = []
+
+        if self.sigil_sprite.textures:
+            self.sigil_sprite.texture = self.sigil_sprite.textures[0]
+        self.idle_sprites.append(self.sigil_sprite)
+
+        # Controle de temporizador da animação IDLE (0.20s por quadro)
+        self._idle_anim_timer: float = 0.0
+        self._idle_cur_frame: int = 0
+        self._idle_frame_duration: float = 0.20
+
     def _get_texture(self, file_path: Optional[str]) -> Optional[arcade.Texture]:
         """Carrega e armazena em cache texturas de imagens."""
         if not file_path or not os.path.isfile(file_path):
@@ -42,7 +77,7 @@ class PlayerWindow(arcade.Window):
             try:
                 self._texture_cache[resolved] = arcade.load_texture(resolved)
             except Exception as e:
-                print(f"[PlayerWindow] Erro ao carregar textura '{resolved}': {e}")
+                logger.error(f"Erro ao carregar textura '{resolved}': {e}")
                 return None
         return self._texture_cache.get(resolved)
 
@@ -107,19 +142,12 @@ class PlayerWindow(arcade.Window):
         for y in range(0, h, 60):
             arcade.draw_line(0, y, w, y, (25, 32, 42, 70), 1)
 
-        pulse = math.sin(time.time() * 2.5) * 4.0
         center_x = w / 2
         center_y = h / 2 + 30
 
-        # Brasão / Sigil místico central
-        arcade.draw_circle_filled(center_x, center_y, 75 + pulse * 0.5, (241, 196, 15, 20))
-        arcade.draw_circle_outline(center_x, center_y, 70, (212, 172, 13, 160), 2)
-        arcade.draw_circle_outline(center_x, center_y, 82 + pulse, (241, 196, 15, 80), 1)
-
-        # Geometria do Sigil
-        arcade.draw_line(center_x - 50, center_y, center_x + 50, center_y, (212, 172, 13, 120), 1)
-        arcade.draw_line(center_x, center_y - 50, center_x, center_y + 50, (212, 172, 13, 120), 1)
-        arcade.draw_rect_outline(arcade.XYWH(center_x, center_y, 50, 50), (241, 196, 15, 140), 1)
+        # Renderização do Sprite do Sigil Místico animado (48x48 escalado para 92px)
+        self.sigil_sprite.position = (center_x, center_y)
+        self.idle_sprites.draw(pixelated=True)
 
         # Título principal
         title_txt = self._get_cached_text(
@@ -262,6 +290,15 @@ class PlayerWindow(arcade.Window):
         txt.draw()
 
     def on_update(self, delta_time: float) -> None:
-        """Ciclo de atualização: bombeia eventos da janela do Mestre."""
+        """Ciclo de atualização: animação IDLE e bombeamento de eventos do Mestre."""
+        if self.session_manager.display_state == DisplayState.IDLE and self.sigil_sprite.textures:
+            self._idle_anim_timer += delta_time
+            if self._idle_anim_timer >= self._idle_frame_duration:
+                advance = int(self._idle_anim_timer // self._idle_frame_duration)
+                self._idle_anim_timer %= self._idle_frame_duration
+                self._idle_cur_frame = (self._idle_cur_frame + advance) % len(self.sigil_sprite.textures)
+                self.sigil_sprite.texture = self.sigil_sprite.textures[self._idle_cur_frame]
+
         if self.dm_window is not None:
             self.dm_window.pump_events()
+
