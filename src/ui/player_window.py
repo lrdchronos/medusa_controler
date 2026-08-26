@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 import arcade
 from ..manager.session_manager import SessionManager, DisplayState
 from .initiative_hud import InitiativeHUD
+from .utils.sprite_utils import SpriteFactory
 
 logger = logging.getLogger(__name__)
 
@@ -36,31 +37,17 @@ class PlayerWindow(arcade.Window):
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
 
-        # Sprite animado do Sigil Místico para a tela IDLE
+        # Sprite animado do Sigil Místico para a tela IDLE instanciado em 1 linha declarativa
         self.idle_sprites = arcade.SpriteList()
-        sheet_path = os.path.join("assets", "sprites", "medusa_idle_1.png")
-        if not os.path.isfile(sheet_path):
-            root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            sheet_path = os.path.join(root, "assets", "sprites", "medusa_idle_1.png")
-
-        self.sigil_sprite = arcade.Sprite()
-        self.sigil_sprite.scale = 92.0 / 48.0  # Escala de 48px originais para 92px na tela
-        try:
-            base_tex = arcade.load_texture(sheet_path)
-            self.sigil_sprite.textures = [
-                base_tex.crop(i * 48, 0, 48, 48) for i in range(5)
-            ]
-        except TypeError:
-            self.sigil_sprite.textures = [
-                arcade.load_texture(sheet_path, x=i * 48, y=0, width=48, height=48)
-                for i in range(5)
-            ]
-        except Exception as e:
-            logger.error(f"Erro ao carregar spritesheet do Sigil '{sheet_path}': {e}")
-            self.sigil_sprite.textures = []
-
-        if self.sigil_sprite.textures:
-            self.sigil_sprite.texture = self.sigil_sprite.textures[0]
+        self.sigil_sprite = SpriteFactory.create_sprite(
+            sheet_path="assets/sprites/medusa_idle_1.png",
+            x=self.width / 2,
+            y=self.height / 2 + 30,
+            width=48,
+            height=48,
+            target_size=128,
+            frame_count=5,
+        )
         self.idle_sprites.append(self.sigil_sprite)
 
         # Controle de temporizador da animação IDLE (0.20s por quadro)
