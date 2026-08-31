@@ -2,12 +2,12 @@ import logging
 import math
 import os
 import time
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 import arcade
 from arcade.camera import Camera2D
 from ..manager.session_manager import SessionManager, DisplayState
 from .initiative_hud import InitiativeHUD
-from .utils.sprite_utils import SpriteFactory
+from .utils.sprite_utils import SpriteFactory, CombatToken
 from ..domain.models.playablechar import PlayableCharacter
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,9 @@ class PlayerWindow(arcade.Window):
 
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
+
+        # Dicionário de sprites de tokens com interpolação suave (Lerp)
+        self.token_sprites: Dict[str, CombatToken] = {}
 
         # Câmera dos Jogadores (PlayerCamera) cobrindo a tela cheia
         self.player_camera = Camera2D(window=self)
@@ -235,22 +238,22 @@ class PlayerWindow(arcade.Window):
 
     # --- 3. ESTADO COMBAT (MAPA + TOKENS VISÍVEIS + INITIATIVE HUD NO TOPO) ---
 
-    def _draw_combat_screen(self, w: int, h: int) -> None:
+    def _calculate_combat_layout(
+        self, w: float, h: float
+    ) -> Optional[Tuple[float, float, float, float, float, float, int, int]]:
         """
-        Renderiza o mapa de combate na tela dos jogadores com a PlayerCamera,
-        mantendo a proporção exata e o Grid Tático de alto contraste idênticos à DMWindow,
-        desenhando os tokens dos participantes VISÍVEIS e a Fila de Iniciativas no topo.
+        Calcula o layout de enquadramento do mapa de combate e dimensões das células.
+        Retorna (draw_x, draw_y, draw_w, draw_h, cell_w, cell_h, columns, rows) ou None.
         """
         combat_manager = self.session_manager.combat_manager
-        map_path = getattr(combat_manager, "map_file", getattr(combat_manager, "map_image_path", None))
-        tex = self._get_texture(map_path)
-
         grid_mgr = combat_manager.grid_manager
-        if grid_mgr is None:
-            return
+        if grid_mgr is None or grid_mgr.columns <= 0 or grid_mgr.rows <= 0:
+            return None
 
         world_w = grid_mgr.map_width
         world_h = grid_mgr.map_height
+        if world_w <= 0 or world_h <= 0:
+            return None
 
         # Enquadramento Aspect-Fill (100% da viewport preenchida sem distorção anamórfica nem barras pretas)
         scale = max(float(w) / world_w, float(h) / world_h)
@@ -260,6 +263,81 @@ class PlayerWindow(arcade.Window):
         # Centraliza o mapa simetricamente na tela dos jogadores
         draw_x = (float(w) - draw_w) / 2.0
         draw_y = (float(h) - draw_h) / 2.0
+
+        cell_w = draw_w / grid_mgr.columns
+        cell_h = draw_h / grid_mgr.rows
+
+        return draw_x, draw_y, draw_w, draw_h, cell_w, cell_h, grid_mgr.columns, grid_mgr.rows
+
+    def _update_tokens(self, delta_time: float) -> None:
+        """
+        Sincroniza os alvos dos tokens com o CombatManager e executa a interpolação suave (Lerp).
+        Quando o Mestre atualiza a posição no grid, apenas target_x e target_y são atualizados.
+        """
+        combat_manager = self.session_manager.combat_manager
+        if not combat_manager.combatants:
+            self.token_sprites.clear()
+            return
+
+        layout = self._calculate_combat_layout(self.width, self.height)
+        if layout is None:
+            return
+
+        draw_x, draw_y, draw_w, draw_h, cell_w, cell_h, cols, rows = layout
+        active_uids = set()
+
+        for combatant in combat_manager.combatants:
+            active_uids.add(combatant.uid)
+            pos = combatant.position
+            px = pos.get("x", 0)
+            py = pos.get("y", 0)
+
+            target_x = draw_x + (px + 0.5) * cell_w
+            target_y = draw_y + (py + 0.5) * cell_h
+            is_player = isinstance(combatant, PlayableCharacter)
+
+            if combatant.uid not in self.token_sprites:
+                # Novo token: inicializa imediatamente no destino
+                token = CombatToken(
+                    uid=combatant.uid,
+                    name=combatant.name,
+                    is_player=is_player,
+                    target_x=target_x,
+                    target_y=target_y,
+                )
+                self.token_sprites[combatant.uid] = token
+            else:
+                token = self.token_sprites[combatant.uid]
+                token.name = combatant.name
+                token.is_player = is_player
+                # Atualiza APENAS as coordenadas alvo (target_x, target_y)
+                token.target_x = target_x
+                token.target_y = target_y
+
+            # Executa a interpolação Lerp a cada frame
+            if delta_time > 0:
+                token.update_lerp(delta_time)
+
+        # Remove tokens de entidades que saíram do combate
+        for uid in list(self.token_sprites.keys()):
+            if uid not in active_uids:
+                del self.token_sprites[uid]
+
+    def _draw_combat_screen(self, w: int, h: int) -> None:
+        """
+        Renderiza o mapa de combate na tela dos jogadores com a PlayerCamera,
+        mantendo a proporção exata e o Grid Tático de alto contraste idênticos à DMWindow,
+        desenhando os tokens dos participantes VISÍVEIS com interpolação suave e a Fila de Iniciativas no topo.
+        """
+        combat_manager = self.session_manager.combat_manager
+        map_path = getattr(combat_manager, "map_file", getattr(combat_manager, "map_image_path", None))
+        tex = self._get_texture(map_path)
+
+        layout = self._calculate_combat_layout(w, h)
+        if layout is None:
+            return
+
+        draw_x, draw_y, draw_w, draw_h, cell_w, cell_h, cols, rows = layout
 
         # Fundo escuro da tela
         arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (14, 18, 24, 255))
@@ -288,16 +366,17 @@ class PlayerWindow(arcade.Window):
 
         # 2. Linhas do Grid Tático de ALTO CONTRASTE (Luminous Steel Cyan) na Tela dos Jogadores
         grid_color = (130, 205, 255, 175)
-        cell_w = draw_w / grid_mgr.columns
-        cell_h = draw_h / grid_mgr.rows
 
-        for c in range(grid_mgr.columns + 1):
+        for c in range(cols + 1):
             gx = draw_x + c * cell_w
             arcade.draw_line(gx, draw_y, gx, draw_y + draw_h, grid_color, 1.2)
 
-        for r in range(grid_mgr.rows + 1):
+        for r in range(rows + 1):
             gy = draw_y + r * cell_h
             arcade.draw_line(draw_x, gy, draw_x + draw_w, gy, grid_color, 1.2)
+
+        # Sincroniza posições alvo se ainda não sincronizadas
+        self._update_tokens(0.0)
 
         # 3. Renderização de Tokens das Entidades VISÍVEIS
         active_combatant = combat_manager.active_character
@@ -307,12 +386,16 @@ class PlayerWindow(arcade.Window):
             if combatant.is_hidden:
                 continue
 
-            pos = combatant.position
-            px = pos.get("x", 0)
-            py = pos.get("y", 0)
-
-            cx = draw_x + (px + 0.5) * cell_w
-            cy = draw_y + (py + 0.5) * cell_h
+            token = self.token_sprites.get(combatant.uid)
+            if token is not None:
+                cx = token.center_x
+                cy = token.center_y
+            else:
+                pos = combatant.position
+                px = pos.get("x", 0)
+                py = pos.get("y", 0)
+                cx = draw_x + (px + 0.5) * cell_w
+                cy = draw_y + (py + 0.5) * cell_h
 
             is_player = isinstance(combatant, PlayableCharacter)
             is_active = (combatant == active_combatant)
@@ -329,16 +412,22 @@ class PlayerWindow(arcade.Window):
                 is_selected=False,
                 is_active=is_active,
                 text_cache=self._text_cache,
+                token_key=combatant.uid,
             )
 
         # 4. Fila de Iniciativas como Overlay Flutuante Translúcido no Topo da Tela
         self.hud.draw(w, h)
 
     def on_update(self, delta_time: float) -> None:
-        """Ciclo de atualização: temporizador da animação IDLE."""
+        """Ciclo de atualização: animação IDLE e interpolação suave de tokens em COMBAT."""
         self.switch_to()
         arcade.set_window(self)
-        if self.session_manager.display_state == DisplayState.IDLE and self.sigil_sprite.textures:
+
+        current_state = self.session_manager.display_state
+
+        if current_state == DisplayState.IDLE and self.sigil_sprite.textures:
+            if self.token_sprites:
+                self.token_sprites.clear()
             self._idle_anim_timer += delta_time
             if self._idle_anim_timer >= self._idle_frame_duration:
                 advance = int(self._idle_anim_timer // self._idle_frame_duration)
@@ -346,8 +435,16 @@ class PlayerWindow(arcade.Window):
                 self._idle_cur_frame = (self._idle_cur_frame + advance) % len(self.sigil_sprite.textures)
                 self.sigil_sprite.texture = self.sigil_sprite.textures[self._idle_cur_frame]
 
+        elif current_state == DisplayState.COMBAT:
+            self._update_tokens(delta_time)
+
+        elif current_state == DisplayState.PROJECTION:
+            if self.token_sprites:
+                self.token_sprites.clear()
+
         if self.dm_window is not None and hasattr(self.dm_window, "pump_events"):
             try:
                 self.dm_window.pump_events()
             except Exception:
                 pass
+
