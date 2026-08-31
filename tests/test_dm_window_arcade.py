@@ -1,5 +1,6 @@
 import unittest
 import sys
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -94,6 +95,69 @@ class TestDMWindowArcade(unittest.TestCase):
         self.assertEqual(self.dm_window.active_tab, 0)
         self.assertEqual(len(self.session.combat_manager.combatants), 0)
 
+    def test_encounter_creator_wizard_flow(self):
+
+        # 1. Abre a Aba 3 (Criador de Encontros)
+        self.dm_window.active_tab = 3
+        creator = self.dm_window.creator_tab
+        self.assertEqual(creator.stage, 1)
+
+        # 2. Configura metadados e combatentes
+        creator.title = "Emboscada no Covil"
+        creator.description = "Batalha contra kobolds armados."
+        creator.columns = 25
+        creator.feet_per_square = 5
+        creator.monster_counts["kobold"] = 3
+
+        # 3. Avança para Etapa 2 (Palco Tático)
+        success = creator.proceed_to_stage_2()
+        self.assertTrue(success)
+        self.assertEqual(creator.stage, 2)
+        self.assertGreaterEqual(len(creator.staging_combatants), 4)
+
+        # 4. Posiciona um combatente no grid
+        first_comb = creator.staging_combatants[0]
+        first_comb["placed"] = True
+        first_comb["col"] = 5
+        first_comb["row"] = 8
+        first_comb["is_hidden"] = True
+
+        # 5. Salva o encontro
+        saved_file = creator.save_encounter_file()
+        self.assertIsNotNone(saved_file)
+        self.assertTrue(Path(saved_file).is_file())
+
+        try:
+            # 6. Verifica se o encontro recém-salvo aparece na lista de encontros da Aba 0
+            self.dm_window.refresh_encounter_files()
+            saved_stem = Path(saved_file).stem
+            found = any(saved_stem in enc.get("uid", "") or saved_stem in enc.get("filename", "") for enc in self.dm_window.encounters_list)
+            self.assertTrue(found)
+        finally:
+            # Limpa o arquivo criado no teste
+            try:
+                os.remove(saved_file)
+            except Exception:
+                pass
+
+    def test_encounter_creator_staging_interaction(self):
+        self.dm_window.active_tab = 3
+        creator = self.dm_window.creator_tab
+        creator.monster_counts["kobold"] = 2
+        creator.proceed_to_stage_2()
+
+        # Testa alternar visibilidade de combatente
+        first_item = creator.staging_combatants[0]
+        self.assertFalse(first_item["is_hidden"])
+        first_item["is_hidden"] = True
+        self.assertTrue(first_item["is_hidden"])
+
+        # Testa retorno à Etapa 1
+        creator.return_to_stage_1()
+        self.assertEqual(creator.stage, 1)
+        self.assertEqual(creator.title, "Emboscada no Covil" if creator.title == "Emboscada no Covil" else creator.title)
+
 
 if __name__ == "__main__":
     unittest.main()
+

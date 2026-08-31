@@ -28,3 +28,32 @@
 [2026-08-31 15:43:24,249] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
 [2026-08-31 15:43:24,249] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Encontro' ().
 [2026-08-31 15:43:24,249] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-08-31 16:21:23,678] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 16:21:23,679] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 16:21:23,949] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 16:21:24,048] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 16:21:24,050] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 16:22:16,195] [INFO] [src.ui.dm.encounter_creator_tab]: Encounter Wizard avançou para Etapa 2: 6 combatentes prontos para posicionamento.
+[2026-08-31 16:22:19,599] [INFO] [src.ui.dm.encounter_creator_tab]: Token 'Bolo de Morango' posicionado no grid: [0, 6].
+[2026-08-31 16:22:21,593] [INFO] [src.ui.dm.encounter_creator_tab]: Token 'Cultista' posicionado no grid: [14, 3].
+[2026-08-31 16:22:23,388] [INFO] [src.ui.dm.encounter_creator_tab]: Token 'Kobold 1' posicionado no grid: [15, 4].
+[2026-08-31 16:22:25,678] [INFO] [src.ui.dm.encounter_creator_tab]: Token 'Kobold 2' posicionado no grid: [15, 2].
+[2026-08-31 16:22:28,950] [INFO] [src.ui.dm.encounter_creator_tab]: Token 'Kobold 4' posicionado no grid: [16, 3].
+[2026-08-31 16:22:30,645] [INFO] [src.ui.dm.encounter_creator_tab]: Token 'Kobold 3' posicionado no grid: [16, 5].
+[2026-08-31 16:22:33,776] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_31082026162233.json' (UID: encounter_31082026162233, 6 combatentes).
+[2026-08-31 16:22:33,788] [INFO] [src.ui.dm.encounter_creator_tab]: Encounter Wizard persistiu arquivo: 'creations\encounters\encounter_31082026162233.json'.
+[2026-08-31 16:22:49,184] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_31082026162233
+[2026-08-31 16:22:49,187] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Combate no caminho' (encounter_31082026162233) com 6 combatentes.
+[2026-08-31 16:28:25,647] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 16:28:25,648] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 16:28:25,916] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 16:28:26,011] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 16:28:26,012] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 16:29:12,829] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 3 combatentes para o mapa 'Open Field Grass Trees'.
+[2026-08-31 16:29:15,521] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Bolo de Morango' posicionado no grid: [0, 6].
+[2026-08-31 16:29:16,725] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [9, 7].
+[2026-08-31 16:29:18,519] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 2' posicionado no grid: [9, 6].
+[2026-08-31 16:29:19,826] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_31082026162919.json' (UID: encounter_31082026162919, 3 combatentes).
+[2026-08-31 16:29:19,827] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_31082026162919.json'.
+[2026-08-31 16:29:24,472] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_31082026162919
+[2026-08-31 16:29:24,474] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Teste de encontro' (encounter_31082026162919) com 3 combatentes.

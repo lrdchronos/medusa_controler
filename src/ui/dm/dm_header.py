@@ -99,11 +99,12 @@ class DMHeader:
         arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, tab_bar_cy, panel_w, tab_bar_h), (14, 18, 25, 255))
         arcade.draw_line(0, tab_bar_top - tab_bar_h, panel_w, tab_bar_top - tab_bar_h, (40, 50, 70, 200), 1)
 
-        tab_w = (panel_w - 20) / 3
+        tab_w = (panel_w - 20) / 4
         tabs_meta = [
             (0, "📋 Encontros"),
             (1, "🖼️ Showcase"),
-            (2, "⚔️ Combate Ativo"),
+            (2, "⚔️ Combate"),
+            (3, "🛠️ Criador"),
         ]
 
         for idx, label in tabs_meta:
@@ -139,11 +140,12 @@ class DMHeader:
         tab_bar_cy = tab_bar_top - tab_bar_h / 2
 
         if abs(y - tab_bar_cy) <= tab_bar_h / 2:
-            tab_w = (panel_w - 20) / 3
-            for idx in range(3):
+            tab_w = (panel_w - 20) / 4
+            for idx in range(4):
                 tx = 10 + idx * tab_w + tab_w / 2
                 if abs(x - tx) <= (tab_w - 6) / 2:
                     set_tab_callback(idx)
                     return True
+
 
         return False

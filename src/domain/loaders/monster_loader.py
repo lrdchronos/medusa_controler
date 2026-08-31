@@ -92,6 +92,9 @@ class MonsterLoader:
         builder.from_preset_dict(preset_data, instance_name=instance_name)
 
         if position:
-            builder.with_position(position.get("x", 0), position.get("y", 0))
+            pos_x = position.get("col", position.get("x", 0))
+            pos_y = position.get("row", position.get("y", 0))
+            builder.with_position(pos_x, pos_y)
 
         return builder.build()
+

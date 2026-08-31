@@ -111,7 +111,9 @@ class EncounterLoader:
 
         for item in raw_combatants:
             entity_type = item.get("entity_type", "monster")
-            position = item.get("position", {"x": 0, "y": 0})
+            position = item.get("position", {})
+            pos_x = position.get("col", position.get("x", 0))
+            pos_y = position.get("row", position.get("y", 0))
             is_hidden = bool(item.get("is_hidden", False))
 
             if entity_type == "monster":
@@ -120,7 +122,7 @@ class EncounterLoader:
                 monster = self._monster_loader.create_instance(
                     monster_id=monster_id,
                     instance_name=instance_name,
-                    position=position,
+                    position={"x": pos_x, "y": pos_y},
                 )
                 monster.set_hidden(is_hidden)
                 combatants.append(monster)
@@ -128,9 +130,10 @@ class EncounterLoader:
             elif entity_type in ("playable_character", "character", "pc"):
                 char_id = item.get("character_id", item.get("uid", "char"))
                 char = self._character_loader.load_by_id(char_id)
-                char.set_position(position.get("x", 0), position.get("y", 0))
+                char.set_position(pos_x, pos_y)
                 char.set_hidden(is_hidden)
                 combatants.append(char)
+
 
         return {
             "uid": uid,

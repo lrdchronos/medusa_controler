@@ -1,0 +1,75 @@
+{
+    "uid": "encounter_31082026162233",
+    "title": "Combate no caminho",
+    "description": "Grupo de monstros surpreende os heróis em uma clareira.drsaeaserrasee",
+    "map_file": "assets/images/maps/open_field_grass_trees.jpg",
+    "environment": {
+        "is_sunlight": false,
+        "is_raining": false
+    },
+    "grid": {
+        "columns": 21,
+        "feet_per_square": 5
+    },
+    "combatants": [
+        {
+            "entity_type": "playable_character",
+            "character_id": "char_240820261336",
+            "is_hidden": false,
+            "position": {
+                "col": 0,
+                "row": 6
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "basic_culstist",
+            "instance_name": "Cultista",
+            "is_hidden": false,
+            "position": {
+                "col": 14,
+                "row": 3
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold 1",
+            "is_hidden": false,
+            "position": {
+                "col": 15,
+                "row": 4
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold 2",
+            "is_hidden": false,
+            "position": {
+                "col": 15,
+                "row": 2
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold 3",
+            "is_hidden": false,
+            "position": {
+                "col": 16,
+                "row": 5
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold 4",
+            "is_hidden": false,
+            "position": {
+                "col": 16,
+                "row": 3
+            }
+        }
+    ]
+}

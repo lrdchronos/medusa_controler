@@ -207,3 +207,109 @@ class SessionManager:
                     })
 
         return images
+
+    def list_available_maps(self) -> List[Dict[str, str]]:
+        """Varre as pastas de mapas de batalha para listar mapas disponíveis."""
+        maps: List[Dict[str, str]] = []
+        search_dirs = [
+            Path("assets/images/maps"),
+            Path("assets/maps"),
+            Path("assets/images"),
+        ]
+        valid_extensions = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
+        seen_paths = set()
+
+        for base in search_dirs:
+            if not base.exists():
+                continue
+            for file in base.glob("*.*"):
+                if file.suffix.lower() in valid_extensions:
+                    resolved = str(file.resolve())
+                    if resolved in seen_paths:
+                        continue
+                    seen_paths.add(resolved)
+                    try:
+                        rel_path = str(file.relative_to(Path.cwd())).replace("\\", "/")
+                    except Exception:
+                        rel_path = str(file).replace("\\", "/")
+                    maps.append({
+                        "name": file.stem.replace("_", " ").title(),
+                        "filename": file.name,
+                        "path": rel_path,
+                    })
+        return maps
+
+    def list_available_characters(self) -> List[Dict[str, Any]]:
+        """Varre as fichas de personagens de jogadores disponíveis."""
+        characters: List[Dict[str, Any]] = []
+        search_dirs = [
+            Path("creations/characters"),
+            Path("creations"),
+        ]
+        seen_uids = set()
+
+        for base in search_dirs:
+            if not base.exists():
+                continue
+            for file in base.glob("*.json"):
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    uid = data.get("uid", file.stem)
+                    if uid in seen_uids:
+                        continue
+                    if "classes" in data or "vitality" in data or "race" in data:
+                        seen_uids.add(uid)
+                        classes_list = data.get("classes", [])
+                        class_names = [c.get("class_id", "") for c in classes_list if isinstance(c, dict)]
+                        class_str = "/".join(class_names).title() if class_names else "Aventureiro"
+                        characters.append({
+                            "uid": uid,
+                            "name": data.get("name", file.stem),
+                            "level": data.get("level", 1),
+                            "class_summary": class_str,
+                            "max_hp": data.get("vitality", {}).get("max_hp", 10),
+                            "filename": file.name,
+                            "path": str(file),
+                        })
+                except Exception as e:
+                    logger.error(f"Falha ao ler personagem '{file}': {e}")
+        return characters
+
+    def list_available_monster_presets(self) -> List[Dict[str, Any]]:
+        """Varre os presets de monstros disponíveis."""
+        monsters: List[Dict[str, Any]] = []
+        search_dirs = [
+            Path("presets/monsters"),
+            Path("presets"),
+        ]
+        seen_uids = set()
+
+        for base in search_dirs:
+            if not base.exists():
+                continue
+            for file in base.glob("*.json"):
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    uid = data.get("uid", file.stem)
+                    if uid in seen_uids:
+                        continue
+                    if "hit_points" in data or "challenge_rating" in data or "actions" in data:
+                        seen_uids.add(uid)
+                        hp_info = data.get("hit_points", {})
+                        hp_val = hp_info.get("average", 10) if isinstance(hp_info, dict) else 10
+                        ac_info = data.get("armor_class", {})
+                        ac_val = ac_info.get("value", 10) if isinstance(ac_info, dict) else 10
+                        monsters.append({
+                            "uid": uid,
+                            "name": data.get("name", file.stem.title()),
+                            "cr": data.get("challenge_rating", 0),
+                            "max_hp": hp_val,
+                            "armor_class": ac_val,
+                            "filename": file.name,
+                            "path": str(file),
+                        })
+                except Exception as e:
+                    logger.error(f"Falha ao ler preset de monstro '{file}': {e}")
+        return monsters
