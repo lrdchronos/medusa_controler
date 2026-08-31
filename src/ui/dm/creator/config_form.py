@@ -1,7 +1,9 @@
 import os
 from typing import Optional, List, Dict, Any, Set, Tuple
 import arcade
-from .text_input import TextInputWidget
+from .text_input import TextInputWidget, SmartTextInput
+
+
 
 
 class CreatorConfigForm:
@@ -446,6 +448,17 @@ class CreatorConfigForm:
 
         return None
 
+    def handle_mouse_drag(self, x: float, y: float) -> bool:
+        if self.title_input.is_focused:
+            return self.title_input.handle_mouse_drag(x, y)
+        if self.description_input.is_focused:
+            return self.description_input.handle_mouse_drag(x, y)
+        return False
+
+    def handle_mouse_release(self, x: float, y: float) -> None:
+        self.title_input.handle_mouse_release(x, y)
+        self.description_input.handle_mouse_release(x, y)
+
     def handle_key_press(self, symbol: int, modifiers: int) -> bool:
         if self.title_input.is_focused:
             if symbol in (arcade.key.ENTER, arcade.key.TAB):
@@ -472,3 +485,4 @@ class CreatorConfigForm:
         if self.description_input.is_focused:
             return self.description_input.handle_text_input(text)
         return False
+

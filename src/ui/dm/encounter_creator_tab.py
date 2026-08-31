@@ -178,12 +178,17 @@ class EncounterCreatorTabView:
         return False
 
     def handle_mouse_drag(self, x: float, y: float) -> None:
-        if self.stage == 2:
+        if self.stage == 1:
+            self.form.handle_mouse_drag(x, y)
+        elif self.stage == 2:
             self.tactical_stage.handle_mouse_drag(x, y)
 
     def handle_mouse_release(self, x: float, y: float, split_x: float) -> None:
-        if self.stage == 2:
+        if self.stage == 1:
+            self.form.handle_mouse_release(x, y)
+        elif self.stage == 2:
             self.tactical_stage.handle_mouse_release(x, y, split_x)
+
 
     def handle_key_press(self, symbol: int, modifiers: int) -> bool:
         if self.stage == 1:

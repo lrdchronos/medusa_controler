@@ -57,3 +57,20 @@
 [2026-08-31 16:29:19,827] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_31082026162919.json'.
 [2026-08-31 16:29:24,472] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_31082026162919
 [2026-08-31 16:29:24,474] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Teste de encontro' (encounter_31082026162919) com 3 combatentes.
+[2026-08-31 16:48:11,222] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 16:48:11,223] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 16:48:11,631] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 16:48:11,721] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 16:48:11,723] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 16:50:33,247] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 16:50:33,249] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 16:50:33,692] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 16:50:33,783] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 16:50:33,785] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 16:50:38,742] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_01
+[2026-08-31 16:50:38,745] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada em Túnel (Encontro 01)' (encounter_01) com 5 combatentes.
+[2026-08-31 16:50:47,859] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Kobold A (HP: 0/5)
+[2026-08-31 16:51:00,470] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold C' movido de (2, 6) para (3, 6).
+[2026-08-31 16:51:11,844] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-08-31 16:51:11,844] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada em Túnel (Encontro 01)' (encounter_01).
+[2026-08-31 16:51:11,845] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
