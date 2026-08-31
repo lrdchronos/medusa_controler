@@ -252,23 +252,19 @@ class PlayerWindow(arcade.Window):
         world_w = grid_mgr.map_width
         world_h = grid_mgr.map_height
 
-        # Espaço disponível na tela dos jogadores reservando margem para o HUD de iniciativa no topo e o banner inferior
-        top_hud_margin = 86
-        bottom_banner_margin = 36
-        avail_w = float(w)
-        avail_h = float(h) - top_hud_margin - bottom_banner_margin
-
-        scale = min(avail_w / world_w, avail_h / world_h)
+        # Enquadramento Aspect-Fill (100% da viewport preenchida sem distorção anamórfica nem barras pretas)
+        scale = max(float(w) / world_w, float(h) / world_h)
         draw_w = world_w * scale
         draw_h = world_h * scale
 
-        draw_x = (w - draw_w) / 2
-        draw_y = bottom_banner_margin + (avail_h - draw_h) / 2
+        # Centraliza o mapa simetricamente na tela dos jogadores
+        draw_x = (float(w) - draw_w) / 2.0
+        draw_y = (float(h) - draw_h) / 2.0
 
         # Fundo escuro da tela
         arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (14, 18, 24, 255))
 
-        # 1. Mapa de Fundo (mantendo a proporção exata sem distorção)
+        # 1. Mapa de Fundo (mantendo a proporção exata sem distorção em tela cheia)
         if tex is not None:
             arcade.draw_texture_rect(
                 tex,
@@ -335,20 +331,20 @@ class PlayerWindow(arcade.Window):
                 text_cache=self._text_cache,
             )
 
-        # Renderiza a Fila de Iniciativas EXCLUSIVAMENTE no Topo da Tela
+        # 4. Fila de Iniciativas como Overlay Flutuante Translúcido no Topo da Tela
         self.hud.draw(w, h)
 
-        # Banner Inferior Informativo
+        # 5. Banner Inferior Informativo Translúcido Flutuante
         self._draw_bottom_banner(w, h)
 
     def _draw_bottom_banner(self, w: int, h: int) -> None:
-        """Exibe o rodapé com informações do encontro, rodada e combatente ativo."""
+        """Exibe o rodapé translúcido flutuante com informações do encontro, rodada e combatente ativo."""
         banner_h = 36
         arcade.draw_rect_filled(
             arcade.XYWH(w / 2, banner_h / 2, w, banner_h),
-            (10, 14, 20, 230),
+            (10, 14, 20, 160),
         )
-        arcade.draw_line(0, banner_h, w, banner_h, (40, 50, 70, 180), 1)
+        arcade.draw_line(0, banner_h, w, banner_h, (50, 65, 90, 140), 1)
 
         combat_manager = self.session_manager.combat_manager
         active = combat_manager.active_character

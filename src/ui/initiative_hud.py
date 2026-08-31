@@ -64,16 +64,17 @@ class InitiativeHUD:
         total_width = (len(turn_order) - 1) * spacing
         start_x = (screen_width - total_width) / 2
 
-        # 1. Fundo translúcido do HUD (Glassmorphism Ribbon)
-        ribbon_w = max(screen_width * 0.9, total_width + 120)
-        ribbon_left = (screen_width - ribbon_w) / 2
+        # 1. Overlay Flutuante Translúcido (Floating Transparent Capsule)
+        # Sombra/fundo suave translúcido apenas no contorno dos badges para preservar o mapa
+        capsule_w = total_width + 80
+        capsule_h = 76
         arcade.draw_rect_filled(
-            arcade.XYWH(screen_width / 2, screen_height - 45, ribbon_w, hud_height),
-            (15, 20, 30, 210),
+            arcade.XYWH(screen_width / 2, center_y - 2, capsule_w, capsule_h),
+            (10, 14, 20, 140),
         )
         arcade.draw_rect_outline(
-            arcade.XYWH(screen_width / 2, screen_height - 45, ribbon_w, hud_height),
-            (60, 75, 100, 180),
+            arcade.XYWH(screen_width / 2, center_y - 2, capsule_w, capsule_h),
+            (60, 80, 110, 90),
             1,
         )
 
