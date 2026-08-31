@@ -155,7 +155,66 @@ class Entity(ABC):
             "current_hp": self.__current_hp,
             "temporary_hp": self.__temp_hp,
             "is_alive": self.__is_alive,
+            "hp_percentage": self.hp_percentage,
+            "vitality_status": self.vitality_status,
         }
+
+    @property
+    def hp_percentage(self) -> float:
+        """Retorna a porcentagem atual de vida da entidade [0.0, 100.0]."""
+        if self.__max_hp <= 0:
+            return 0.0
+        return (self.__current_hp / self.__max_hp) * 100.0
+
+    @property
+    def health_percentage(self) -> float:
+        """Alias para hp_percentage."""
+        return self.hp_percentage
+
+    @property
+    def health_ratio(self) -> float:
+        """Retorna a fração atual de vida da entidade [0.0, 1.0]."""
+        if self.__max_hp <= 0:
+            return 0.0
+        return self.__current_hp / self.__max_hp
+
+    @property
+    def vitality_status(self) -> str:
+        """
+        Retorna a classificação semântica da faixa de vitalidade:
+          - "HEALTHY": HP > 80% (Intacto / Saudável)
+          - "WOUNDED": 30% < HP <= 80% (Ferido / Sangrando)
+          - "CRITICAL": 0% < HP <= 30% (Crítico / Quase abatido)
+          - "DEAD": HP <= 0 (Abatido)
+        """
+        if not self.__is_alive or self.__current_hp <= 0:
+            return "DEAD"
+        pct = self.hp_percentage
+        if pct > 80.0:
+            return "HEALTHY"
+        elif pct > 30.0:
+            return "WOUNDED"
+        else:
+            return "CRITICAL"
+
+    @property
+    def vitality_color(self) -> tuple:
+        """
+        Retorna a cor RGBA correspondente à faixa semântica de vitalidade:
+          - Verde (HP > 80%): (46, 204, 113, 255)
+          - Amarelo (30% < HP <= 80%): (241, 196, 15, 255)
+          - Vermelho (0% < HP <= 30%): (231, 76, 60, 255)
+          - Cinza / Abatido (HP <= 0): (120, 120, 120, 255)
+        """
+        status = self.vitality_status
+        if status == "HEALTHY":
+            return (46, 204, 113, 255)
+        elif status == "WOUNDED":
+            return (241, 196, 15, 255)
+        elif status == "CRITICAL":
+            return (231, 76, 60, 255)
+        else:
+            return (120, 120, 120, 255)
 
     # --- Métodos de Modificação de Estado ---
 

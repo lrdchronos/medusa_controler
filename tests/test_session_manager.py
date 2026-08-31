@@ -41,9 +41,22 @@ class TestSessionManager(unittest.TestCase):
         self.assertTrue(self.session.is_combat_active)
         self.assertGreater(len(self.session.combat_manager.combatants), 0)
 
-        # Encerra o combate
+        # Encerra o combate e retorna para IDLE
         self.session.end_combat(DisplayState.IDLE)
         self.assertEqual(self.session.display_state, DisplayState.IDLE)
+        self.assertTrue(self.session.is_idle)
+        self.assertFalse(self.session.is_combat_active)
+        self.assertEqual(len(self.session.combat_manager.combatants), 0)
+        self.assertEqual(len(self.session.combat_manager.turn_order), 0)
+
+    def test_return_to_idle_alias_and_cleanup(self):
+        self.session.start_encounter("encounter_240820261511")
+        self.assertTrue(self.session.is_combat_active)
+
+        self.session.return_to_idle()
+        self.assertEqual(self.session.display_state, DisplayState.IDLE)
+        self.assertTrue(self.session.is_idle)
+        self.assertEqual(len(self.session.combat_manager.combatants), 0)
 
     def test_list_encounters_discovery(self):
         encounters = self.session.list_available_encounters()

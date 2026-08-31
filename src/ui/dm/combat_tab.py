@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any, Callable
 import arcade
-from ...manager.session_manager import SessionManager
+from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
 from ...domain.models.entity import Entity
 
@@ -85,11 +85,11 @@ class CombatTabView:
         arcade.draw_rect_outline(arcade.XYWH(b3_x, bar_y, btn_w - 4, btn_h), (46, 204, 113, 255), 1)
         self._get_text("cm_b_next", "▶ Próximo Turno", b3_x, bar_y, (255, 255, 255, 255), 9, bold=True, anchor_x="center").draw()
 
-        # Botão 4: Encerrar Combate
+        # Botão 4: Finalizar Combate
         b4_x = 12 + 3 * btn_w + btn_w / 2
         arcade.draw_rect_filled(arcade.XYWH(b4_x, bar_y, btn_w - 4, btn_h), (192, 57, 43, 255))
         arcade.draw_rect_outline(arcade.XYWH(b4_x, bar_y, btn_w - 4, btn_h), (231, 76, 60, 255), 1)
-        self._get_text("cm_b_end", "⏹ Encerrar", b4_x, bar_y, (255, 255, 255, 255), 9, bold=True, anchor_x="center").draw()
+        self._get_text("cm_b_end", "🏁 Finalizar Combate", b4_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
         # 2. Informação de Rodada e Turno Ativo
         info_y = bar_y - 28
@@ -288,10 +288,10 @@ class CombatTabView:
                 self.combat_manager.next_turn()
                 return True
 
-            # Botão 4: Encerrar Combate
+            # Botão 4: Finalizar Combate
             b4_x = 12 + 3 * btn_w + btn_w / 2
             if abs(x - b4_x) <= (btn_w - 4) / 2:
-                self.session_manager.return_to_idle()
+                self.session_manager.end_combat(DisplayState.IDLE)
                 return True
 
         # 2. Cliques nas Linhas da Tabela de Combatentes

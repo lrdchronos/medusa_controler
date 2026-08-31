@@ -353,3 +353,36 @@ class CombatManager:
             self.notify_listeners()
             return True
         return False
+
+    # --- Encerramento e Reset de Combate ---
+
+    def reset_combat(self) -> None:
+        """
+        Reseta o estado do combate: limpa combatentes ativos, fila de iniciativas,
+        ponteiro de turnos, rodadas, referências de mapa e GridManager.
+        Notifica todos os Observers conectados.
+        """
+        enc_title = self.__title
+        enc_uid = self.__encounter_uid
+        logger.info(f"Resetando estado de combate do encontro: '{enc_title}' ({enc_uid}).")
+
+        self.__encounter_uid = ""
+        self.__title = "Encontro"
+        self.__description = ""
+        self.__map_file = None
+        self.__environment = {"is_sunlight": False, "is_raining": False}
+        self.__grid_data = {"columns": 25, "feet_per_square": 5}
+        self.__grid_manager = None
+
+        self.__combatants.clear()
+        self.__turn_order.clear()
+        self.__current_turn_index = -1
+        self.__round_number = 1
+
+        logger.info("Estado do CombatManager resetado com sucesso.")
+        self.notify_listeners()
+
+    def clear_combat(self) -> None:
+        """Alias para reset_combat()."""
+        self.reset_combat()
+

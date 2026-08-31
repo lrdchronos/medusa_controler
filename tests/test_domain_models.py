@@ -124,6 +124,55 @@ class TestDomainModels(unittest.TestCase):
         self.assertTrue(monster.check_disadvantage("attack_roll", {"self_condition": "in_sunlight"}))
         self.assertFalse(monster.check_disadvantage("attack_roll", {"self_condition": "in_darkness"}))
 
+    def test_vitality_percentage_and_status_brackets(self):
+        monster = Monster(name="Goblin", max_hp=100)
+
+        # 1. 100% de vida -> HEALTHY / Verde
+        self.assertAlmostEqual(monster.hp_percentage, 100.0)
+        self.assertAlmostEqual(monster.health_percentage, 100.0)
+        self.assertAlmostEqual(monster.health_ratio, 1.0)
+        self.assertEqual(monster.vitality_status, "HEALTHY")
+        self.assertEqual(monster.vitality_color, (46, 204, 113, 255))
+        self.assertEqual(monster.vitality["vitality_status"], "HEALTHY")
+        self.assertAlmostEqual(monster.vitality["hp_percentage"], 100.0)
+
+        # 2. 85% de vida (> 80%) -> HEALTHY / Verde
+        monster.set_current_hp(85)
+        self.assertAlmostEqual(monster.hp_percentage, 85.0)
+        self.assertEqual(monster.vitality_status, "HEALTHY")
+        self.assertEqual(monster.vitality_color, (46, 204, 113, 255))
+
+        # 3. 80% de vida (30% < HP <= 80%) -> WOUNDED / Amarelo
+        monster.set_current_hp(80)
+        self.assertAlmostEqual(monster.hp_percentage, 80.0)
+        self.assertEqual(monster.vitality_status, "WOUNDED")
+        self.assertEqual(monster.vitality_color, (241, 196, 15, 255))
+
+        # 4. 31% de vida (30% < HP <= 80%) -> WOUNDED / Amarelo
+        monster.set_current_hp(31)
+        self.assertAlmostEqual(monster.hp_percentage, 31.0)
+        self.assertEqual(monster.vitality_status, "WOUNDED")
+        self.assertEqual(monster.vitality_color, (241, 196, 15, 255))
+
+        # 5. 30% de vida (0% < HP <= 30%) -> CRITICAL / Vermelho
+        monster.set_current_hp(30)
+        self.assertAlmostEqual(monster.hp_percentage, 30.0)
+        self.assertEqual(monster.vitality_status, "CRITICAL")
+        self.assertEqual(monster.vitality_color, (231, 76, 60, 255))
+
+        # 6. 5% de vida (0% < HP <= 30%) -> CRITICAL / Vermelho
+        monster.set_current_hp(5)
+        self.assertAlmostEqual(monster.hp_percentage, 5.0)
+        self.assertEqual(monster.vitality_status, "CRITICAL")
+        self.assertEqual(monster.vitality_color, (231, 76, 60, 255))
+
+        # 7. 0% de vida (HP <= 0) -> DEAD / Cinza
+        monster.set_current_hp(0)
+        self.assertAlmostEqual(monster.hp_percentage, 0.0)
+        self.assertEqual(monster.vitality_status, "DEAD")
+        self.assertEqual(monster.vitality_color, (120, 120, 120, 255))
+        self.assertFalse(monster.is_alive)
+
 
 if __name__ == "__main__":
     unittest.main()

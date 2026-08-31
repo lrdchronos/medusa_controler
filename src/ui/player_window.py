@@ -334,40 +334,6 @@ class PlayerWindow(arcade.Window):
         # 4. Fila de Iniciativas como Overlay Flutuante Translúcido no Topo da Tela
         self.hud.draw(w, h)
 
-        # 5. Banner Inferior Informativo Translúcido Flutuante
-        self._draw_bottom_banner(w, h)
-
-    def _draw_bottom_banner(self, w: int, h: int) -> None:
-        """Exibe o rodapé translúcido flutuante com informações do encontro, rodada e combatente ativo."""
-        banner_h = 36
-        arcade.draw_rect_filled(
-            arcade.XYWH(w / 2, banner_h / 2, w, banner_h),
-            (10, 14, 20, 160),
-        )
-        arcade.draw_line(0, banner_h, w, banner_h, (50, 65, 90, 140), 1)
-
-        combat_manager = self.session_manager.combat_manager
-        active = combat_manager.active_character
-        if active:
-            active_info = f"Turno Ativo: {active.name} | HP: {active.current_hp}/{active.max_hp} | CA: {active.armor_class}"
-        else:
-            active_info = "Aguardando início do combate (Clique em 'Rolar Iniciativas' no Mestre)"
-
-        banner_text_str = f"⚔️ {combat_manager.title} • Rodada {combat_manager.round_number} • {active_info}"
-
-        txt = self._get_cached_text(
-            "combat_banner",
-            banner_text_str,
-            20,
-            banner_h / 2,
-            (240, 240, 245, 255),
-            11,
-            bold=True,
-            anchor_x="left",
-            anchor_y="center",
-        )
-        txt.draw()
-
     def on_update(self, delta_time: float) -> None:
         """Ciclo de atualização: temporizador da animação IDLE."""
         self.switch_to()

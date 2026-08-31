@@ -132,6 +132,8 @@ class DMWindow(arcade.Window):
     def _on_session_changed(self) -> None:
         if self.session_manager.is_combat_active and self.active_tab != 2:
             self.active_tab = 2
+        elif self.session_manager.is_idle and self.active_tab == 2:
+            self.active_tab = 0
         self.combat_tab.ensure_valid_selection()
 
     # --- Ciclo de Vida da Janela (Arcade) ---

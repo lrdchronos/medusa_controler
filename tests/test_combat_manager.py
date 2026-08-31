@@ -104,6 +104,29 @@ class TestCombatManager(unittest.TestCase):
         self.manager.next_turn()
         self.assertGreater(len(notified), prev_count)
 
+    def test_reset_combat_clears_state(self):
+        self.manager.roll_initiatives()
+        self.assertTrue(self.manager.has_combat_started)
+        self.assertGreater(len(self.manager.combatants), 0)
+        self.assertGreater(len(self.manager.turn_order), 0)
+
+        notified = []
+        self.manager.add_listener(lambda: notified.append(True))
+
+        # Executa reset do combate
+        self.manager.reset_combat()
+
+        self.assertEqual(len(self.manager.combatants), 0)
+        self.assertEqual(len(self.manager.turn_order), 0)
+        self.assertEqual(self.manager.current_turn_index, -1)
+        self.assertEqual(self.manager.round_number, 1)
+        self.assertFalse(self.manager.has_combat_started)
+        self.assertIsNone(self.manager.active_character)
+        self.assertIsNone(self.manager.map_file)
+        self.assertIsNone(self.manager.grid_manager)
+        self.assertEqual(self.manager.encounter_uid, "")
+        self.assertGreater(len(notified), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

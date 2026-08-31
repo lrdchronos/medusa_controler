@@ -138,9 +138,14 @@ class InitiativeHUD:
             arcade.draw_circle_filled(cx, cy - 2, radius + 1, (0, 0, 0, 120))
             # Preenchimento
             arcade.draw_circle_filled(cx, cy, radius, fill_color)
-            # Borda
+            # Borda principal
             border_width = 3 if is_active else 2
             arcade.draw_circle_outline(cx, cy, radius, border_color, border_width)
+
+            # Contorno de Vitalidade Semântica para Monstros
+            if not is_player and is_alive:
+                vit_col = combatant.vitality_color
+                arcade.draw_circle_outline(cx, cy, radius - 3, vit_col, 1.5)
 
             # 5. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, CULT)
             short_name = combatant.name.strip()[:4].upper()
@@ -155,7 +160,26 @@ class InitiativeHUD:
             )
             txt_obj.draw()
 
-            # 6. Mini Badge com a Iniciativa (Abaixo do Token)
+            # 6. Indicador Semântico de Vida (Health Pip / Badge) no canto inferior direito para Monstros
+            if not is_player:
+                pip_x = cx + radius * 0.68
+                pip_y = cy - radius * 0.68
+                pip_r = 6.5
+
+                # Sombra / Contorno externo escuro
+                arcade.draw_circle_filled(pip_x, pip_y, pip_r + 1.5, (10, 14, 20, 255))
+                arcade.draw_circle_outline(pip_x, pip_y, pip_r + 1.5, (40, 50, 70, 230), 1)
+
+                # Preenchimento com a cor semântica de vitalidade (🟢 >80%, 🟡 30-80%, 🔴 <=30%, 💀 <=0)
+                pip_color = combatant.vitality_color
+                arcade.draw_circle_filled(pip_x, pip_y, pip_r, pip_color)
+                arcade.draw_circle_outline(pip_x, pip_y, pip_r, (255, 255, 255, 140), 1)
+
+                # Brilho / Gloss especular superior
+                if is_alive:
+                    arcade.draw_circle_filled(pip_x - 1.5, pip_y + 1.5, 1.8, (255, 255, 255, 180))
+
+            # 7. Mini Badge com a Iniciativa (Abaixo do Token)
             init_val = combatant.initiative_score
             init_badge_y = cy - radius - 2
             arcade.draw_circle_filled(cx, init_badge_y, 9, (20, 24, 33, 240))
@@ -171,7 +195,7 @@ class InitiativeHUD:
             )
             init_txt.draw()
 
-            # 7. Marcador de Morte se abatido
+            # 8. Marcador de Morte se abatido
             if not is_alive:
                 arcade.draw_line(
                     cx - 14, cy - 14, cx + 14, cy + 14, (244, 67, 54, 255), 3

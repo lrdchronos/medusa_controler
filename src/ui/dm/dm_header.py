@@ -130,7 +130,7 @@ class DMHeader:
         # Clique no Botão IDLE
         idle_btn_x = panel_w - 60
         if abs(y - header_cy) <= 14 and abs(x - idle_btn_x) <= 26:
-            self.session_manager.return_to_idle()
+            self.session_manager.clear_display_to_idle()
             return True
 
         # Clique nas Abas

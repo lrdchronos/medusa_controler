@@ -118,18 +118,24 @@ class SessionManager:
 
     def end_combat(self, return_to: DisplayState = DisplayState.IDLE) -> None:
         """
-        Encerra o combate ativo e retorna a tela dos jogadores para IDLE (ou PROJECTION).
+        Encerra o combate ativo, reseta o estado do CombatManager e retorna a tela dos jogadores para IDLE (ou PROJECTION).
         """
         logger.info(f"Encerrando combate e retornando exibição para: {return_to.value}")
+        self.__combat_manager.reset_combat()
         self.__display_state = return_to
         self.notify_listeners()
 
     def clear_display_to_idle(self) -> None:
-        """Retorna a Tela dos Jogadores para a tela de espera / descanso (IDLE)."""
+        """Retorna a Tela dos Jogadores para a tela de espera / descanso (IDLE), descarregando combate e projeções."""
         logger.info("Retornando Tela dos Jogadores para IDLE")
+        self.__combat_manager.reset_combat()
         self.__projected_image_path = None
         self.__display_state = DisplayState.IDLE
         self.notify_listeners()
+
+    def return_to_idle(self) -> None:
+        """Alias ergonômico para clear_display_to_idle()."""
+        self.clear_display_to_idle()
 
     # --- Descoberta de Arquivos de Encontros e Imagens ---
 

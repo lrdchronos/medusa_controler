@@ -83,6 +83,17 @@ class TestDMWindowArcade(unittest.TestCase):
         self.session.combat_manager.toggle_combatant_visibility(kobold.uid)
         self.assertFalse(kobold.is_hidden)
 
+    def test_end_combat_ui_flow(self):
+        self.session.start_encounter("encounter_01")
+        self.assertEqual(self.dm_window.active_tab, 2)
+        self.assertTrue(self.session.is_combat_active)
+
+        # Encerra o combate
+        self.session.end_combat(DisplayState.IDLE)
+        self.assertEqual(self.session.display_state, DisplayState.IDLE)
+        self.assertEqual(self.dm_window.active_tab, 0)
+        self.assertEqual(len(self.session.combat_manager.combatants), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
