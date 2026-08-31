@@ -4,6 +4,12 @@ Este arquivo define as leis universais e padrões técnicos do projeto Medusa. T
 
 ---
 
+## 0. Linha de base do código
+- **OOD sempre**: O código deve priorizar a orientação por objetos e o conceito de single responsibility. Em resumo: evitar código procedural espalhado
+- **Modularização sempre**: O código deve ser modular e bem organizado. Evitar arquivos monolíticos e código espalhado. Separar responsabilidades.
+
+---
+
 ## 1. Regras de Ouro da Arquitetura (Invioláveis)
 - **Zero Tkinter:** Toda a UI do sistema (PlayerWindow e DMWindow) usa **Python Arcade e Arcade GUI (`arcade.gui`)**.
 - **Zero `print()`:** Todas as saídas de terminal e depuração DEVEM usar o módulo padrão `logging` (`logger = logging.getLogger(__name__)`).

@@ -91,6 +91,70 @@ class TestCreatorOOD(unittest.TestCase):
         self.assertFalse(is_valid)
         self.assertIn("título", err.lower())
 
+    def test_config_form_strict_encapsulation_and_poka_yoke(self):
+        """Testa o encapsulamento estrito (__), validações defensivas e cópias defensivas."""
+        maps = [{"path": "map1.jpg", "name": "Mapa 1"}, {"path": "map2.jpg", "name": "Mapa 2"}]
+        chars = [{"uid": "c1", "name": "Guerreiro"}, {"uid": "c2", "name": "Mago"}]
+        mons = [{"uid": "m1", "name": "Goblin"}, {"uid": "m2", "name": "Dragão"}]
+
+        form = CreatorConfigForm(available_maps=maps, available_characters=chars, available_monsters=mons)
+
+        # 1. Atributos privados com duplo underscore
+        self.assertTrue(hasattr(form, "_CreatorConfigForm__available_maps"))
+        self.assertTrue(hasattr(form, "_CreatorConfigForm__columns"))
+        self.assertTrue(hasattr(form, "_CreatorConfigForm__monster_counts"))
+        self.assertTrue(hasattr(form, "_CreatorConfigForm__selected_character_uids"))
+
+        # 2. Poka-Yoke em columns
+        form.columns = 30
+        self.assertEqual(form.columns, 30)
+        form.columns = -10  # Deve fazer clamp defensivo no mínimo (1)
+        self.assertEqual(form.columns, 1)
+
+        # 3. Poka-Yoke em feet_per_square
+        form.feet_per_square = 10
+        self.assertEqual(form.feet_per_square, 10)
+        form.feet_per_square = 0  # Deve fazer clamp defensivo no mínimo (1)
+        self.assertEqual(form.feet_per_square, 1)
+
+        # 4. Poka-Yoke em selected_map_index
+        form.selected_map_index = 1
+        self.assertEqual(form.selected_map_index, 1)
+        form.selected_map_index = 5  # Modulo/wrapping dentro dos limites
+        self.assertEqual(form.selected_map_index, 1)
+
+        # 5. Cópias defensivas em listas mutáveis
+        ext_maps = form.available_maps
+        ext_maps.clear()
+        self.assertEqual(len(form.available_maps), 2)  # Permanece intacto internamente
+
+        ext_chars = form.available_characters
+        ext_chars.clear()
+        self.assertEqual(len(form.available_characters), 2)
+
+        # 6. Métodos de conveniência para personagens e monstros
+        self.assertTrue(form.is_character_selected("c1"))
+        toggled = form.toggle_character("c1")
+        self.assertFalse(toggled)
+        self.assertFalse(form.is_character_selected("c1"))
+        toggled_back = form.toggle_character("c1")
+        self.assertTrue(toggled_back)
+        self.assertTrue(form.is_character_selected("c1"))
+
+        form.set_monster_count("m1", 4)
+        self.assertEqual(form.get_monster_count("m1"), 4)
+        form.increment_monster("m1", 2)
+        self.assertEqual(form.get_monster_count("m1"), 6)
+        form.decrement_monster("m1", 3)
+        self.assertEqual(form.get_monster_count("m1"), 3)
+
+        # 7. Consolidação de dados com get_config_data
+        config_data = form.get_config_data()
+        self.assertIsInstance(config_data, dict)
+        self.assertEqual(config_data["columns"], 1)
+        self.assertIn("c1", config_data["selected_character_uids"])
+        self.assertEqual(config_data["monster_counts"]["m1"], 3)
+
     def test_tactical_stage_lifecycle(self):
         stage = CreatorTacticalStage()
         config_data = {
@@ -119,3 +183,4 @@ class TestCreatorOOD(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

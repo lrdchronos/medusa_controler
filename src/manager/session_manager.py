@@ -301,14 +301,27 @@ class SessionManager:
                         hp_val = hp_info.get("average", 10) if isinstance(hp_info, dict) else 10
                         ac_info = data.get("armor_class", {})
                         ac_val = ac_info.get("value", 10) if isinstance(ac_info, dict) else 10
+                        raw_tags = data.get("tags", [])
+                        if isinstance(raw_tags, str):
+                            tags_list = [t.strip() for t in raw_tags.split(",") if t.strip()]
+                        elif isinstance(raw_tags, list):
+                            tags_list = [str(t).strip() for t in raw_tags if str(t).strip()]
+                        else:
+                            tags_list = []
+
                         monsters.append({
                             "uid": uid,
                             "name": data.get("name", file.stem.title()),
                             "cr": data.get("challenge_rating", 0),
                             "max_hp": hp_val,
                             "armor_class": ac_val,
+                            "type": str(data.get("type", "")),
+                            "sub_type": str(data.get("sub_type", "")),
+                            "tags": tags_list,
+                            "sprite_path": data.get("sprite_path") or data.get("token_path"),
                             "filename": file.name,
                             "path": str(file),
+                            "raw_data": data,
                         })
                 except Exception as e:
                     logger.error(f"Falha ao ler preset de monstro '{file}': {e}")

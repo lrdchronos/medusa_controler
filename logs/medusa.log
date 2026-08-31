@@ -74,3 +74,25 @@
 [2026-08-31 16:51:11,844] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
 [2026-08-31 16:51:11,844] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada em Túnel (Encontro 01)' (encounter_01).
 [2026-08-31 16:51:11,845] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-08-31 16:53:00,842] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 16:53:00,843] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 16:53:01,294] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 16:53:01,387] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 16:53:01,387] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 16:54:06,463] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 16:54:06,464] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 16:54:06,892] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 16:54:06,986] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 16:54:06,987] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 17:05:23,377] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 17:05:23,378] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 17:05:23,801] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 17:05:23,895] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 17:05:23,895] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-08-31 17:05:32,973] [INFO] [src.ui.dm.creator.config_form]: Filtragem de monstros executada | Query: 'kob' | Resultados: 1/2
+[2026-08-31 17:05:40,966] [INFO] [src.ui.dm.creator.config_form]: Filtragem de monstros executada | Query: 'kob' | Resultados: 1/2
+[2026-08-31 17:12:58,573] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-08-31 17:12:58,573] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-08-31 17:12:58,994] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-08-31 17:12:59,086] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-08-31 17:12:59,086] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!

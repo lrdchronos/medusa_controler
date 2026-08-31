@@ -252,6 +252,12 @@ class DMWindow(arcade.Window):
         else:
             self.mini_map.handle_mouse_release(x, y, split_x)
 
+    def on_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> None:
+        self.switch_to()
+        arcade.set_window(self)
+        if self.active_tab == 3:
+            self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)
+
     def on_update(self, delta_time: float) -> None:
         """Atualização de quadro e lógica periódica dos componentes."""
         if self.active_tab == 3:
