@@ -7,6 +7,10 @@
         "is_sunlight": false,
         "is_raining": false
     },
+    "grid": {
+        "columns": 22,
+        "feet_per_square": 5
+    },
     "combatants": [
         {
             "entity_type": "monster",

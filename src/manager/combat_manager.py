@@ -3,6 +3,7 @@ import random
 from typing import List, Dict, Any, Optional, Callable
 from ..domain.models.entity import Entity
 from ..domain.loaders.encounter_loader import EncounterLoader
+from .grid_manager import GridManager
 
 logger = logging.getLogger(__name__)
 
@@ -10,8 +11,8 @@ logger = logging.getLogger(__name__)
 class CombatManager:
     """
     Motor central de gerenciamento de encontros de combate e turnos do Medusa VTT.
-    Responsável por carregar o encontro, rolar e ordenar iniciativas com desempates,
-    gerenciar o ponteiro de turno ativo, rodadas e despachar dano/cura.
+    Responsável por carregar o encontro, rolar e ordenar iniciativas com desempates (D&D 5E),
+    gerenciar o ponteiro de turno ativo, rodadas, despachar dano/cura, visibilidade e posicionamento.
     """
 
     def __init__(self, encounter_loader: Optional[EncounterLoader] = None) -> None:
@@ -21,6 +22,8 @@ class CombatManager:
         self.__description: str = ""
         self.__map_file: Optional[str] = None
         self.__environment: Dict[str, Any] = {"is_sunlight": False, "is_raining": False}
+        self.__grid_data: Dict[str, Any] = {"columns": 25, "feet_per_square": 5}
+        self.__grid_manager: Optional[GridManager] = None
 
         self.__combatants: List[Entity] = []
         self.__turn_order: List[Entity] = []
@@ -48,8 +51,21 @@ class CombatManager:
         return self.__map_file
 
     @property
+    def map_image_path(self) -> Optional[str]:
+        """Alias para map_file."""
+        return self.__map_file
+
+    @property
     def environment(self) -> Dict[str, Any]:
         return self.__environment.copy()
+
+    @property
+    def grid_data(self) -> Dict[str, Any]:
+        return self.__grid_data.copy()
+
+    @property
+    def grid_manager(self) -> Optional[GridManager]:
+        return self.__grid_manager
 
     @property
     def combatants(self) -> List[Entity]:
@@ -67,6 +83,11 @@ class CombatManager:
 
     @property
     def round_number(self) -> int:
+        return self.__round_number
+
+    @property
+    def current_round(self) -> int:
+        """Alias para round_number."""
         return self.__round_number
 
     @property
@@ -100,13 +121,24 @@ class CombatManager:
     # --- Carregamento de Encontro ---
 
     def load_encounter(self, encounter_id_or_path: str) -> None:
-        """Carrega dados do encontro e popula os combatentes."""
+        """Carrega dados do encontro, popula os combatentes e inicializa o GridManager."""
         data = self._encounter_loader.load_encounter(encounter_id_or_path)
         self.__encounter_uid = data["uid"]
         self.__title = data["title"]
         self.__description = data["description"]
         self.__map_file = data["map_file"]
-        self.__environment = data["environment"]
+        self.__environment = data.get("environment", {"is_sunlight": False, "is_raining": False})
+        self.__grid_data = data.get("grid", {"columns": 25, "feet_per_square": 5})
+
+        cols = self.__grid_data.get("columns", 25)
+        feet = self.__grid_data.get("feet_per_square", 5)
+        # Inicializa GridManager com dimensões padrão de tela (ajustadas dinamicamente quando a textura carrega)
+        self.__grid_manager = GridManager(
+            map_width=1920.0,
+            map_height=1080.0,
+            columns=cols,
+            feet_per_square=feet,
+        )
 
         self.__combatants = list(data["combatants"])
         # Inicialmente, a fila é a lista na ordem de inserção
@@ -119,25 +151,44 @@ class CombatManager:
         )
         self.notify_listeners()
 
-    # --- Sistema de Iniciativas e Ordenação ---
+    def update_grid_manager_dimensions(self, width: float, height: float) -> None:
+        """Atualiza a resolução do mapa no GridManager preservando colunas e escala de pés."""
+        cols = self.__grid_data.get("columns", 25)
+        feet = self.__grid_data.get("feet_per_square", 5)
+        self.__grid_manager = GridManager(
+            map_width=width,
+            map_height=height,
+            columns=cols,
+            feet_per_square=feet,
+        )
+        logger.debug(f"GridManager atualizado: {width}x{height} com {cols} colunas (cell_size={self.__grid_manager.cell_size:.2f}px).")
 
-    def roll_initiatives(self, manual_rolls: Optional[Dict[str, int]] = None) -> List[Entity]:
-        """
-        Rola iniciativa para cada combatente (1d20 + DEX mod), permitindo override manual.
-        Ordena a lista turn_order por:
-          1. Maior valor de iniciativa
-          2. Maior modificador de iniciativa (DEX mod)
-          3. Ordem alfabética do nome
-        Define o índice do turno ativo para 0 e a rodada para 1.
-        """
-        manual = manual_rolls or {}
+    # --- Staging de Iniciativas e Ordenação D&D 5E ---
 
+    def generate_draft_initiatives(self) -> Dict[str, int]:
+        """
+        Rola 1d20 + DEX mod para cada participante e devolve um dicionário temporário
+        {combatant_uid: score} sem alterar o estado oficial de combate.
+        """
+        draft: Dict[str, int] = {}
         for combatant in self.__combatants:
-            # Verifica se foi informada rolagem manual pelo UID ou pelo Nome
-            if combatant.uid in manual:
-                score = manual[combatant.uid]
-            elif combatant.name in manual:
-                score = manual[combatant.name]
+            d20 = random.randint(1, 20)
+            score = d20 + combatant.initiative_mod
+            draft[combatant.uid] = score
+        logger.debug(f"Draft de iniciativas gerado para {len(draft)} participantes.")
+        return draft
+
+    def apply_initiatives(self, final_scores: Dict[str, int]) -> None:
+        """
+        Recebe o dicionário consolidado de iniciativas (UID ou Nome -> Score),
+        atribui os valores às entidades, aplica a ordenação com desempate do D&D 5E
+        (Iniciativa -> Modificador DEX -> Nome) e notifica os Observers.
+        """
+        for combatant in self.__combatants:
+            if combatant.uid in final_scores:
+                score = final_scores[combatant.uid]
+            elif combatant.name in final_scores:
+                score = final_scores[combatant.name]
             else:
                 d20 = random.randint(1, 20)
                 score = d20 + combatant.initiative_mod
@@ -159,9 +210,29 @@ class CombatManager:
 
         active_name = self.active_character.name if self.active_character else "Nenhum"
         logger.info(
-            f"Rolar Iniciativas: {len(self.__combatants)} combatentes ordenados. Turno ativo: '{active_name}'."
+            f"Iniciativas consolidadas e aplicadas para {len(self.__combatants)} combatentes. "
+            f"Turno ativo: '{active_name}' (Rodada {self.__round_number})."
         )
         self.notify_listeners()
+
+    def roll_initiatives(self, manual_rolls: Optional[Dict[str, int]] = None) -> List[Entity]:
+        """
+        Rola e aplica iniciativas diretamente, permitindo overrides manuais via dicionário (UID ou Nome).
+        Mantém total compatibilidade e utiliza o pipeline oficial.
+        """
+        scores = self.generate_draft_initiatives()
+        if manual_rolls:
+            for combatant in self.__combatants:
+                if combatant.uid in manual_rolls:
+                    scores[combatant.uid] = manual_rolls[combatant.uid]
+                elif combatant.name in manual_rolls:
+                    scores[combatant.uid] = manual_rolls[combatant.name]
+            # Também preserva quaisquer outras chaves passadas em manual_rolls
+            for k, v in manual_rolls.items():
+                if k not in scores:
+                    scores[k] = v
+
+        self.apply_initiatives(scores)
         return list(self.__turn_order)
 
     # --- Gerenciamento de Turnos ---
@@ -245,3 +316,40 @@ class CombatManager:
         logger.warning(f"Combatente '{uid_or_name}' não encontrado para aplicar {amount} de cura.")
         return False
 
+    # --- Visibilidade Tática e Movimentação no Grid ---
+
+    def toggle_combatant_visibility(self, uid_or_name: str) -> bool:
+        """Alterna a visibilidade tática (is_hidden) de um combatente."""
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            new_hidden = not combatant.is_hidden
+            combatant.set_hidden(new_hidden)
+            status_desc = "Oculto (Invisível aos Jogadores)" if new_hidden else "Visível (Exibido aos Jogadores)"
+            logger.info(f"Visibilidade alterada: '{combatant.name}' agora está {status_desc}.")
+            self.notify_listeners()
+            return new_hidden
+        return False
+
+    def set_combatant_visibility(self, uid_or_name: str, is_hidden: bool) -> bool:
+        """Define explicitamente a visibilidade tática de um combatente."""
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            combatant.set_hidden(is_hidden)
+            logger.info(f"Visibilidade definida: '{combatant.name}' is_hidden={is_hidden}.")
+            self.notify_listeners()
+            return True
+        return False
+
+    def set_combatant_position(self, uid_or_name: str, x: int, y: int) -> bool:
+        """Atualiza a posição do combatente no grid ou coordenadas de mundo com log."""
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            prev_pos = combatant.position
+            combatant.set_position(x, y)
+            logger.info(
+                f"Movimento no Grid: '{combatant.name}' movido de ({prev_pos.get('x')}, {prev_pos.get('y')}) "
+                f"para ({x}, {y})."
+            )
+            self.notify_listeners()
+            return True
+        return False

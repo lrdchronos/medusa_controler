@@ -1,7 +1,6 @@
 import sys
 import logging
 from pathlib import Path
-import tkinter as tk
 import arcade
 
 # Garante que a raiz do projeto esteja no sys.path
@@ -25,9 +24,13 @@ def main() -> None:
     session_manager = SessionManager()
     logger.info("SessionManager inicializado no estado DisplayState.IDLE.")
 
-    # 2. Inicialização da Tela do Mestre (DMWindow - Tkinter com Abas e Dashboard)
-    tk_root = tk.Tk()
-    dm_window = DMWindow(root=tk_root, session_manager=session_manager)
+    # 2. Inicialização da Tela do Mestre (DMWindow - Arcade GUI Nativo)
+    dm_window = DMWindow(
+        session_manager=session_manager,
+        width=1280,
+        height=768,
+        title="Medusa VTT - Painel do Mestre (DM Screen)",
+    )
 
     # 3. Inicialização da Tela dos Jogadores (PlayerWindow - Arcade)
     player_window = PlayerWindow(
@@ -38,22 +41,29 @@ def main() -> None:
         title="Medusa VTT - Tela dos Jogadores",
     )
 
-    # 4. Configuração de Encerramento Limpo Sincronizado
-    def on_close_all() -> None:
+    # 4. Configuração de Encerramento Sincronizado
+    def on_dm_close():
         try:
-            tk_root.destroy()
+            player_window.close()
         except Exception:
             pass
         arcade.exit()
 
-    tk_root.protocol("WM_DELETE_WINDOW", on_close_all)
+    def on_player_close():
+        try:
+            dm_window.close()
+        except Exception:
+            pass
+        arcade.exit()
+
+    dm_window.on_close = on_dm_close
+    player_window.on_close = on_player_close
 
     # 5. Execução do Loop Principal
-    logger.info("Janelas ativas: Tela do Mestre (Dashboard com Abas) e Tela dos Jogadores (PlayerWindow).")
-    logger.info("Utilize o painel do Mestre para projetar mídias ou iniciar um encontro!")
+    logger.info("Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).")
+    logger.info("Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!")
     arcade.run()
 
 
 if __name__ == "__main__":
     main()
-

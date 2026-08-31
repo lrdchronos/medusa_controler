@@ -19,6 +19,7 @@ class Entity(ABC):
         uid: Optional[str] = None,
         speed: int = 30,
         position: Optional[Dict[str, int]] = None,
+        is_hidden: bool = False,
     ) -> None:
         self.__uid: str = uid if uid is not None else str(uuid.uuid4())
         self.__name: str = name
@@ -28,6 +29,7 @@ class Entity(ABC):
         self.__armor_class: int = max(0, armor_class)
         self.__initiative_score: int = 0
         self.__is_alive: bool = True
+        self.__is_hidden: bool = bool(is_hidden)
         self.__speed: int = speed
         self.__position: Dict[str, int] = position.copy() if position else {"x": 0, "y": 0}
 
@@ -106,6 +108,10 @@ class Entity(ABC):
         return self.__is_alive
 
     @property
+    def is_hidden(self) -> bool:
+        return self.__is_hidden
+
+    @property
     def speed(self) -> int:
         return self.__speed
 
@@ -178,6 +184,9 @@ class Entity(ABC):
 
     def set_position(self, x: int, y: int) -> None:
         self.__position = {"x": int(x), "y": int(y)}
+
+    def set_hidden(self, hidden: bool) -> None:
+        self.__is_hidden = bool(hidden)
 
     def set_skills(self, skills: Dict[str, int]) -> None:
         self.__skills = skills.copy()

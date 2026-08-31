@@ -4,9 +4,11 @@ import os
 import time
 from typing import Optional, Dict, Any
 import arcade
+from arcade.camera import Camera2D
 from ..manager.session_manager import SessionManager, DisplayState
 from .initiative_hud import InitiativeHUD
 from .utils.sprite_utils import SpriteFactory
+from ..domain.models.playablechar import PlayableCharacter
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +19,8 @@ class PlayerWindow(arcade.Window):
     Implementa a Máquina de Estados de Exibição (DisplayState):
       1. IDLE: Tela de descanso/espera imersiva ("Aguardando o Mestre...").
       2. PROJECTION: Projeção de imagens avulsas (NPCs, cenários, itens) com Aspect Ratio Fit (Contain).
-      3. COMBAT: Renderização do mapa limpo do encontro (sem tokens sobre o mapa)
-                 com a fita de iniciativas (InitiativeHUD) no topo.
+      3. COMBAT: Renderização do mapa e tokens visíveis com a PlayerCamera em tela cheia
+                 e a fita de iniciativas (InitiativeHUD) no topo.
     """
 
     def __init__(
@@ -30,6 +32,9 @@ class PlayerWindow(arcade.Window):
         title: str = "Medusa VTT - Tela dos Jogadores",
     ) -> None:
         super().__init__(width, height, title, resizable=True)
+        self.switch_to()
+        arcade.set_window(self)
+
         self.session_manager = session_manager
         self.dm_window = dm_window
         self.hud = InitiativeHUD(session_manager.combat_manager)
@@ -37,7 +42,10 @@ class PlayerWindow(arcade.Window):
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
 
-        # Sprite animado do Sigil Místico para a tela IDLE instanciado em 1 linha declarativa
+        # Câmera dos Jogadores (PlayerCamera) cobrindo a tela cheia
+        self.player_camera = Camera2D(window=self)
+
+        # Sprite animado do Sigil Místico para a tela IDLE (48x48 escalado para 92px)
         self.idle_sprites = arcade.SpriteList()
         self.sigil_sprite = SpriteFactory.create_sprite(
             sheet_path="assets/sprites/medusa_idle_1.png",
@@ -45,7 +53,7 @@ class PlayerWindow(arcade.Window):
             y=self.height / 2 + 30,
             width=48,
             height=48,
-            target_size=128,
+            target_size=92,
             frame_count=5,
         )
         self.idle_sprites.append(self.sigil_sprite)
@@ -101,7 +109,18 @@ class PlayerWindow(arcade.Window):
             cached.color = color
         return cached
 
+    def on_resize(self, width: int, height: int) -> None:
+        """Atualiza dimensões da janela e da câmera dos jogadores."""
+        self.switch_to()
+        arcade.set_window(self)
+        super().on_resize(width, height)
+        if hasattr(self, "player_camera"):
+            self.player_camera.match_window()
+
     def on_draw(self) -> None:
+        self.switch_to()
+        arcade.set_window(self)
+        self.use()
         self.clear()
 
         w, h = self.width, self.height
@@ -214,30 +233,107 @@ class PlayerWindow(arcade.Window):
             )
             err_txt.draw()
 
-    # --- 3. ESTADO COMBAT (MAPA LIMPO + INITIATIVE HUD NO TOPO) ---
+    # --- 3. ESTADO COMBAT (MAPA + TOKENS VISÍVEIS + INITIATIVE HUD NO TOPO) ---
 
     def _draw_combat_screen(self, w: int, h: int) -> None:
         """
-        Renderiza o mapa de combate limpo na área central (sem tokens no meio do mapa)
-        e a Fila de Iniciativas exclusivamente fixada no topo da tela.
+        Renderiza o mapa de combate na tela dos jogadores com a PlayerCamera,
+        mantendo a proporção exata e o Grid Tático de alto contraste idênticos à DMWindow,
+        desenhando os tokens dos participantes VISÍVEIS e a Fila de Iniciativas no topo.
         """
         combat_manager = self.session_manager.combat_manager
-        map_path = combat_manager.map_file
+        map_path = getattr(combat_manager, "map_file", getattr(combat_manager, "map_image_path", None))
         tex = self._get_texture(map_path)
 
+        grid_mgr = combat_manager.grid_manager
+        if grid_mgr is None:
+            return
+
+        world_w = grid_mgr.map_width
+        world_h = grid_mgr.map_height
+
+        # Espaço disponível na tela dos jogadores reservando margem para o HUD de iniciativa no topo e o banner inferior
+        top_hud_margin = 86
+        bottom_banner_margin = 36
+        avail_w = float(w)
+        avail_h = float(h) - top_hud_margin - bottom_banner_margin
+
+        scale = min(avail_w / world_w, avail_h / world_h)
+        draw_w = world_w * scale
+        draw_h = world_h * scale
+
+        draw_x = (w - draw_w) / 2
+        draw_y = bottom_banner_margin + (avail_h - draw_h) / 2
+
+        # Fundo escuro da tela
+        arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (14, 18, 24, 255))
+
+        # 1. Mapa de Fundo (mantendo a proporção exata sem distorção)
         if tex is not None:
-            # Renderiza o mapa de fundo limpo ocupando a tela
             arcade.draw_texture_rect(
                 tex,
-                arcade.XYWH(w / 2, h / 2, w, h),
+                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+            )
+            arcade.draw_rect_outline(
+                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                (60, 80, 110, 220),
+                1.5,
             )
         else:
-            # Fallback de grid procedural tático
-            arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (24, 32, 28, 255))
-            for x in range(0, w, 50):
-                arcade.draw_line(x, 0, x, h, (40, 52, 45, 120), 1)
-            for y in range(0, h, 50):
-                arcade.draw_line(0, y, w, y, (40, 52, 45, 120), 1)
+            arcade.draw_rect_filled(
+                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                (24, 32, 28, 255),
+            )
+            arcade.draw_rect_outline(
+                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                (60, 80, 110, 220),
+                1.5,
+            )
+
+        # 2. Linhas do Grid Tático de ALTO CONTRASTE (Luminous Steel Cyan) na Tela dos Jogadores
+        grid_color = (130, 205, 255, 175)
+        cell_w = draw_w / grid_mgr.columns
+        cell_h = draw_h / grid_mgr.rows
+
+        for c in range(grid_mgr.columns + 1):
+            gx = draw_x + c * cell_w
+            arcade.draw_line(gx, draw_y, gx, draw_y + draw_h, grid_color, 1.2)
+
+        for r in range(grid_mgr.rows + 1):
+            gy = draw_y + r * cell_h
+            arcade.draw_line(draw_x, gy, draw_x + draw_w, gy, grid_color, 1.2)
+
+        # 3. Renderização de Tokens das Entidades VISÍVEIS
+        active_combatant = combat_manager.active_character
+
+        for combatant in combat_manager.combatants:
+            # Regra de Visibilidade Tática: Entidades ocultas NÃO são renderizadas na tela dos jogadores!
+            if combatant.is_hidden:
+                continue
+
+            pos = combatant.position
+            px = pos.get("x", 0)
+            py = pos.get("y", 0)
+
+            cx = draw_x + (px + 0.5) * cell_w
+            cy = draw_y + (py + 0.5) * cell_h
+
+            is_player = isinstance(combatant, PlayableCharacter)
+            is_active = (combatant == active_combatant)
+            token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
+
+            SpriteFactory.draw_tactical_token(
+                name=combatant.name,
+                is_player=is_player,
+                x=cx,
+                y=cy,
+                radius=token_radius,
+                is_alive=combatant.is_alive,
+                is_hidden=False,
+                is_selected=False,
+                is_active=is_active,
+                text_cache=self._text_cache,
+            )
 
         # Renderiza a Fila de Iniciativas EXCLUSIVAMENTE no Topo da Tela
         self.hud.draw(w, h)
@@ -277,7 +373,9 @@ class PlayerWindow(arcade.Window):
         txt.draw()
 
     def on_update(self, delta_time: float) -> None:
-        """Ciclo de atualização: animação IDLE e bombeamento de eventos do Mestre."""
+        """Ciclo de atualização: temporizador da animação IDLE."""
+        self.switch_to()
+        arcade.set_window(self)
         if self.session_manager.display_state == DisplayState.IDLE and self.sigil_sprite.textures:
             self._idle_anim_timer += delta_time
             if self._idle_anim_timer >= self._idle_frame_duration:
@@ -286,6 +384,8 @@ class PlayerWindow(arcade.Window):
                 self._idle_cur_frame = (self._idle_cur_frame + advance) % len(self.sigil_sprite.textures)
                 self.sigil_sprite.texture = self.sigil_sprite.textures[self._idle_cur_frame]
 
-        if self.dm_window is not None:
-            self.dm_window.pump_events()
-
+        if self.dm_window is not None and hasattr(self.dm_window, "pump_events"):
+            try:
+                self.dm_window.pump_events()
+            except Exception:
+                pass

@@ -104,6 +104,7 @@ class EncounterLoader:
         uid = raw_data.get("uid", resolved.stem)
         map_file = self.resolve_map_path(raw_data.get("map_file"))
         environment = raw_data.get("environment", {"is_sunlight": False, "is_raining": False})
+        grid = raw_data.get("grid", {"columns": 25, "feet_per_square": 5})
 
         combatants: List[Entity] = []
         raw_combatants = raw_data.get("combatants", [])
@@ -111,6 +112,7 @@ class EncounterLoader:
         for item in raw_combatants:
             entity_type = item.get("entity_type", "monster")
             position = item.get("position", {"x": 0, "y": 0})
+            is_hidden = bool(item.get("is_hidden", False))
 
             if entity_type == "monster":
                 monster_id = item.get("monster_id", "kobold")
@@ -120,12 +122,14 @@ class EncounterLoader:
                     instance_name=instance_name,
                     position=position,
                 )
+                monster.set_hidden(is_hidden)
                 combatants.append(monster)
 
             elif entity_type in ("playable_character", "character", "pc"):
                 char_id = item.get("character_id", item.get("uid", "char"))
                 char = self._character_loader.load_by_id(char_id)
                 char.set_position(position.get("x", 0), position.get("y", 0))
+                char.set_hidden(is_hidden)
                 combatants.append(char)
 
         return {
@@ -134,5 +138,6 @@ class EncounterLoader:
             "description": description,
             "map_file": map_file,
             "environment": environment,
+            "grid": grid,
             "combatants": combatants,
         }
