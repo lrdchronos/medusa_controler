@@ -279,18 +279,6 @@ class CreatorTacticalStage:
         avail_w = vw - margin * 2
         avail_h = vh - banner_h - reserve_h - margin * 2
 
-        map_path = self.config_data.get("map_path")
-        tex = None
-        if map_path:
-            resolved = str(os.path.abspath(map_path)) if os.path.isfile(map_path) else map_path
-            if resolved not in texture_cache:
-                try:
-                    if os.path.isfile(resolved):
-                        texture_cache[resolved] = arcade.load_texture(resolved)
-                except Exception:
-                    pass
-            tex = texture_cache.get(resolved)
-
         world_w = self.grid_manager.map_width if self.grid_manager else 1920.0
         world_h = self.grid_manager.map_height if self.grid_manager else 1080.0
 
@@ -315,11 +303,26 @@ class CreatorTacticalStage:
             self.tilemap_renderer.update_layout(draw_x, draw_y, tile_w, tile_h)
             self.tilemap_renderer.draw(pixelated=True)
             arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
-        elif tex is not None:
-            arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
-            arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
         else:
-            arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (24, 32, 28, 255))
+            map_path = self.config_data.get("map_path")
+            tex = None
+            if map_path and not str(map_path).lower().endswith((".json", ".xml", ".txt", ".csv")):
+                resolved = str(os.path.abspath(map_path)) if os.path.isfile(map_path) else map_path
+                if resolved not in texture_cache:
+                    try:
+                        if os.path.isfile(resolved):
+                            texture_cache[resolved] = arcade.load_texture(resolved)
+                        else:
+                            texture_cache[resolved] = None
+                    except Exception:
+                        texture_cache[resolved] = None
+                tex = texture_cache.get(resolved)
+
+            if tex is not None:
+                arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
+                arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
+            else:
+                arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (24, 32, 28, 255))
 
         # 2. Grade Matricial (Luminous Steel Cyan)
         grid_color = (130, 205, 255, 175)

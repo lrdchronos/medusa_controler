@@ -363,6 +363,65 @@ class TestEncounterMapTypes(unittest.TestCase):
         self.assertEqual(config_data["map_source"], "creations/maps/cave.json")
         self.assertEqual(config_data["columns"], form.columns)
 
+    def test_texture_cache_defensive_behavior_with_json_and_tilemaps(self):
+        """Valida que _get_texture ignora arquivos .json e não tenta carregá-los como textura."""
+        session_mgr = SessionManager()
+        minimap = TacticalMiniMap(window=self.window, session_manager=session_mgr)
+
+        # 1. Arquivo JSON não deve ser carregado como textura
+        json_path = "creations/maps/test_map_1.json"
+        tex = minimap._get_texture(json_path)
+        self.assertIsNone(tex)
+
+        # 2. Arquivo inexistente retorna None sem lançar exceções
+        tex_none = minimap._get_texture("assets/images/battlemaps/non_existent_map_123.png")
+        self.assertIsNone(tex_none)
+
+        # 3. Arquivo existente inválido/corrompido é cacheado como None para não retentar
+        with tempfile.NamedTemporaryFile(suffix=".dat", delete=False) as f:
+            f.write(b"not an image data")
+            corrupt_file = f.name
+        try:
+            tex_corrupt = minimap._get_texture(corrupt_file)
+            self.assertIsNone(tex_corrupt)
+            resolved = str(os.path.abspath(corrupt_file))
+            self.assertIn(resolved, minimap._texture_cache)
+            self.assertIsNone(minimap._texture_cache[resolved])
+        finally:
+            if os.path.exists(corrupt_file):
+                os.remove(corrupt_file)
+
+    def test_tilemap_encounter_draw_does_not_request_json_texture(self):
+        """Valida que ao desenhar encontro com TileMap, o renderizador modular é usado sem carregar JSON como textura."""
+        session_mgr = SessionManager()
+        combat_mgr = session_mgr.combat_manager
+
+        builder = EncounterBuilder()
+        builder.with_metadata("Encontro Tilemap", "Teste")
+        builder.with_map("creations/maps/test_map_1.json")
+        builder.with_grid(columns=10, feet_per_square=5)
+        builder.add_monster("kobold", "Kobold 1", 1, 1)
+
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as f:
+            json.dump(builder.to_dict(), f)
+            enc_path = f.name
+
+        try:
+            combat_mgr.load_encounter(enc_path)
+            self.assertEqual(combat_mgr.map_type, "tilemap")
+            self.assertIsNotNone(combat_mgr.tile_map)
+
+            minimap = TacticalMiniMap(window=self.window, session_manager=session_mgr)
+            minimap._draw_tactical_map(0, 0, 800, 600, None)
+
+            self.assertIsNotNone(minimap._tilemap_renderer)
+            json_resolved = str(os.path.abspath("creations/maps/test_map_1.json"))
+            self.assertNotIn(json_resolved, minimap._texture_cache)
+        finally:
+            if os.path.exists(enc_path):
+                os.remove(enc_path)
+
 
 if __name__ == "__main__":
     unittest.main()
+

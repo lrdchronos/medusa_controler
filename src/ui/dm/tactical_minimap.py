@@ -57,11 +57,15 @@ class TacticalMiniMap:
     def _get_texture(self, file_path: Optional[str]) -> Optional[arcade.Texture]:
         if not file_path or not os.path.isfile(file_path):
             return None
+        # Validação defensiva (Poka-Yoke): ignora formatos não-imagem
+        if str(file_path).lower().endswith((".json", ".xml", ".txt", ".csv")):
+            return None
         resolved = str(os.path.abspath(file_path))
         if resolved not in self._texture_cache:
             try:
                 self._texture_cache[resolved] = arcade.load_texture(resolved)
             except Exception:
+                self._texture_cache[resolved] = None
                 return None
         return self._texture_cache.get(resolved)
 
@@ -114,9 +118,6 @@ class TacticalMiniMap:
         Desenha o mapa tático, o grid de alto contraste e os tokens mantendo a proporção exata
         e a correspondência de coordenadas com a tela dos jogadores.
         """
-        map_path = getattr(self.combat_manager, "map_file", getattr(self.combat_manager, "map_image_path", None))
-        tex = self._get_texture(map_path)
-
         grid_mgr = self.combat_manager.grid_manager
         if grid_mgr is None:
             return
@@ -156,12 +157,15 @@ class TacticalMiniMap:
             self._tilemap_renderer.update_layout(draw_x, draw_y, tile_w, tile_h)
             self._tilemap_renderer.draw(pixelated=True)
             arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
-        elif tex is not None:
-            arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
-            arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
         else:
-            arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (24, 32, 28, 255))
-            arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
+            map_path = getattr(self.combat_manager, "map_file", getattr(self.combat_manager, "map_image_path", None))
+            tex = self._get_texture(map_path) if map_path else None
+            if tex is not None:
+                arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
+                arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
+            else:
+                arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (24, 32, 28, 255))
+                arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
 
         # 2. Linhas do Grid Tático de ALTO CONTRASTE (Luminous Steel Cyan)
         grid_color = (130, 205, 255, 175)

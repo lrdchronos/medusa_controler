@@ -74,12 +74,16 @@ class PlayerWindow(arcade.Window):
         """Carrega e armazena em cache texturas de imagens."""
         if not file_path or not os.path.isfile(file_path):
             return None
+        # Validação defensiva (Poka-Yoke): não tenta abrir arquivos de metadados como imagens
+        if str(file_path).lower().endswith((".json", ".xml", ".txt", ".csv")):
+            return None
         resolved = str(os.path.abspath(file_path))
         if resolved not in self._texture_cache:
             try:
                 self._texture_cache[resolved] = arcade.load_texture(resolved)
             except Exception as e:
                 logger.error(f"Erro ao carregar textura '{resolved}': {e}")
+                self._texture_cache[resolved] = None
                 return None
         return self._texture_cache.get(resolved)
 
@@ -336,9 +340,6 @@ class PlayerWindow(arcade.Window):
         desenhando os tokens dos participantes VISÍVEIS com interpolação suave e a Fila de Iniciativas no topo.
         """
         combat_manager = self.session_manager.combat_manager
-        map_path = getattr(combat_manager, "map_file", getattr(combat_manager, "map_image_path", None))
-        tex = self._get_texture(map_path)
-
         layout = self._calculate_combat_layout(w, h)
         if layout is None:
             return
@@ -362,26 +363,29 @@ class PlayerWindow(arcade.Window):
                 (60, 80, 110, 220),
                 1.5,
             )
-        elif tex is not None:
-            arcade.draw_texture_rect(
-                tex,
-                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
-            )
-            arcade.draw_rect_outline(
-                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
-                (60, 80, 110, 220),
-                1.5,
-            )
         else:
-            arcade.draw_rect_filled(
-                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
-                (24, 32, 28, 255),
-            )
-            arcade.draw_rect_outline(
-                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
-                (60, 80, 110, 220),
-                1.5,
-            )
+            map_path = getattr(combat_manager, "map_file", getattr(combat_manager, "map_image_path", None))
+            tex = self._get_texture(map_path) if map_path else None
+            if tex is not None:
+                arcade.draw_texture_rect(
+                    tex,
+                    arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                )
+                arcade.draw_rect_outline(
+                    arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                    (60, 80, 110, 220),
+                    1.5,
+                )
+            else:
+                arcade.draw_rect_filled(
+                    arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                    (24, 32, 28, 255),
+                )
+                arcade.draw_rect_outline(
+                    arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                    (60, 80, 110, 220),
+                    1.5,
+                )
 
         # 2. Linhas do Grid Tático de ALTO CONTRASTE (Luminous Steel Cyan) na Tela dos Jogadores
         grid_color = (130, 205, 255, 175)

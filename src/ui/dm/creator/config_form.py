@@ -1011,14 +1011,16 @@ class CreatorConfigForm:
         else:
             # Renderização de Imagem Estática com Aspect-Fit
             tex = None
-            if map_path:
+            if map_path and not str(map_path).lower().endswith((".json", ".xml", ".txt", ".csv")):
                 resolved = str(os.path.abspath(map_path)) if os.path.isfile(map_path) else map_path
                 if resolved not in texture_cache:
                     try:
                         if os.path.isfile(resolved):
                             texture_cache[resolved] = arcade.load_texture(resolved)
+                        else:
+                            texture_cache[resolved] = None
                     except Exception:
-                        pass
+                        texture_cache[resolved] = None
                 tex = texture_cache.get(resolved)
 
             if tex is not None:

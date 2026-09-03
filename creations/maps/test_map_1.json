@@ -150,7 +150,7 @@
         {
             "x": 3,
             "y": 0,
-            "tile_id": 26,
+            "tile_id": 23,
             "properties": {
                 "blocks_movement": false,
                 "blocks_vision": false,
