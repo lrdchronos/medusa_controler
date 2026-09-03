@@ -1,0 +1,79 @@
+{
+    "uid": "basic_acolyte",
+    "source": "monster_manual",
+    "page": 341,
+    "name": "Acólito",
+    "alignment": "Any",
+    "size": "Médio",
+    "type": "Humanoide",
+    "sub_type": "qualquer raça",
+    "armor_class": {
+        "value": 10,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 9,
+        "formula": "2d8"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 10,
+        "DEX": 10,
+        "CON": 10,
+        "INT": 10,
+        "WIS": 14,
+        "CHA": 11
+    },
+    "skills": {
+        "medicine": 4,
+        "religion": 2
+    },
+    "senses": {
+        "passive_perception": 12
+    },
+    "languages": [
+        "Comum"
+    ],
+    "challenge_rating": 0.25,
+    "xp": 50,
+    "features": {
+        "Conjuração": {
+            "description": "O acólito é um conjurador de 1º nível. Sua habilidade de conjuração é Sabedoria (CD de resistência de magia 12, +4 para atingir com ataques com magia). Ele possui as seguintes magias de clérigo preparadas:\nTruques (à vontade): chama sagrada, luz, taumaturgia\n1° nível (3 espaços): bênção, curar ferimentos, santuário",
+            "spellcasting": {
+                "ability": "WIS",
+                "spell_save_dc": 12,
+                "spell_attack_bonus": 4,
+                "level": 1,
+                "spells": {
+                    "cantrips": [
+                        "chama sagrada",
+                        "luz",
+                        "taumaturgia"
+                    ],
+                    "level_1": {
+                        "slots": 3,
+                        "prepared": [
+                            "bênção",
+                            "curar ferimentos",
+                            "santuário"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "actions": [
+        {
+            "name": "Clava",
+            "type": "melee_attack",
+            "hit_bonus": 2,
+            "damage_dice": "1d4",
+            "damage_bonus": 0,
+            "damage_type": "bludgeoning"
+        }
+    ]
+}

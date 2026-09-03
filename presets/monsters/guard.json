@@ -1,0 +1,58 @@
+{
+    "uid": "basic_guard",
+    "source": "monster_manual",
+    "page": 347,
+    "name": "Guarda",
+    "alignment": "Any",
+    "size": "Médio",
+    "type": "Humanoide",
+    "sub_type": "qualquer raça",
+    "armor_class": {
+        "value": 16,
+        "type": "camisão de malha, escudo"
+    },
+    "hit_points": {
+        "average": 11,
+        "formula": "2d8 + 2"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 13,
+        "DEX": 12,
+        "CON": 12,
+        "INT": 10,
+        "WIS": 11,
+        "CHA": 10
+    },
+    "skills": {
+        "perception": 2
+    },
+    "senses": {
+        "passive_perception": 12
+    },
+    "languages": [
+        "Comum"
+    ],
+    "challenge_rating": 0.125,
+    "xp": 25,
+    "features": {},
+    "actions": [
+        {
+            "name": "Lança",
+            "type": "melee_or_ranged_attack",
+            "hit_bonus": 3,
+            "reach": 5,
+            "range_normal": 20,
+            "range_long": 60,
+            "damage_dice": "1d6",
+            "damage_bonus": 1,
+            "damage_type": "piercing",
+            "versatile_damage_dice": "1d8",
+            "versatile_damage_bonus": 1
+        }
+    ]
+}

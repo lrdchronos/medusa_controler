@@ -45,6 +45,23 @@ Este arquivo define as leis universais e padrões técnicos do projeto Medusa. T
   - `DMCamera`: Mini-Mapa tático interativo de meia-tela com suporte a arrastar e soltar (Drag & Drop) e `camera.unproject()`.
 - **Visibilidade:** Entidades com `is_hidden = True` aparecem com 50% de opacidade na tela do Mestre e NÃO são desenhadas na tela dos jogadores.
 
+### 3.1. Arquitetura de Mapas & Runtime de Tilesets
+- **Desacoplamento Visual vs. Lógico:**
+  - Mapas modulares utilizam o padrão **Dual Grid / Runtime de Tilesets**: a arte é fatiada a partir de atlas/JSONs do Aseprite (`assets/tilesets/`), enquanto a matriz de dados define os índices das células.
+  - **Dimensão Base dos Tiles:** Células de arte em $32 \times 32\text{px}$.
+  - **Alinhamento do Grid D&D (5ft):** O centro do quadrado de combate recebe um deslocamento (*half-tile offset* de $16\text{px}$) via `GridManager.grid_to_world_center()` para garantir que tokens fiquem centralizados em estradas e corredores.
+- **Hierarquia de Camadas (Layers):**
+  - `Ground`: Renderizada em lote com uma única `arcade.SpriteList(use_spatial_hash=False)` e `pixelated=True`.
+  - `Objects / Props`: Sprites com propriedades físicas e táticas indexadas matricialmente por `(col, row)`.
+- **Propriedades Táticas do Terreno & Objetos:**
+  - `blocks_movement` (`bool`): Impede passagem de entidades e trava o Snap-to-Grid.
+  - `blocks_vision` (`bool`): Oclui cálculos de linha de visão (LoS) e Fog of War.
+  - `cover_type`: Enum string (`"none"`, `"half"`, `"three_quarters"`, `"total"`) para cálculo automatizado de CA e Salvaguardas.
+  - `difficult_terrain` (`bool`): Dobra o custo de deslocamento ($10\text{ft}$ por quadrado).
+  - `height`: Altura do objeto em células (padrão 0) para cálculo de alcances lineares e sobreposições.
+- **Consistência de Dados:**
+  - Presets de tilesets e props estáticos residem em `presets/`.
+  - Estruturas completas de mapas customizados e saves de encontro residem em `creations/`.
 ---
 
 ## 4. Testabilidade e Qualidade

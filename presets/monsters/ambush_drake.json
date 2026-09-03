@@ -1,0 +1,66 @@
+{
+    "uid": "ambush_drake",
+    "source": "hoard_of_the_dragon_queen",
+    "page": 88,
+    "name": "Dragonete de Emboscada",
+    "alignment": "Unaligned",
+    "size": "Médio",
+    "type": "Dragão",
+    "sub_type": "None",
+    "armor_class": {
+        "value": 13,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 22,
+        "formula": "4d6 + 8"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 13,
+        "DEX": 15,
+        "CON": 14,
+        "INT": 4,
+        "WIS": 11,
+        "CHA": 6
+    },
+    "skills": {
+        "perception": 4,
+        "stealth": 4
+    },
+    "damage_resistances": [
+        "poison"
+    ],
+    "senses": {
+        "darkvision": 60,
+        "passive_perception": 14
+    },
+    "languages": [
+        "compreende Dracônico mas não pode falar"
+    ],
+    "challenge_rating": 0.5,
+    "xp": 100,
+    "features": {
+        "Tática de Combate": {
+            "description": "O dragonete de emboscada tem vantagem em um teste de ataque contra uma criatura se pelo menos um dos aliados do dragonete de emboscada estiver a 1,5 metros e o aliado não estiver incapacitado."
+        },
+        "Ataque Surpresa": {
+            "description": "Se o dragonete de emboscada surpreende uma criatura e a atinge com um ataque durante a primeira rodada de combate, o alvo recebe um dano extra de 7 (2d6) do ataque."
+        }
+    },
+    "actions": [
+        {
+            "name": "Mordida",
+            "type": "melee_attack",
+            "hit_bonus": 4,
+            "reach": 5,
+            "damage_dice": "1d6",
+            "damage_bonus": 2,
+            "damage_type": "piercing"
+        }
+    ]
+}

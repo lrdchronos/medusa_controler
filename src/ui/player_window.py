@@ -8,6 +8,7 @@ from arcade.camera import Camera2D
 from ..manager.session_manager import SessionManager, DisplayState
 from .initiative_hud import InitiativeHUD
 from .utils.sprite_utils import SpriteFactory, CombatToken
+from .utils.tilemap_renderer import TileMapRenderer
 from ..domain.models.playablechar import PlayableCharacter
 
 logger = logging.getLogger(__name__)
@@ -41,9 +42,11 @@ class PlayerWindow(arcade.Window):
 
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
+        self._tilemap_renderer: Optional[TileMapRenderer] = None
 
         # Dicionário de sprites de tokens com interpolação suave (Lerp)
         self.token_sprites: Dict[str, CombatToken] = {}
+
 
         # Câmera dos Jogadores (PlayerCamera) cobrindo a tela cheia
         self.player_camera = Camera2D(window=self)
@@ -342,8 +345,19 @@ class PlayerWindow(arcade.Window):
         # Fundo escuro da tela
         arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (14, 18, 24, 255))
 
-        # 1. Mapa de Fundo (mantendo a proporção exata sem distorção em tela cheia)
-        if tex is not None:
+        # 1. Mapa de Fundo (TileMap Modular em GPU ou Textura Única sem distorção)
+        tile_map = combat_manager.tile_map
+        if tile_map is not None:
+            if self._tilemap_renderer is None or self._tilemap_renderer.tile_map != tile_map:
+                self._tilemap_renderer = TileMapRenderer(tile_map=tile_map, grid_manager=combat_manager.grid_manager)
+            self._tilemap_renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
+            self._tilemap_renderer.draw(pixelated=True)
+            arcade.draw_rect_outline(
+                arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),
+                (60, 80, 110, 220),
+                1.5,
+            )
+        elif tex is not None:
             arcade.draw_texture_rect(
                 tex,
                 arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),

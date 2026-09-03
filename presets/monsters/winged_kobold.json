@@ -1,0 +1,70 @@
+{
+    "uid": "winged_kobold",
+    "source": "monster_manual",
+    "page": 208,
+    "name": "Kobold Alado",
+    "alignment": "LE",
+    "size": "Pequeno",
+    "type": "Humanoide",
+    "sub_type": "kobold",
+    "armor_class": {
+        "value": 13,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 7,
+        "formula": "3d6 - 3"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 30,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 7,
+        "DEX": 16,
+        "CON": 9,
+        "INT": 8,
+        "WIS": 7,
+        "CHA": 8
+    },
+    "skills": {},
+    "senses": {
+        "darkvision": 60,
+        "passive_perception": 8
+    },
+    "languages": [
+        "Comum",
+        "Dracônico"
+    ],
+    "challenge_rating": 0.25,
+    "xp": 50,
+    "features": {
+        "Sensibilidade à Luz Solar": {
+            "description": "Enquanto estiver sob luz solar, o kobold tem desvantagem nas jogadas de ataque, assim como em testes de Sabedoria (Percepção) relacionados à visão."
+        },
+        "Táticas de Matilha": {
+            "description": "O kobold tem vantagem nas jogadas de ataque contra uma criatura se, pelo menos, um dos aliados do kobold estiver a 1,5 metro da criatura e não estiver incapacitado."
+        }
+    },
+    "actions": [
+        {
+            "name": "Adaga",
+            "type": "melee_attack",
+            "hit_bonus": 5,
+            "reach": 5,
+            "damage_dice": "1d4",
+            "damage_bonus": 3,
+            "damage_type": "piercing"
+        },
+        {
+            "name": "Largar Pedra",
+            "type": "ranged_attack",
+            "hit_bonus": 5,
+            "range_normal": 30,
+            "damage_dice": "1d6",
+            "damage_bonus": 3,
+            "damage_type": "bludgeoning"
+        }
+    ]
+}

@@ -2,6 +2,7 @@ import logging
 import random
 from typing import List, Dict, Any, Optional, Callable
 from ..domain.models.entity import Entity
+from ..domain.models.tile_map import TileMap
 from ..domain.loaders.encounter_loader import EncounterLoader
 from .grid_manager import GridManager
 
@@ -21,6 +22,7 @@ class CombatManager:
         self.__title: str = "Encontro"
         self.__description: str = ""
         self.__map_file: Optional[str] = None
+        self.__tile_map: Optional[TileMap] = None
         self.__environment: Dict[str, Any] = {"is_sunlight": False, "is_raining": False}
         self.__grid_data: Dict[str, Any] = {"columns": 25, "feet_per_square": 5}
         self.__grid_manager: Optional[GridManager] = None
@@ -54,6 +56,11 @@ class CombatManager:
     def map_image_path(self) -> Optional[str]:
         """Alias para map_file."""
         return self.__map_file
+
+    @property
+    def tile_map(self) -> Optional[TileMap]:
+        """Referência ao mapa modular ativo (TileMap), se houver."""
+        return self.__tile_map
 
     @property
     def environment(self) -> Dict[str, Any]:
@@ -118,7 +125,33 @@ class CombatManager:
             except Exception as e:
                 logger.error(f"Erro no listener {listener}: {e}")
 
-    # --- Carregamento de Encontro ---
+    # --- Carregamento de Encontro e Mapa ---
+
+    def set_tile_map(self, tile_map: Optional[TileMap]) -> None:
+        """Define o mapa modular ativo e sincroniza a resolução do GridManager."""
+        self.__tile_map = tile_map
+        if tile_map is not None:
+            feet = self.__grid_data.get("feet_per_square", 5)
+            self.__grid_data["columns"] = tile_map.width
+            self.__grid_manager = GridManager(
+                map_width=float(tile_map.width * 32),
+                map_height=float(tile_map.height * 32),
+                columns=tile_map.width,
+                feet_per_square=feet,
+            )
+            logger.info(
+                f"TileMap configurado no CombatManager: '{tile_map.tileset_name}' "
+                f"({tile_map.width}x{tile_map.height} células)."
+            )
+        self.notify_listeners()
+
+    def is_walkable(self, x: int, y: int) -> bool:
+        """Verifica se a célula permite trânsito de entidades via TileMap ou GridManager."""
+        if self.__tile_map is not None:
+            return self.__tile_map.is_walkable(x, y)
+        if self.__grid_manager is not None:
+            return self.__grid_manager.is_valid_cell(x, y)
+        return True
 
     def load_encounter(self, encounter_id_or_path: str) -> None:
         """Carrega dados do encontro, popula os combatentes e inicializa o GridManager."""
@@ -132,13 +165,36 @@ class CombatManager:
 
         cols = self.__grid_data.get("columns", 25)
         feet = self.__grid_data.get("feet_per_square", 5)
-        # Inicializa GridManager com dimensões padrão de tela (ajustadas dinamicamente quando a textura carrega)
-        self.__grid_manager = GridManager(
-            map_width=1920.0,
-            map_height=1080.0,
-            columns=cols,
-            feet_per_square=feet,
-        )
+
+        # Tenta carregar TileMap se map_file for um arquivo JSON de layout modular
+        self.__tile_map = None
+        if self.__map_file and str(self.__map_file).lower().endswith(".json"):
+            try:
+                self.__tile_map = TileMap.from_file(self.__map_file)
+                cols = self.__tile_map.width
+                self.__grid_data["columns"] = cols
+                self.__grid_manager = GridManager(
+                    map_width=float(self.__tile_map.width * 32),
+                    map_height=float(self.__tile_map.height * 32),
+                    columns=cols,
+                    feet_per_square=feet,
+                )
+            except Exception as e:
+                logger.warning(f"Não foi possível carregar TileMap a partir de '{self.__map_file}': {e}")
+                self.__grid_manager = GridManager(
+                    map_width=1920.0,
+                    map_height=1080.0,
+                    columns=cols,
+                    feet_per_square=feet,
+                )
+        else:
+            # Inicializa GridManager com dimensões padrão de tela (ajustadas dinamicamente quando a textura carrega)
+            self.__grid_manager = GridManager(
+                map_width=1920.0,
+                map_height=1080.0,
+                columns=cols,
+                feet_per_square=feet,
+            )
 
         self.__combatants = list(data["combatants"])
         # Inicialmente, a fila é a lista na ordem de inserção
@@ -162,6 +218,7 @@ class CombatManager:
             feet_per_square=feet,
         )
         logger.debug(f"GridManager atualizado: {width}x{height} com {cols} colunas (cell_size={self.__grid_manager.cell_size:.2f}px).")
+
 
     # --- Staging de Iniciativas e Ordenação D&D 5E ---
 
@@ -281,7 +338,15 @@ class CombatManager:
             self.__current_turn_index = index
             self.notify_listeners()
 
-    # --- Despachante de Dano e Cura ---
+    # --- Gerenciamento de Combatentes e Despachante de Dano/Cura ---
+
+    def add_combatant(self, combatant: Entity) -> None:
+        """Adiciona um combatente ao encontro e notifica ouvintes."""
+        if combatant not in self.__combatants:
+            self.__combatants.append(combatant)
+            if combatant not in self.__turn_order:
+                self.__turn_order.append(combatant)
+            self.notify_listeners()
 
     def get_combatant(self, uid_or_name: str) -> Optional[Entity]:
         """Busca um combatente por UID ou Nome."""
@@ -370,6 +435,7 @@ class CombatManager:
         self.__title = "Encontro"
         self.__description = ""
         self.__map_file = None
+        self.__tile_map = None
         self.__environment = {"is_sunlight": False, "is_raining": False}
         self.__grid_data = {"columns": 25, "feet_per_square": 5}
         self.__grid_manager = None

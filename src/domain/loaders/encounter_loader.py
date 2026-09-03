@@ -68,6 +68,9 @@ class EncounterLoader:
             return str(map_p)
 
         search_locations = [
+            Path("creations/maps") / map_p.name,
+            Path("assets/tilesets") / map_p.name,
+            Path("assets/images/tilemaps") / map_p.name,
             Path("assets/images/maps") / map_p.name,
             Path("assets/maps") / map_p.name,
             Path("assets/images") / map_p.name,

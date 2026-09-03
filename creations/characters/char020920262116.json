@@ -1,0 +1,89 @@
+{
+    "uid": "char_020920262116",
+    "name": "Kaz",
+    "level": 3,
+    "ability_scores": {
+        "STR": 12,
+        "DEX": 14,
+        "CON": 14,
+        "INT": 15,
+        "WIS": 16,
+        "CHA": 13
+    },
+    "race": {
+        "race_id": "half_elf",
+        "subrace_id": null,
+        "racial_bonuses_applied": {
+            "INT": 1,
+            "WIS": 1,
+            "CHA": 2
+        }
+    },
+    "classes": [
+        {
+            "class_id": "druid",
+            "subclass_id": "circle_of_the_land",
+            "level": 3
+        }
+    ],
+    "background": {
+        "background_id": "haunted_one",
+        "specialty": null
+    },
+    "alignment": "neutral",
+    "languages": [
+        "common",
+        "celestial",
+        "draconic",
+        "druidic",
+        "elvish",
+        "primordial"
+    ],
+    "proficiencies": {
+        "saving_throws": [
+            "INT",
+            "WIS"
+        ],
+        "skills": [
+            "arcana",
+            "insight",
+            "investigation",
+            "perception",
+            "stealth",
+            "survival"
+        ],
+        "tools": [
+            ""
+        ]
+    },
+    "vitality": {
+        "max_hp": 24,
+        "current_hp": 24,
+        "temporary_hp": 0,
+        "hit_die_type": 8,
+        "hit_dice_remaining": 3
+    },
+    "resources": {
+        "shape_shift": {
+            "max_uses": 2,
+            "current_uses": 2,
+            "recharge_on": "REST_SHORT"
+        }
+    },
+    "equipment": [
+        {
+            "item_id": "staff",
+            "equipped": true
+        }
+    ],
+    "coins": {
+        "cp": 0,
+        "sp": 0,
+        "ep": 0,
+        "gp": 70,
+        "pp": 0
+    },
+    "active_features": [
+        "shape_shift"
+    ]
+}

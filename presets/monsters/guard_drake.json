@@ -1,0 +1,72 @@
+{
+    "uid": "guard_drake",
+    "source": "hoard_of_the_dragon_queen",
+    "page": 91,
+    "name": "Dragonete de Guarda",
+    "alignment": "Unaligned",
+    "size": "Médio",
+    "type": "Dragão",
+    "sub_type": "None",
+    "armor_class": {
+        "value": 14,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 52,
+        "formula": "7d8 + 21"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 16,
+        "DEX": 11,
+        "CON": 16,
+        "INT": 4,
+        "WIS": 10,
+        "CHA": 7
+    },
+    "damage_resistances": [
+        "lightning"
+    ],
+    "skills": {
+        "perception": 2
+    },
+    "senses": {
+        "darkvision": 60,
+        "passive_perception": 12
+    },
+    "languages": [
+        "compreende Dracônico mas não pode falar"
+    ],
+    "challenge_rating": 2.0,
+    "xp": 450,
+    "features": {},
+    "actions": [
+        {
+            "name": "Ataques Múltiplos",
+            "type": "multiattack",
+            "description": "O dragonete ataca duas vezes com sua mordida e com sua cauda."
+        },
+        {
+            "name": "Mordida",
+            "type": "melee_attack",
+            "hit_bonus": 5,
+            "reach": 5,
+            "damage_dice": "1d8",
+            "damage_bonus": 3,
+            "damage_type": "piercing"
+        },
+        {
+            "name": "Cauda",
+            "type": "melee_attack",
+            "hit_bonus": 5,
+            "reach": 5,
+            "damage_dice": "1d6",
+            "damage_bonus": 3,
+            "damage_type": "bludgeoning"
+        }
+    ]
+}

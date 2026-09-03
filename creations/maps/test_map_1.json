@@ -1,0 +1,199 @@
+{
+    "tileset": "test_map_1",
+    "width": 4,
+    "height": 4,
+    "tiles": [
+        {
+            "x": 0,
+            "y": 0,
+            "tile_id": 2,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 1,
+            "y": 0,
+            "tile_id": 2,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 0,
+            "y": 2,
+            "tile_id": 2,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 0,
+            "y": 3,
+            "tile_id": 15,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 1,
+            "y": 0,
+            "tile_id": 12,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 1,
+            "y": 1,
+            "tile_id": 12,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 1,
+            "y": 2,
+            "tile_id": 3,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 1,
+            "y": 3,
+            "tile_id": 10,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 2,
+            "y": 0,
+            "tile_id": 18,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": true,
+                "height": 0
+            }
+        },
+        {
+            "x": 2,
+            "y": 1,
+            "tile_id": 25,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": true,
+                "height": 0
+            }
+        },
+        {
+            "x": 2,
+            "y": 2,
+            "tile_id": 4,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 2,
+            "y": 3,
+            "tile_id": 10,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 3,
+            "y": 0,
+            "tile_id": 26,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": true,
+                "height": 0
+            }
+        },
+        {
+            "x": 3,
+            "y": 1,
+            "tile_id": 26,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": true,
+                "height": 0
+            }
+        },
+        {
+            "x": 3,
+            "y": 2,
+            "tile_id": 4,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        },
+        {
+            "x": 3,
+            "y": 3,
+            "tile_id": 10,
+            "properties": {
+                "blocks_movement": false,
+                "blocks_vision": false,
+                "cover_type": "none",
+                "difficult_terrain": false,
+                "height": 0
+            }
+        }
+    ]
+}

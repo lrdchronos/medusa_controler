@@ -1,3 +1,4 @@
+import logging
 import os
 import math
 from typing import Optional, Dict, Any, Tuple, Callable
@@ -6,6 +7,9 @@ from arcade.camera import Camera2D
 from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
 from ..utils.sprite_utils import SpriteFactory
+from ..utils.tilemap_renderer import TileMapRenderer
+
+logger = logging.getLogger(__name__)
 
 
 class TacticalMiniMap:
@@ -23,6 +27,7 @@ class TacticalMiniMap:
         self.dm_camera = Camera2D(window=window)
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
+        self._tilemap_renderer: Optional[TileMapRenderer] = None
 
         # Retângulo de desenho calculado para manter a proporção exata: (draw_x, draw_y, draw_w, draw_h)
         self._last_draw_rect: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)
@@ -138,8 +143,15 @@ class TacticalMiniMap:
         # Fundo do viewport do Mini-Mapa
         arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh / 2, vw, vh), (12, 16, 22, 255))
 
-        # 1. Mapa de Batalha com Proporção Preservada
-        if tex is not None:
+        # 1. Mapa de Batalha com Proporção Preservada (TileMap Modular ou Imagem Única)
+        tile_map = self.combat_manager.tile_map
+        if tile_map is not None:
+            if self._tilemap_renderer is None or self._tilemap_renderer.tile_map != tile_map:
+                self._tilemap_renderer = TileMapRenderer(tile_map=tile_map, grid_manager=grid_mgr)
+            self._tilemap_renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
+            self._tilemap_renderer.draw(pixelated=True)
+            arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
+        elif tex is not None:
             arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
             arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
         else:
@@ -267,10 +279,11 @@ class TacticalMiniMap:
             self._drag_world_pos = (float(x), float(y))
 
     def handle_mouse_release(self, x: float, y: float, split_x: float) -> None:
-        """Aplica Snap-to-Grid no token arrastado mapeando precisamente para a célula matricial correspondente."""
+        """Aplica Snap-to-Grid no token arrastado mapeando precisamente para a célula matricial correspondente com validação tática."""
         if self._dragged_combatant_uid is not None:
+            combatant = self.combat_manager.get_combatant(self._dragged_combatant_uid)
             grid_mgr = self.combat_manager.grid_manager
-            if grid_mgr is not None:
+            if grid_mgr is not None and combatant is not None:
                 draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
                 cell_w = draw_w / grid_mgr.columns
                 cell_h = draw_h / grid_mgr.rows
@@ -284,6 +297,18 @@ class TacticalMiniMap:
                 clamped_col = max(0, min(grid_mgr.columns - 1, col))
                 clamped_row = max(0, min(grid_mgr.rows - 1, row))
 
-                self.combat_manager.set_combatant_position(self._dragged_combatant_uid, clamped_col, clamped_row)
+                # Validação tática de movimentação via TileMap / CombatManager
+                tile_map = self.combat_manager.tile_map
+                if tile_map is not None and not tile_map.is_walkable(clamped_col, clamped_row):
+                    prev_pos = combatant.position
+                    prev_x = prev_pos.get("x", 0)
+                    prev_y = prev_pos.get("y", 0)
+                    logger.warning(
+                        f"Movimento bloqueado para '{combatant.name}': célula ({clamped_col}, {clamped_row}) "
+                        f"possui blocks_movement=True. Revertendo para ({prev_x}, {prev_y})."
+                    )
+                else:
+                    self.combat_manager.set_combatant_position(self._dragged_combatant_uid, clamped_col, clamped_row)
 
             self._dragged_combatant_uid = None
+

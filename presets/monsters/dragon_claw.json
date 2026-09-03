@@ -1,0 +1,74 @@
+{
+    "uid": "dragon_claw",
+    "source": "hoard_of_the_dragon_queen",
+    "page": 89,
+    "name": "Garra do Dragão",
+    "alignment": "NE",
+    "size": "Médio",
+    "type": "Humanoide",
+    "sub_type": "humano",
+    "armor_class": {
+        "value": 14,
+        "type": "armadura de couro"
+    },
+    "hit_points": {
+        "average": 16,
+        "formula": "3d8 + 3"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 9,
+        "DEX": 16,
+        "CON": 13,
+        "INT": 11,
+        "WIS": 10,
+        "CHA": 12
+    },
+    "saving_throws": {
+        "WIS": 2
+    },
+    "skills": {
+        "insight": 3,
+        "stealth": 5
+    },
+    "senses": {
+        "passive_perception": 10
+    },
+    "languages": [
+        "Comum",
+        "Dracônico"
+    ],
+    "challenge_rating": 1.0,
+    "xp": 200,
+    "features": {
+        "Fanático do Dragão": {
+            "description": "O garra do dragão tem vantagem em testes de resistência contra os efeitos de ser enfeitiçado ou amedrontado. Quando estiver ao lado de um dragão ou de um membro do culto de posto mais elevado que seja amigável a ele, ele ignora os efeitos de ser enfeitiçado ou amedrontado."
+        },
+        "Vantagem do Fanático": {
+            "description": "Uma vez por turno, se o garra do dragão fizer um ataque com arma e tiver vantagem na jogada de ataque, o alvo sofre 7 (2d6) de dano extra."
+        },
+        "Tática de Combate": {
+            "description": "O garra do dragão tem vantagem em jogadas de ataque contra uma criatura se pelo menos um aliado do garra do dragão estiver a 1,5 metro dela e esse aliado não estiver incapacitado."
+        }
+    },
+    "actions": [
+        {
+            "name": "Ataques Múltiplos",
+            "type": "multiattack",
+            "description": "O garra do dragão ataca duas vezes com sua cimitarra."
+        },
+        {
+            "name": "Cimitarra",
+            "type": "melee_attack",
+            "hit_bonus": 5,
+            "reach": 5,
+            "damage_dice": "1d6",
+            "damage_bonus": 3,
+            "damage_type": "slashing"
+        }
+    ]
+}

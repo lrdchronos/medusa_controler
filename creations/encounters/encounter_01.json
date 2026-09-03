@@ -2,7 +2,7 @@
     "uid": "encounter_01",
     "title": "Emboscada em Túnel (Encontro 01)",
     "description": "Três kobolds e um cultista líder aguardam em emboscada contra Bolo de Morango.",
-    "map_file": "assets/images/maps/open_field_grass_trees.jpg",
+    "map_file": "assets/images/maps/map_mounains.png",
     "environment": {
         "is_sunlight": false,
         "is_raining": false

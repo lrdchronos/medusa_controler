@@ -1,0 +1,81 @@
+{
+    "uid": "basic_veteran",
+    "source": "monster_manual",
+    "page": 349,
+    "name": "Veterano",
+    "alignment": "Any",
+    "size": "Médio",
+    "type": "Humanoide",
+    "sub_type": "qualquer raça",
+    "armor_class": {
+        "value": 17,
+        "type": "cota de talas"
+    },
+    "hit_points": {
+        "average": 58,
+        "formula": "9d8 + 18"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 16,
+        "DEX": 13,
+        "CON": 14,
+        "INT": 10,
+        "WIS": 11,
+        "CHA": 10
+    },
+    "skills": {
+        "athletics": 5,
+        "perception": 2
+    },
+    "senses": {
+        "passive_perception": 12
+    },
+    "languages": [
+        "Comum"
+    ],
+    "challenge_rating": 3.0,
+    "xp": 700,
+    "features": {},
+    "actions": [
+        {
+            "name": "Ataques Múltiplos",
+            "type": "multiattack",
+            "description": "O veterano realiza dois ataques com espada longa. Se ele tiver sacado uma espada curta, ele também pode realizar um ataque com espada curta."
+        },
+        {
+            "name": "Espada Longa",
+            "type": "melee_attack",
+            "hit_bonus": 5,
+            "reach": 5,
+            "damage_dice": "1d8",
+            "damage_bonus": 3,
+            "damage_type": "slashing",
+            "versatile_damage_dice": "1d10",
+            "versatile_damage_bonus": 3
+        },
+        {
+            "name": "Espada Curta",
+            "type": "melee_attack",
+            "hit_bonus": 5,
+            "reach": 5,
+            "damage_dice": "1d6",
+            "damage_bonus": 3,
+            "damage_type": "piercing"
+        },
+        {
+            "name": "Besta Pesada",
+            "type": "ranged_attack",
+            "hit_bonus": 3,
+            "range_normal": 100,
+            "range_long": 400,
+            "damage_dice": "1d10",
+            "damage_bonus": 1,
+            "damage_type": "piercing"
+        }
+    ]
+}

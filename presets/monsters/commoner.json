@@ -1,0 +1,52 @@
+{
+    "uid": "basic_commoner",
+    "source": "monster_manual",
+    "page": 348,
+    "name": "Plebeu",
+    "alignment": "Any",
+    "size": "Médio",
+    "type": "Humanoide",
+    "sub_type": "qualquer raça",
+    "armor_class": {
+        "value": 10,
+        "type": "natural"
+    },
+    "hit_points": {
+        "average": 4,
+        "formula": "1d8"
+    },
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
+    "ability_scores": {
+        "STR": 10,
+        "DEX": 10,
+        "CON": 10,
+        "INT": 10,
+        "WIS": 10,
+        "CHA": 10
+    },
+    "skills": {},
+    "senses": {
+        "passive_perception": 10
+    },
+    "languages": [
+        "Comum"
+    ],
+    "challenge_rating": 0.0,
+    "xp": 10,
+    "features": {},
+    "actions": [
+        {
+            "name": "Clava",
+            "type": "melee_attack",
+            "hit_bonus": 2,
+            "reach": 5,
+            "damage_dice": "1d4",
+            "damage_bonus": 0,
+            "damage_type": "bludgeoning"
+        }
+    ]
+}
