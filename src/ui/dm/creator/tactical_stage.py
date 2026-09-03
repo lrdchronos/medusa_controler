@@ -7,6 +7,8 @@ from typing import Optional, List, Dict, Any, Tuple
 import arcade
 from ....manager.grid_manager import GridManager
 from ....domain.builders.encounter_builder import EncounterBuilder
+from ....domain.models.tile_map import TileMap
+from ...utils.tilemap_renderer import TileMapRenderer
 from ...utils.sprite_utils import SpriteFactory
 
 
@@ -29,6 +31,8 @@ class CreatorTacticalStage:
         self.config_data: Dict[str, Any] = {}
         self.staging_combatants: List[Dict[str, Any]] = []
         self.grid_manager: Optional[GridManager] = None
+        self.tile_map: Optional[TileMap] = None
+        self.tilemap_renderer: Optional[TileMapRenderer] = None
 
         self.dragged_combatant_idx: Optional[int] = None
         self.drag_pos: Tuple[float, float] = (0.0, 0.0)
@@ -56,15 +60,40 @@ class CreatorTacticalStage:
         self.saved_encounter_path = None
         self.dragged_combatant_idx = None
 
+        map_type = self.config_data.get("map_type", "image")
+        map_source = self.config_data.get("map_source") or self.config_data.get("map_path")
         columns = config_data.get("columns", 25)
         feet_per_square = config_data.get("feet_per_square", 5)
 
-        self.grid_manager = GridManager(
-            map_width=1920.0,
-            map_height=1080.0,
-            columns=columns,
-            feet_per_square=feet_per_square,
-        )
+        if map_type == "tilemap" and map_source:
+            try:
+                self.tile_map = TileMap.from_file(map_source)
+                self.tilemap_renderer = TileMapRenderer(tile_map=self.tile_map)
+                self.grid_manager = GridManager(
+                    map_width=self.tile_map.width * 32.0,
+                    map_height=self.tile_map.height * 32.0,
+                    columns=columns,
+                    feet_per_square=feet_per_square,
+                )
+            except Exception as e:
+                logger.error(f"Erro ao instanciar TileMap no CreatorTacticalStage: {e}")
+                self.tile_map = None
+                self.tilemap_renderer = None
+                self.grid_manager = GridManager(
+                    map_width=1920.0,
+                    map_height=1080.0,
+                    columns=columns,
+                    feet_per_square=feet_per_square,
+                )
+        else:
+            self.tile_map = None
+            self.tilemap_renderer = None
+            self.grid_manager = GridManager(
+                map_width=1920.0,
+                map_height=1080.0,
+                columns=columns,
+                feet_per_square=feet_per_square,
+            )
 
         self.staging_combatants = []
 
@@ -105,7 +134,7 @@ class CreatorTacticalStage:
                 })
 
         logger.info(
-            f"CreatorTacticalStage inicializado com {len(self.staging_combatants)} combatentes para o mapa '{config_data.get('map_name')}'."
+            f"CreatorTacticalStage inicializado com {len(self.staging_combatants)} combatentes para o mapa '{config_data.get('map_name')}' (Tipo: {map_type})."
         )
 
     def save_encounter(self, directory: str = "creations/encounters") -> Optional[Path]:
@@ -132,7 +161,9 @@ class CreatorTacticalStage:
             title=self.config_data.get("title", "Novo Encontro"),
             description=self.config_data.get("description", ""),
         )
-        builder.with_map(self.config_data.get("map_path", "assets/images/maps/open_field_grass_trees.jpg"))
+        map_type = self.config_data.get("map_type", "image")
+        map_source = self.config_data.get("map_source") or self.config_data.get("map_path", "assets/images/maps/open_field_grass_trees.jpg")
+        builder.with_map(map_source=map_source, map_type=map_type)
         builder.with_grid(
             columns=columns,
             feet_per_square=self.config_data.get("feet_per_square", 5),
@@ -273,18 +304,25 @@ class CreatorTacticalStage:
         self._last_map_rect = (draw_x, draw_y, draw_w, draw_h)
 
         # 1. Mapa de Batalha
-        if tex is not None:
+        columns = self.config_data.get("columns", 25)
+        rows = self.grid_manager.rows if self.grid_manager else 14
+        cell_w = draw_w / columns
+        cell_h = draw_h / rows
+
+        if self.tile_map is not None and self.tilemap_renderer is not None:
+            tile_w = draw_w / float(self.tile_map.width)
+            tile_h = draw_h / float(self.tile_map.height)
+            self.tilemap_renderer.update_layout(draw_x, draw_y, tile_w, tile_h)
+            self.tilemap_renderer.draw(pixelated=True)
+            arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
+        elif tex is not None:
             arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
             arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
         else:
             arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (24, 32, 28, 255))
 
         # 2. Grade Matricial (Luminous Steel Cyan)
-        columns = self.config_data.get("columns", 25)
-        rows = self.grid_manager.rows if self.grid_manager else 14
         grid_color = (130, 205, 255, 175)
-        cell_w = draw_w / columns
-        cell_h = draw_h / rows
 
         for c in range(columns + 1):
             lx = draw_x + c * cell_w

@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any, Tuple
 import arcade
 from arcade.camera import Camera2D
 from ..manager.session_manager import SessionManager, DisplayState
+from ..manager.grid_manager import GridManager
 from .initiative_hud import InitiativeHUD
 from .utils.sprite_utils import SpriteFactory, CombatToken
 from .utils.tilemap_renderer import TileMapRenderer
@@ -258,14 +259,16 @@ class PlayerWindow(arcade.Window):
         if world_w <= 0 or world_h <= 0:
             return None
 
-        # Enquadramento Aspect-Fill (100% da viewport preenchida sem distorção anamórfica nem barras pretas)
-        scale = max(float(w) / world_w, float(h) / world_h)
-        draw_w = world_w * scale
-        draw_h = world_h * scale
+        # Enquadramento Aspect-Fit Proporcional (visualização completa e centralizada)
+        scale_factor, draw_w, draw_h, offset_x, offset_y = GridManager.calculate_aspect_fit(
+            viewport_width=float(w),
+            viewport_height=float(h),
+            native_width=world_w,
+            native_height=world_h,
+        )
 
-        # Centraliza o mapa simetricamente na tela dos jogadores
-        draw_x = (float(w) - draw_w) / 2.0
-        draw_y = (float(h) - draw_h) / 2.0
+        draw_x = offset_x
+        draw_y = offset_y
 
         cell_w = draw_w / grid_mgr.columns
         cell_h = draw_h / grid_mgr.rows
@@ -350,7 +353,9 @@ class PlayerWindow(arcade.Window):
         if tile_map is not None:
             if self._tilemap_renderer is None or self._tilemap_renderer.tile_map != tile_map:
                 self._tilemap_renderer = TileMapRenderer(tile_map=tile_map, grid_manager=combat_manager.grid_manager)
-            self._tilemap_renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
+            tile_w = draw_w / float(tile_map.width)
+            tile_h = draw_h / float(tile_map.height)
+            self._tilemap_renderer.update_layout(draw_x, draw_y, tile_w, tile_h)
             self._tilemap_renderer.draw(pixelated=True)
             arcade.draw_rect_outline(
                 arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h),

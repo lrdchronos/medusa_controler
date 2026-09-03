@@ -77,15 +77,19 @@ class TileMapRenderer:
         self.__sprites_by_coord.clear()
 
         tile_ids = self.__tile_map.tile_ids
-        for (col, row), tile_id in sorted(tile_ids.items(), key=lambda item: (item[0][1], item[0][0])):
+        for (tx, ty), tile_id in sorted(tile_ids.items(), key=lambda item: (item[0][1], item[0][0])):
             tex = self.__tileset_manager.get_tile_texture(tile_id)
             if tex is None:
                 logger.warning(
-                    f"Textura para tile_id {tile_id} na célula ({col}, {row}) não encontrada."
+                    f"Textura para tile_id {tile_id} na célula ({tx}, {ty}) não encontrada."
                 )
                 continue
 
             sprite = arcade.Sprite(tex)
+
+            # Mapeamento matricial: (0, 0) é Top-Left, (width-1, height-1) é Bottom-Right
+            col = tx
+            row = (self.__tile_map.height - 1) - ty
 
             # Cálculo de centro com half-tile offset (16px para tile_size=32)
             if self.__grid_manager is not None:
@@ -100,7 +104,7 @@ class TileMapRenderer:
             sprite.scale_y = 1.0
 
             self.__sprite_list.append(sprite)
-            self.__sprites_by_coord[(col, row)] = sprite
+            self.__sprites_by_coord[(tx, ty)] = sprite
 
         logger.info(
             f"TileMapRenderer montado: {len(self.__sprite_list)} sprites instanciados "
@@ -113,19 +117,26 @@ class TileMapRenderer:
         self,
         draw_x: float,
         draw_y: float,
-        cell_w: float,
-        cell_h: float,
+        tile_w: Optional[float] = None,
+        tile_h: Optional[float] = None,
+        cell_w: Optional[float] = None,
+        cell_h: Optional[float] = None,
     ) -> None:
         """
         Reposiciona e redimensiona todos os sprites da SpriteList para se ajustarem
         a um retângulo de viewport específico (ex: TacticalMiniMap ou PlayerWindow).
         """
-        scale_x = cell_w / self.__tile_size
-        scale_y = cell_h / self.__tile_size
+        tw = float(tile_w if tile_w is not None else (cell_w if cell_w is not None else self.__tile_size))
+        th = float(tile_h if tile_h is not None else (cell_h if cell_h is not None else self.__tile_size))
+        scale_x = tw / self.__tile_size
+        scale_y = th / self.__tile_size
 
-        for (col, row), sprite in self.__sprites_by_coord.items():
-            cx = draw_x + (float(col) + 0.5) * cell_w
-            cy = draw_y + (float(row) + 0.5) * cell_h
+        for (tx, ty), sprite in self.__sprites_by_coord.items():
+            col = tx
+            row = (self.__tile_map.height - 1) - ty
+
+            cx = draw_x + (float(col) + 0.5) * tw
+            cy = draw_y + (float(row) + 0.5) * th
             sprite.center_x = cx
             sprite.center_y = cy
             sprite.scale_x = scale_x
@@ -133,7 +144,10 @@ class TileMapRenderer:
 
     def reset_to_world_coordinates(self) -> None:
         """Restaura as posições e escalas dos sprites para as coordenadas mundiais padrão."""
-        for (col, row), sprite in self.__sprites_by_coord.items():
+        for (tx, ty), sprite in self.__sprites_by_coord.items():
+            col = tx
+            row = (self.__tile_map.height - 1) - ty
+
             if self.__grid_manager is not None:
                 cx, cy = self.__grid_manager.grid_to_world_center(col, row)
             else:
@@ -143,6 +157,7 @@ class TileMapRenderer:
             sprite.center_x = cx
             sprite.center_y = cy
             sprite.scale_x = 1.0
+            sprite.scale_y = 1.0
             sprite.scale_y = 1.0
 
     # --- Renderização em Lote na GPU ---

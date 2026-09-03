@@ -278,9 +278,9 @@ class TestTileMapEngine(unittest.TestCase):
         self.assertIsNotNone(cm.grid_manager)
         self.assertEqual(cm.grid_manager.columns, 4)
 
-        # Walkability test
-        self.assertFalse(cm.is_walkable(1, 1))
-        self.assertTrue(cm.is_walkable(2, 2))
+        # Walkability test: tile (1, 1) bloqueado no JSON corresponde a célula de grid (1, 2)
+        self.assertFalse(cm.is_walkable(1, 2))
+        self.assertTrue(cm.is_walkable(2, 1))
         self.assertTrue(cm.is_walkable(0, 0))  # Célula padrão
         self.assertFalse(cm.is_walkable(-1, 0))  # Fora do grid
 
@@ -293,7 +293,7 @@ class TestTileMapEngine(unittest.TestCase):
         sm = SessionManager()
         cm = sm.combat_manager
 
-        # Cria mapa com (1, 1) bloqueado
+        # Cria mapa com (1, 1) bloqueado no JSON -> corresponde a célula (1, 2) na tela
         tile_map = TileMap.from_dict({
             "tileset": "test_map_1",
             "width": 4,
@@ -326,10 +326,10 @@ class TestTileMapEngine(unittest.TestCase):
         mini_map.handle_mouse_release(50.0, 150.0, split_x=400.0)
         self.assertEqual(pc.position, {"x": 0, "y": 1})
 
-        # 2. Movimento Inválido: Tenta arrastar para célula bloqueada (1, 1) -> world_pos (150, 150)
+        # 2. Movimento Inválido: Tenta arrastar para célula bloqueada (1, 2) -> world_pos (150, 250)
         mini_map._dragged_combatant_uid = "hero_1"
         with self.assertLogs("src.ui.dm.tactical_minimap", level="WARNING") as log_cm:
-            mini_map.handle_mouse_release(150.0, 150.0, split_x=400.0)
+            mini_map.handle_mouse_release(150.0, 250.0, split_x=400.0)
 
         # Posição deve ter sido revertida / mantida em (0, 1)
         self.assertEqual(pc.position, {"x": 0, "y": 1})

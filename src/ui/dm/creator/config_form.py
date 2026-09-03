@@ -4,6 +4,9 @@ from typing import Optional, List, Dict, Any, Set, Tuple
 import arcade
 from ...utils.sprite_utils import SpriteFactory
 from .text_input import TextInputWidget, SmartTextInput
+from ....domain.models.tile_map import TileMap
+from ...utils.tilemap_renderer import TileMapRenderer
+from ....manager.grid_manager import GridManager
 
 logger = logging.getLogger(__name__)
 
@@ -99,10 +102,22 @@ class CreatorConfigForm:
         available_maps: List[Dict[str, str]],
         available_characters: List[Dict[str, Any]],
         available_monsters: List[Dict[str, Any]],
+        available_tilemaps: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
-        self.__available_maps: List[Dict[str, str]] = [m.copy() for m in available_maps]
+        self.__available_image_maps: List[Dict[str, str]] = [m.copy() for m in available_maps]
+        self.__available_maps: List[Dict[str, str]] = self.__available_image_maps  # Alias
+        self.__available_tilemaps: List[Dict[str, Any]] = [t.copy() for t in (available_tilemaps or [])]
         self.__available_characters: List[Dict[str, Any]] = [c.copy() for c in available_characters]
         self.__available_monsters: List[Dict[str, Any]] = [m.copy() for m in available_monsters]
+
+        # Modo de Mapa: 'image' (Mapa por Imagem) ou 'tilemap' (Mapa por Tileset)
+        self.__map_type: str = "image"
+        self.__selected_image_index: int = 0
+        self.__selected_tilemap_index: int = 0
+        self.__selected_map_index: int = 0  # Alias
+
+        self.__tilemap_cache: Dict[str, TileMap] = {}
+        self.__tilemap_renderers: Dict[str, TileMapRenderer] = {}
 
         # Widgets de Texto Inteligentes (SmartTextInput)
         self.__title_input = TextInputWidget(
@@ -129,7 +144,6 @@ class CreatorConfigForm:
 
         self.__columns: int = 25
         self.__feet_per_square: int = 5
-        self.__selected_map_index: int = 0
         self.__is_sunlight: bool = False
 
         self.__selected_character_uids: Set[str] = set()
@@ -168,17 +182,64 @@ class CreatorConfigForm:
     # --- Propriedades e Encapsulamento Defensivo (Poka-Yoke) ---
 
     @property
+    def map_type(self) -> str:
+        """Modo ativo de mapa ('image' ou 'tilemap')."""
+        return self.__map_type
+
+    @map_type.setter
+    def map_type(self, value: str) -> None:
+        norm = str(value).strip().lower()
+        if norm in ("image", "tilemap") and norm != self.__map_type:
+            self.__map_type = norm
+            logger.info(f"Modo de mapa alterado para '{self.__map_type}'.")
+
+    @property
+    def current_map_info(self) -> Dict[str, Any]:
+        """Retorna o dicionário de dados do mapa atualmente selecionado."""
+        if self.__map_type == "tilemap":
+            if self.__available_tilemaps and 0 <= self.__selected_tilemap_index < len(self.__available_tilemaps):
+                return self.__available_tilemaps[self.__selected_tilemap_index].copy()
+            return {"name": "Nenhum Tileset", "filename": "", "path": "", "width": 25, "height": 14}
+        else:
+            if self.__available_image_maps and 0 <= self.__selected_image_index < len(self.__available_image_maps):
+                return self.__available_image_maps[self.__selected_image_index].copy()
+            return {"name": "Nenhum Mapa", "filename": "", "path": ""}
+
+    @property
+    def available_image_maps(self) -> List[Dict[str, str]]:
+        """Retorna cópia defensiva da lista de mapas por imagem estática."""
+        return [m.copy() for m in self.__available_image_maps]
+
+    @available_image_maps.setter
+    def available_image_maps(self, maps: List[Dict[str, str]]) -> None:
+        if not isinstance(maps, list):
+            raise TypeError("available_image_maps deve ser uma lista.")
+        self.__available_image_maps = [m.copy() for m in maps]
+        self.__available_maps = self.__available_image_maps
+        if self.__selected_image_index >= len(self.__available_image_maps):
+            self.__selected_image_index = max(0, len(self.__available_image_maps) - 1)
+
+    @property
     def available_maps(self) -> List[Dict[str, str]]:
-        """Retorna uma cópia defensiva da lista de mapas disponíveis."""
-        return [m.copy() for m in self.__available_maps]
+        """Alias para available_image_maps."""
+        return self.available_image_maps
 
     @available_maps.setter
     def available_maps(self, maps: List[Dict[str, str]]) -> None:
-        if not isinstance(maps, list):
-            raise TypeError("available_maps deve ser uma lista.")
-        self.__available_maps = [m.copy() for m in maps]
-        if self.__selected_map_index >= len(self.__available_maps):
-            self.__selected_map_index = max(0, len(self.__available_maps) - 1)
+        self.available_image_maps = maps
+
+    @property
+    def available_tilemaps(self) -> List[Dict[str, Any]]:
+        """Retorna cópia defensiva da lista de mapas por tileset."""
+        return [t.copy() for t in self.__available_tilemaps]
+
+    @available_tilemaps.setter
+    def available_tilemaps(self, tilemaps: List[Dict[str, Any]]) -> None:
+        if not isinstance(tilemaps, list):
+            raise TypeError("available_tilemaps deve ser uma lista.")
+        self.__available_tilemaps = [t.copy() for t in tilemaps]
+        if self.__selected_tilemap_index >= len(self.__available_tilemaps):
+            self.__selected_tilemap_index = max(0, len(self.__available_tilemaps) - 1)
 
     @property
     def available_characters(self) -> List[Dict[str, Any]]:
@@ -242,20 +303,39 @@ class CreatorConfigForm:
         self.__feet_per_square = max(1, value)
 
     @property
+    def selected_image_index(self) -> int:
+        return self.__selected_image_index
+
+    @selected_image_index.setter
+    def selected_image_index(self, index: int) -> None:
+        if not self.__available_image_maps:
+            self.__selected_image_index = 0
+            return
+        self.__selected_image_index = int(index) % len(self.__available_image_maps)
+
+    @property
+    def selected_tilemap_index(self) -> int:
+        return self.__selected_tilemap_index
+
+    @selected_tilemap_index.setter
+    def selected_tilemap_index(self, index: int) -> None:
+        if not self.__available_tilemaps:
+            self.__selected_tilemap_index = 0
+            return
+        self.__selected_tilemap_index = int(index) % len(self.__available_tilemaps)
+
+    @property
     def selected_map_index(self) -> int:
-        return self.__selected_map_index
+        if self.__map_type == "tilemap":
+            return self.__selected_tilemap_index
+        return self.__selected_image_index
 
     @selected_map_index.setter
     def selected_map_index(self, index: int) -> None:
-        if not self.__available_maps:
-            self.__selected_map_index = 0
-            return
-        if not isinstance(index, int):
-            try:
-                index = int(index)
-            except (ValueError, TypeError):
-                index = 0
-        self.__selected_map_index = index % len(self.__available_maps)
+        if self.__map_type == "tilemap":
+            self.selected_tilemap_index = index
+        else:
+            self.selected_image_index = index
 
     @property
     def is_sunlight(self) -> bool:
@@ -393,16 +473,23 @@ class CreatorConfigForm:
         available_maps: List[Dict[str, str]],
         available_characters: List[Dict[str, Any]],
         available_monsters: List[Dict[str, Any]],
+        available_tilemaps: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """Recarrega arquivos de mapas, personagens e presets de monstros preservando contagens."""
-        self.__available_maps = [m.copy() for m in available_maps]
+        self.__available_image_maps = [m.copy() for m in available_maps]
+        self.__available_maps = self.__available_image_maps
+        if available_tilemaps is not None:
+            self.__available_tilemaps = [t.copy() for t in available_tilemaps]
         self.__available_characters = [c.copy() for c in available_characters]
         self.__available_monsters = [m.copy() for m in available_monsters]
-        if self.__selected_map_index >= len(self.__available_maps):
-            self.__selected_map_index = 0
+
+        if self.__selected_image_index >= len(self.__available_image_maps):
+            self.__selected_image_index = 0
+        if self.__selected_tilemap_index >= len(self.__available_tilemaps):
+            self.__selected_tilemap_index = 0
         self._init_defaults()
         logger.info(
-            f"Fontes do Criador atualizadas: {len(self.__available_maps)} mapas, {len(self.__available_characters)} PJs, {len(self.__available_monsters)} monstros."
+            f"Fontes do Criador atualizadas: {len(self.__available_image_maps)} imagens de mapa, {len(self.__available_tilemaps)} tilemaps, {len(self.__available_characters)} PJs, {len(self.__available_monsters)} monstros."
         )
 
     def apply_monster_filter(self, query: str) -> None:
@@ -428,8 +515,10 @@ class CreatorConfigForm:
         if not self.__title_input.text.strip():
             return False, "O título do encontro é obrigatório!"
 
-        if not self.__available_maps:
-            return False, "Nenhum mapa disponível encontrado!"
+        if self.__map_type == "tilemap" and not self.__available_tilemaps:
+            return False, "Nenhum layout de tilemap disponível encontrado em creations/maps/!"
+        elif self.__map_type == "image" and not self.__available_image_maps:
+            return False, "Nenhum mapa de imagem disponível encontrado em assets/images/maps/!"
 
         has_combatants = bool(self.__selected_character_uids) or any(q > 0 for q in self.__monster_counts.values())
         if not has_combatants:
@@ -445,15 +534,15 @@ class CreatorConfigForm:
 
     def get_config_data(self) -> Dict[str, Any]:
         """Retorna os dados consolidados do formulário com cópias defensivas para o palco de staging."""
-        cur_map = (
-            self.__available_maps[self.__selected_map_index]
-            if self.__available_maps
-            else {"path": "assets/images/maps/open_field_grass_trees.jpg", "name": "Mapa"}
-        )
+        cur_map = self.current_map_info
+        map_path = cur_map.get("path", "assets/images/maps/open_field_grass_trees.jpg")
+
         return {
             "title": self.__title_input.text.strip(),
             "description": self.__description_input.text.strip(),
-            "map_path": cur_map["path"],
+            "map_type": self.__map_type,
+            "map_source": map_path,
+            "map_path": map_path,  # Retrocompatibilidade
             "map_name": cur_map.get("name", "Mapa"),
             "columns": self.__columns,
             "feet_per_square": self.__feet_per_square,
@@ -510,12 +599,35 @@ class CreatorConfigForm:
 
     def _draw_map_selector(self, panel_w: float, map_sec_y: float, text_cache: Dict[str, arcade.Text]) -> float:
         self._render_text("lbl_map_sec", "• Mapa & Grade Tática:", 16, map_sec_y, COLOR_TEXT_MAIN, 9, True, text_cache)
-        map_row_y = map_sec_y - 20
-        cur_map = (
-            self.__available_maps[self.__selected_map_index]
-            if self.__available_maps
-            else {"name": "Nenhum", "filename": ""}
-        )
+
+        # Abas / Alternador de Modo: [ 🖼️ Mapa por Imagem ] | [ 🧩 Mapa por Tileset ]
+        tab_y = map_sec_y - 20
+        tab_w = (panel_w - 38) / 2.0
+        tab_img_x = 16.0 + tab_w / 2.0
+        tab_tile_x = 16.0 + tab_w + 6.0 + tab_w / 2.0
+
+        is_img = (self.__map_type == "image")
+        is_tile = (self.__map_type == "tilemap")
+
+        # Aba Imagem
+        img_bg = (35, 52, 75, 255) if is_img else (20, 26, 36, 255)
+        img_bd = COLOR_ACCENT_GOLD if is_img else COLOR_PANEL_BORDER
+        img_fg = COLOR_ACCENT_GOLD if is_img else COLOR_TEXT_MUTED
+        arcade.draw_rect_filled(arcade.XYWH(tab_img_x, tab_y, tab_w, 22), img_bg)
+        arcade.draw_rect_outline(arcade.XYWH(tab_img_x, tab_y, tab_w, 22), img_bd, 1.5 if is_img else 1)
+        self._render_text("tab_img_lbl", "🖼️ Mapa por Imagem", tab_img_x, tab_y, img_fg, 8, is_img, text_cache, anchor_x="center")
+
+        # Aba Tileset
+        tile_bg = (35, 52, 75, 255) if is_tile else (20, 26, 36, 255)
+        tile_bd = COLOR_ACCENT_GOLD if is_tile else COLOR_PANEL_BORDER
+        tile_fg = COLOR_ACCENT_GOLD if is_tile else COLOR_TEXT_MUTED
+        arcade.draw_rect_filled(arcade.XYWH(tab_tile_x, tab_y, tab_w, 22), tile_bg)
+        arcade.draw_rect_outline(arcade.XYWH(tab_tile_x, tab_y, tab_w, 22), tile_bd, 1.5 if is_tile else 1)
+        self._render_text("tab_tile_lbl", "🧩 Mapa por Tileset", tab_tile_x, tab_y, tile_fg, 8, is_tile, text_cache, anchor_x="center")
+
+        # Linha do Seletor [◀] [Nome do Mapa] [▶]
+        map_row_y = tab_y - 24
+        cur_map = self.current_map_info
 
         # [◀]
         b_prev_m_x = 30
@@ -528,7 +640,8 @@ class CreatorConfigForm:
         map_box_x = 30 + 13 + map_box_w / 2 + 4
         arcade.draw_rect_filled(arcade.XYWH(map_box_x, map_row_y, map_box_w, 24), COLOR_PANEL_BG)
         arcade.draw_rect_outline(arcade.XYWH(map_box_x, map_row_y, map_box_w, 24), COLOR_PANEL_BORDER, 1)
-        self._render_text("map_name_t", f"🗺️ {cur_map['name'][:24]}", map_box_x, map_row_y, COLOR_TEXT_CYAN, 8, True, text_cache, anchor_x="center")
+        prefix = "🧩 " if is_tile else "🖼️ "
+        self._render_text("map_name_t", f"{prefix}{cur_map['name'][:22]}", map_box_x, map_row_y, COLOR_TEXT_CYAN, 8, True, text_cache, anchor_x="center")
 
         # [▶]
         b_next_m_x = map_box_x + map_box_w / 2 + 17
@@ -829,31 +942,91 @@ class CreatorConfigForm:
         arcade.draw_line(vx, vy + vh - 36, vx + vw, vy + vh - 36, (50, 65, 90, 200), 1)
         self._render_text("wiz_prev_hdr", "🗺️ PRÉ-VISUALIZAÇÃO DO MAPA & COMBATENTES", vx + 16, vy + vh - 18, COLOR_TEXT_TITLE, 10, True, text_cache)
 
-        cur_map = self.__available_maps[self.__selected_map_index] if self.__available_maps else None
-        map_path = cur_map["path"] if cur_map else None
+        cur_map = self.current_map_info
+        map_path = cur_map.get("path")
+        is_tilemap = (self.__map_type == "tilemap")
 
         preview_h = vh * 0.46
         preview_w = vw - 40
         preview_cx = vx + vw / 2
         preview_cy = vy + vh - 36 - preview_h / 2 - 16
 
-        tex = None
-        if map_path:
-            resolved = str(os.path.abspath(map_path)) if os.path.isfile(map_path) else map_path
-            if resolved not in texture_cache:
-                try:
-                    if os.path.isfile(resolved):
-                        texture_cache[resolved] = arcade.load_texture(resolved)
-                except Exception:
-                    pass
-            tex = texture_cache.get(resolved)
+        # Fundo do Preview
+        arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (18, 24, 34, 255))
 
-        if tex is not None:
-            arcade.draw_texture_rect(tex, arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h))
-            arcade.draw_rect_outline(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (70, 95, 130, 220), 2)
+        if is_tilemap and map_path:
+            # Renderização de TileMap Dinâmico com Aspect-Fit Proporcional
+            tile_map = None
+            if map_path in self.__tilemap_cache:
+                tile_map = self.__tilemap_cache[map_path]
+            else:
+                try:
+                    tile_map = TileMap.from_file(map_path)
+                    self.__tilemap_cache[map_path] = tile_map
+                except Exception as e:
+                    logger.warning(f"Erro ao carregar preview do TileMap '{map_path}': {e}")
+
+            if tile_map is not None:
+                if map_path not in self.__tilemap_renderers:
+                    try:
+                        self.__tilemap_renderers[map_path] = TileMapRenderer(tile_map=tile_map)
+                    except Exception as e:
+                        logger.warning(f"Erro ao instanciar TileMapRenderer para preview: {e}")
+
+                renderer = self.__tilemap_renderers.get(map_path)
+                if renderer is not None:
+                    native_w = tile_map.width * 32.0
+                    native_h = tile_map.height * 32.0
+                    scale_factor, rend_w, rend_h, off_x, off_y = GridManager.calculate_aspect_fit(
+                        viewport_width=preview_w,
+                        viewport_height=preview_h,
+                        native_width=native_w,
+                        native_height=native_h,
+                    )
+                    draw_x = preview_cx - preview_w / 2 + off_x
+                    draw_y = preview_cy - preview_h / 2 + off_y
+                    cell_w = rend_w / tile_map.width
+                    cell_h = rend_h / tile_map.height
+
+                    renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
+                    renderer.draw(pixelated=True)
+                    arcade.draw_rect_outline(arcade.XYWH(draw_x + rend_w / 2, draw_y + rend_h / 2, rend_w, rend_h), (70, 95, 130, 220), 1.5)
+
+                    # Desenha a grade tática configurada independente sobreposta ao preview
+                    grid_cols = max(1, self.__columns)
+                    grid_rows = max(1, round(grid_cols * (rend_h / rend_w)))
+                    grid_cell_w = rend_w / float(grid_cols)
+                    grid_cell_h = rend_h / float(grid_rows)
+                    grid_color = (130, 205, 255, 75)
+                    for c in range(grid_cols + 1):
+                        lx = draw_x + float(c) * grid_cell_w
+                        arcade.draw_line(lx, draw_y, lx, draw_y + rend_h, grid_color, 1.0)
+                    for r in range(grid_rows + 1):
+                        ly = draw_y + float(r) * grid_cell_h
+                        arcade.draw_line(draw_x, ly, draw_x + rend_w, ly, grid_color, 1.0)
+                else:
+                    self._render_text("wiz_no_tm", f"🧩 Tileset {tile_map.width}x{tile_map.height}", preview_cx, preview_cy, COLOR_TEXT_CYAN, 10, True, text_cache, anchor_x="center")
+            else:
+                self._render_text("wiz_no_tex", "Layout JSON do Tilemap", preview_cx, preview_cy, COLOR_TEXT_MUTED, 10, False, text_cache, anchor_x="center")
         else:
-            arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (25, 35, 45, 255))
-            self._render_text("wiz_no_tex", "Miniatura do Mapa", preview_cx, preview_cy, COLOR_TEXT_MUTED, 11, False, text_cache, anchor_x="center")
+            # Renderização de Imagem Estática com Aspect-Fit
+            tex = None
+            if map_path:
+                resolved = str(os.path.abspath(map_path)) if os.path.isfile(map_path) else map_path
+                if resolved not in texture_cache:
+                    try:
+                        if os.path.isfile(resolved):
+                            texture_cache[resolved] = arcade.load_texture(resolved)
+                    except Exception:
+                        pass
+                tex = texture_cache.get(resolved)
+
+            if tex is not None:
+                arcade.draw_texture_rect(tex, arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h))
+                arcade.draw_rect_outline(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (70, 95, 130, 220), 2)
+            else:
+                arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (25, 35, 45, 255))
+                self._render_text("wiz_no_tex", "Miniatura do Mapa", preview_cx, preview_cy, COLOR_TEXT_MUTED, 11, False, text_cache, anchor_x="center")
 
         # Cartão de Resumo
         card_y = preview_cy - preview_h / 2 - 16
@@ -869,10 +1042,12 @@ class CreatorConfigForm:
         num_mons = sum(self.__monster_counts.values())
         tot = num_pcs + num_mons
 
-        self._render_text("wiz_res_p", f"• Jogadores Selecionados: {num_pcs}", vx + 32, card_y - 40, COLOR_TEXT_CYAN, 8, False, text_cache)
-        self._render_text("wiz_res_m", f"• Monstros Instanciados: {num_mons}", vx + 32, card_y - 60, (255, 138, 128, 255), 8, False, text_cache)
-        self._render_text("wiz_res_g", f"• Grade Tática: {self.__columns} colunas • {self.__feet_per_square} ft/quadrado", vx + 32, card_y - 80, COLOR_TEXT_MAIN, 8, False, text_cache)
-        self._render_text("wiz_res_tot", f"• Total de Combatentes: {tot}", vx + 32, card_y - 100, (46, 204, 113, 255), 9, True, text_cache)
+        map_type_label = "🧩 Tileset Modular Dinâmico" if is_tilemap else "🖼️ Imagem Fixa Estática"
+        self._render_text("wiz_res_mtype", f"• Tipo de Mapa: {map_type_label}", vx + 32, card_y - 38, COLOR_ACCENT_GOLD if is_tilemap else COLOR_TEXT_CYAN, 8, True, text_cache)
+        self._render_text("wiz_res_p", f"• Jogadores Selecionados: {num_pcs}", vx + 32, card_y - 56, COLOR_TEXT_CYAN, 8, False, text_cache)
+        self._render_text("wiz_res_m", f"• Monstros Instanciados: {num_mons}", vx + 32, card_y - 74, (255, 138, 128, 255), 8, False, text_cache)
+        self._render_text("wiz_res_g", f"• Grade Tática: {self.__columns} colunas • {self.__feet_per_square} ft/quadrado", vx + 32, card_y - 92, COLOR_TEXT_MAIN, 8, False, text_cache)
+        self._render_text("wiz_res_tot", f"• Total de Combatentes: {tot}", vx + 32, card_y - 110, (46, 204, 113, 255), 9, True, text_cache)
 
     def _render_text(
         self,
@@ -938,34 +1113,39 @@ class CreatorConfigForm:
         lbl_d_y = box_t_y - 22
         box_d_y = lbl_d_y - 18
         map_sec_y = box_d_y - 24
-        map_row_y = map_sec_y - 20
+        tab_y = map_sec_y - 20
+        map_row_y = tab_y - 24
         grid_y = map_row_y - 28
         pc_sec_y = grid_y - 28
         pc_list_top = pc_sec_y - 16
         mon_sec_y = pc_list_top - min(len(self.__available_characters), 3) * 24 - 10
         search_bar_y = mon_sec_y - 20
 
-        # 2. Seletor de Mapa
+        # 2. Abas de Tipo de Mapa [ 🖼️ Mapa por Imagem ] | [ 🧩 Mapa por Tileset ]
+        if self._handle_map_tab_click(x, y, panel_w, tab_y):
+            return None
+
+        # 3. Seletor de Mapa [◀] [Nome] [▶]
         if self._handle_map_selector_click(x, y, panel_w, map_row_y):
             return None
 
-        # 3. Steppers de Grade
+        # 4. Steppers de Grade
         if self._handle_grid_steppers_click(x, y, grid_y):
             return None
 
-        # 4. Checkboxes de Personagens
+        # 5. Checkboxes de Personagens
         if self._handle_pc_checkboxes_click(x, y, panel_w, pc_list_top):
             return None
 
-        # 5. Botão de Lupa [🔍]
+        # 6. Botão de Lupa [🔍]
         if self._handle_monster_search_click(x, y, panel_w, search_bar_y):
             return None
 
-        # 6. Lista Rolável e Scrollbar
+        # 7. Lista Rolável e Scrollbar
         if self._handle_monster_list_clicks(x, y):
             return None
 
-        # 7. Botão Avançar "➡️ Posicionar no Mapa"
+        # 8. Botão Avançar "➡️ Posicionar no Mapa"
         btn_next_y = 32
         if abs(y - btn_next_y) <= 18 and abs(x - panel_w / 2) <= (panel_w - 40) / 2:
             is_valid, err = self.validate()
@@ -1001,19 +1181,39 @@ class CreatorConfigForm:
         self.__search_input.blur()
         return False
 
+    def _handle_map_tab_click(self, x: float, y: float, panel_w: float, tab_y: float) -> bool:
+        if abs(y - tab_y) <= 12:
+            tab_w = (panel_w - 38) / 2.0
+            tab_img_x = 16.0 + tab_w / 2.0
+            tab_tile_x = 16.0 + tab_w + 6.0 + tab_w / 2.0
+            if abs(x - tab_img_x) <= tab_w / 2.0:
+                self.map_type = "image"
+                return True
+            elif abs(x - tab_tile_x) <= tab_w / 2.0:
+                self.map_type = "tilemap"
+                return True
+        return False
+
+    def _cycle_map(self, delta: int) -> None:
+        """Avança ou retrocede na lista de mapas ativos de acordo com o modo."""
+        if self.__map_type == "tilemap":
+            if self.__available_tilemaps:
+                self.selected_tilemap_index = self.__selected_tilemap_index + delta
+        else:
+            if self.__available_image_maps:
+                self.selected_image_index = self.__selected_image_index + delta
+
     def _handle_map_selector_click(self, x: float, y: float, panel_w: float, map_row_y: float) -> bool:
         b_prev_m_x = 30
         if abs(y - map_row_y) <= 12 and abs(x - b_prev_m_x) <= 13:
-            if self.__available_maps:
-                self.selected_map_index = (self.__selected_map_index - 1) % len(self.__available_maps)
+            self._cycle_map(-1)
             return True
 
         map_box_w = panel_w - 180
         map_box_x = 30 + 13 + map_box_w / 2 + 4
         b_next_m_x = map_box_x + map_box_w / 2 + 17
         if abs(y - map_row_y) <= 12 and abs(x - b_next_m_x) <= 13:
-            if self.__available_maps:
-                self.selected_map_index = (self.__selected_map_index + 1) % len(self.__available_maps)
+            self._cycle_map(1)
             return True
 
         return False

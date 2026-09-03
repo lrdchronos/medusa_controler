@@ -184,7 +184,7 @@ class TestMonsterSearchAndScroll(unittest.TestCase):
         form.search_input.set_text("kobold")
 
         # Coordenada do botão de busca [🔍] (panel_w - 32, search_bar_y)
-        mon_sec_y = (top_y - 18 - 24 - 18 - 22 - 18 - 24 - 20 - 28 - 28 - 16) - 10
+        mon_sec_y = (top_y - 18 - 24 - 18 - 22 - 18 - 24 - 20 - 24 - 28 - 28 - 16) - 10
         search_bar_y = mon_sec_y - 20
         btn_search_x = panel_w - 32
 

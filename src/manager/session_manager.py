@@ -160,6 +160,13 @@ class SessionManager:
                     # Checa se possui estrutura de combate
                     if "combatants" in data:
                         seen_uids.add(uid)
+                        raw_map_source = data.get("map_source") or data.get("map_file", "Padrão")
+                        map_type = data.get("map_type")
+                        if not map_type:
+                            map_type = "tilemap" if str(raw_map_source).lower().endswith(".json") else "image"
+                        else:
+                            map_type = str(map_type).strip().lower()
+
                         encounters.append({
                             "uid": uid,
                             "filename": file.name,
@@ -167,7 +174,10 @@ class SessionManager:
                             "title": data.get("title", file.stem),
                             "description": data.get("description", "Sem descrição"),
                             "combatants_count": len(data.get("combatants", [])),
-                            "map_file": data.get("map_file", "Padrão"),
+                            "map_type": map_type,
+                            "map_source": raw_map_source,
+                            "map_file": raw_map_source,
+                            "grid": data.get("grid", {"columns": 25, "feet_per_square": 5}),
                         })
                 except Exception as e:
                     logger.error(f"Falha ao ler encontro '{file}': {e}")
@@ -208,8 +218,8 @@ class SessionManager:
 
         return images
 
-    def list_available_maps(self) -> List[Dict[str, str]]:
-        """Varre as pastas de mapas de batalha para listar mapas disponíveis."""
+    def list_available_image_maps(self) -> List[Dict[str, str]]:
+        """Varre as pastas de imagens de mapas estáticos (.png, .jpg)."""
         maps: List[Dict[str, str]] = []
         search_dirs = [
             Path("assets/images/maps"),
@@ -238,6 +248,59 @@ class SessionManager:
                         "path": rel_path,
                     })
         return maps
+
+    def list_available_maps(self) -> List[Dict[str, str]]:
+        """Alias para list_available_image_maps() para compatibilidade retroativa."""
+        return self.list_available_image_maps()
+
+    def list_available_tilemaps(self) -> List[Dict[str, Any]]:
+        """
+        Varre os diretórios de layouts modulares de tilesets (creations/maps/*.json)
+        e retorna metadados táticos pré-carregados (largura, altura, tileset, etc.).
+        """
+        tilemaps: List[Dict[str, Any]] = []
+        search_dirs = [
+            Path("creations/maps"),
+            Path("presets/maps"),
+        ]
+        seen_paths = set()
+
+        for base in search_dirs:
+            if not base.exists():
+                continue
+            for file in base.glob("*.json"):
+                resolved = str(file.resolve())
+                if resolved in seen_paths:
+                    continue
+                seen_paths.add(resolved)
+
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        map_data = json.load(f)
+
+                    width = int(map_data.get("width", 25))
+                    height = int(map_data.get("height", 14))
+                    tileset = str(map_data.get("tileset", "default"))
+                    name = file.stem.replace("_", " ").title()
+
+                    try:
+                        rel_path = str(file.relative_to(Path.cwd())).replace("\\", "/")
+                    except Exception:
+                        rel_path = str(file).replace("\\", "/")
+
+                    tilemaps.append({
+                        "name": name,
+                        "filename": file.name,
+                        "path": rel_path,
+                        "width": width,
+                        "height": height,
+                        "tileset": tileset,
+                        "tile_count": len(map_data.get("tiles", [])),
+                    })
+                except Exception as e:
+                    logger.warning(f"Falha ao inspecionar layout de tilemap '{file}': {e}")
+
+        return tilemaps
 
     def list_available_characters(self) -> List[Dict[str, Any]]:
         """Varre as fichas de personagens de jogadores disponíveis."""

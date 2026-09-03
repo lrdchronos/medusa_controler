@@ -235,6 +235,37 @@ class TileMap:
             return TileProperties(blocks_movement=True, blocks_vision=True)
         return self.__tactical_grid.get((int(x), int(y)), TileProperties())
 
+    def grid_to_tile_coords(self, grid_col: int, grid_row: int, grid_cols: int, grid_rows: int) -> Tuple[int, int]:
+        """
+        Mapeia uma célula de um grid tático independente (grid_col, grid_row) para as coordenadas
+        matriciais do TileMap (x, y), onde x=0, y=0 é o canto superior esquerdo (Top-Left) e
+        x=width-1, y=height-1 é o canto inferior direito (Bottom-Right).
+        """
+        if grid_cols <= 0 or grid_rows <= 0:
+            return 0, 0
+        u = (float(grid_col) + 0.5) / float(grid_cols)
+        v = (float(grid_row) + 0.5) / float(grid_rows)
+
+        tx = min(self.__width - 1, max(0, int(u * self.__width)))
+        tile_screen_row = min(self.__height - 1, max(0, int(v * self.__height)))
+        ty = (self.__height - 1) - tile_screen_row
+        return tx, ty
+
+    def is_walkable_at_grid(self, grid_col: int, grid_row: int, grid_cols: int, grid_rows: int) -> bool:
+        """Verifica se a célula do grid tático independente é transitável com base no tile subjacente."""
+        tx, ty = self.grid_to_tile_coords(grid_col, grid_row, grid_cols, grid_rows)
+        return self.is_walkable(tx, ty)
+
+    def blocks_vision_at_grid(self, grid_col: int, grid_row: int, grid_cols: int, grid_rows: int) -> bool:
+        """Verifica se a célula do grid tático independente bloqueia visão com base no tile subjacente."""
+        tx, ty = self.grid_to_tile_coords(grid_col, grid_row, grid_cols, grid_rows)
+        return self.blocks_vision(tx, ty)
+
+    def is_difficult_at_grid(self, grid_col: int, grid_row: int, grid_cols: int, grid_rows: int) -> bool:
+        """Verifica se a célula do grid tático independente é terreno difícil com base no tile subjacente."""
+        tx, ty = self.grid_to_tile_coords(grid_col, grid_row, grid_cols, grid_rows)
+        return self.is_difficult(tx, ty)
+
     # --- Métodos de Fábrica e Serialização ---
 
     @classmethod

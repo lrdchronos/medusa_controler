@@ -105,7 +105,17 @@ class EncounterLoader:
         title = raw_data.get("title", resolved.stem)
         description = raw_data.get("description", "")
         uid = raw_data.get("uid", resolved.stem)
-        map_file = self.resolve_map_path(raw_data.get("map_file"))
+
+        raw_map_source = raw_data.get("map_source") or raw_data.get("map_file")
+        map_source = self.resolve_map_path(raw_map_source)
+
+        map_type = raw_data.get("map_type")
+        if not map_type:
+            map_type = "tilemap" if map_source and str(map_source).lower().endswith(".json") else "image"
+        else:
+            map_type = str(map_type).strip().lower()
+
+        map_file = map_source
         environment = raw_data.get("environment", {"is_sunlight": False, "is_raining": False})
         grid = raw_data.get("grid", {"columns": 25, "feet_per_square": 5})
 
@@ -142,6 +152,8 @@ class EncounterLoader:
             "uid": uid,
             "title": title,
             "description": description,
+            "map_type": map_type,
+            "map_source": map_source,
             "map_file": map_file,
             "environment": environment,
             "grid": grid,

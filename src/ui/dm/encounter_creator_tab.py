@@ -24,7 +24,8 @@ class EncounterCreatorTabView:
         self.stage: int = 1  # 1 = Formulário, 2 = Palco Tático
 
         # Subcomponentes Especializados (OOD)
-        available_maps = self.session_manager.list_available_maps()
+        available_maps = self.session_manager.list_available_image_maps()
+        available_tilemaps = self.session_manager.list_available_tilemaps()
         available_characters = self.session_manager.list_available_characters()
         available_monsters = self.session_manager.list_available_monster_presets()
 
@@ -32,6 +33,7 @@ class EncounterCreatorTabView:
             available_maps=available_maps,
             available_characters=available_characters,
             available_monsters=available_monsters,
+            available_tilemaps=available_tilemaps,
         )
         self.tactical_stage = CreatorTacticalStage()
 
@@ -102,10 +104,11 @@ class EncounterCreatorTabView:
 
     def refresh_sources(self) -> None:
         """Recarrega arquivos de mapas, personagens e monstros."""
-        maps = self.session_manager.list_available_maps()
+        maps = self.session_manager.list_available_image_maps()
+        tilemaps = self.session_manager.list_available_tilemaps()
         characters = self.session_manager.list_available_characters()
         monsters = self.session_manager.list_available_monster_presets()
-        self.form.update_sources(maps, characters, monsters)
+        self.form.update_sources(maps, characters, monsters, available_tilemaps=tilemaps)
 
     def proceed_to_stage_2(self) -> bool:
         """Valida o formulário e avança para a etapa do palco tático."""

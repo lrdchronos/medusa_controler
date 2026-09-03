@@ -21,6 +21,8 @@ class CombatManager:
         self.__encounter_uid: str = ""
         self.__title: str = "Encontro"
         self.__description: str = ""
+        self.__map_type: str = "image"
+        self.__map_source: Optional[str] = None
         self.__map_file: Optional[str] = None
         self.__tile_map: Optional[TileMap] = None
         self.__environment: Dict[str, Any] = {"is_sunlight": False, "is_raining": False}
@@ -47,6 +49,14 @@ class CombatManager:
     @property
     def description(self) -> str:
         return self.__description
+
+    @property
+    def map_type(self) -> str:
+        return self.__map_type
+
+    @property
+    def map_source(self) -> Optional[str]:
+        return self.__map_source
 
     @property
     def map_file(self) -> Optional[str]:
@@ -128,29 +138,37 @@ class CombatManager:
     # --- Carregamento de Encontro e Mapa ---
 
     def set_tile_map(self, tile_map: Optional[TileMap]) -> None:
-        """Define o mapa modular ativo e sincroniza a resolução do GridManager."""
+        """Define o mapa modular ativo e sincroniza a resolução do GridManager mantendo a grade tática independente."""
         self.__tile_map = tile_map
         if tile_map is not None:
+            cols = self.__grid_data.get("columns") if bool(self.__encounter_uid) else tile_map.width
+            if cols is None:
+                cols = tile_map.width
             feet = self.__grid_data.get("feet_per_square", 5)
-            self.__grid_data["columns"] = tile_map.width
             self.__grid_manager = GridManager(
                 map_width=float(tile_map.width * 32),
                 map_height=float(tile_map.height * 32),
-                columns=tile_map.width,
+                columns=cols,
                 feet_per_square=feet,
             )
             logger.info(
                 f"TileMap configurado no CombatManager: '{tile_map.tileset_name}' "
-                f"({tile_map.width}x{tile_map.height} células)."
+                f"({tile_map.width}x{tile_map.height} tiles). Grade tática: {cols}x{self.__grid_manager.rows} células."
             )
         self.notify_listeners()
 
     def is_walkable(self, x: int, y: int) -> bool:
-        """Verifica se a célula permite trânsito de entidades via TileMap ou GridManager."""
+        """Verifica se a célula do grid tático (x, y) permite trânsito de entidades."""
+        if self.__grid_manager is not None:
+            if not self.__grid_manager.is_valid_cell(x, y):
+                return False
+            if self.__tile_map is not None:
+                return self.__tile_map.is_walkable_at_grid(
+                    x, y, self.__grid_manager.columns, self.__grid_manager.rows
+                )
+            return True
         if self.__tile_map is not None:
             return self.__tile_map.is_walkable(x, y)
-        if self.__grid_manager is not None:
-            return self.__grid_manager.is_valid_cell(x, y)
         return True
 
     def load_encounter(self, encounter_id_or_path: str) -> None:
@@ -159,20 +177,25 @@ class CombatManager:
         self.__encounter_uid = data["uid"]
         self.__title = data["title"]
         self.__description = data["description"]
-        self.__map_file = data["map_file"]
+        self.__map_type = data.get("map_type", "image")
+        self.__map_source = data.get("map_source") or data.get("map_file")
+        self.__map_file = self.__map_source
         self.__environment = data.get("environment", {"is_sunlight": False, "is_raining": False})
         self.__grid_data = data.get("grid", {"columns": 25, "feet_per_square": 5})
 
         cols = self.__grid_data.get("columns", 25)
         feet = self.__grid_data.get("feet_per_square", 5)
 
-        # Tenta carregar TileMap se map_file for um arquivo JSON de layout modular
+        # Carrega TileMap se map_type for tilemap ou se map_source for arquivo JSON
         self.__tile_map = None
-        if self.__map_file and str(self.__map_file).lower().endswith(".json"):
+        is_tilemap_type = (self.__map_type == "tilemap") or (
+            self.__map_source and str(self.__map_source).lower().endswith(".json")
+        )
+
+        if is_tilemap_type and self.__map_source:
             try:
-                self.__tile_map = TileMap.from_file(self.__map_file)
-                cols = self.__tile_map.width
-                self.__grid_data["columns"] = cols
+                self.__tile_map = TileMap.from_file(self.__map_source)
+                self.__map_type = "tilemap"
                 self.__grid_manager = GridManager(
                     map_width=float(self.__tile_map.width * 32),
                     map_height=float(self.__tile_map.height * 32),
@@ -180,7 +203,7 @@ class CombatManager:
                     feet_per_square=feet,
                 )
             except Exception as e:
-                logger.warning(f"Não foi possível carregar TileMap a partir de '{self.__map_file}': {e}")
+                logger.warning(f"Não foi possível carregar TileMap a partir de '{self.__map_source}': {e}")
                 self.__grid_manager = GridManager(
                     map_width=1920.0,
                     map_height=1080.0,
@@ -188,6 +211,7 @@ class CombatManager:
                     feet_per_square=feet,
                 )
         else:
+            self.__map_type = "image"
             # Inicializa GridManager com dimensões padrão de tela (ajustadas dinamicamente quando a textura carrega)
             self.__grid_manager = GridManager(
                 map_width=1920.0,
@@ -203,7 +227,7 @@ class CombatManager:
         self.__round_number = 1
 
         logger.info(
-            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) com {len(self.__combatants)} combatentes."
+            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) [tipo={self.__map_type}] com {len(self.__combatants)} combatentes."
         )
         self.notify_listeners()
 
@@ -434,6 +458,8 @@ class CombatManager:
         self.__encounter_uid = ""
         self.__title = "Encontro"
         self.__description = ""
+        self.__map_type = "image"
+        self.__map_source = None
         self.__map_file = None
         self.__tile_map = None
         self.__environment = {"is_sunlight": False, "is_raining": False}

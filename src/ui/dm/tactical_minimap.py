@@ -137,6 +137,9 @@ class TacticalMiniMap:
         draw_x = vx + (vw - draw_w) / 2
         draw_y = vy + (vh - banner_h - draw_h) / 2
 
+        cell_w = draw_w / grid_mgr.columns
+        cell_h = draw_h / grid_mgr.rows
+
         # Armazena o retângulo de projeção para o cálculo de cliques de drag & drop
         self._last_draw_rect = (draw_x, draw_y, draw_w, draw_h)
 
@@ -148,7 +151,9 @@ class TacticalMiniMap:
         if tile_map is not None:
             if self._tilemap_renderer is None or self._tilemap_renderer.tile_map != tile_map:
                 self._tilemap_renderer = TileMapRenderer(tile_map=tile_map, grid_manager=grid_mgr)
-            self._tilemap_renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
+            tile_w = draw_w / float(tile_map.width)
+            tile_h = draw_h / float(tile_map.height)
+            self._tilemap_renderer.update_layout(draw_x, draw_y, tile_w, tile_h)
             self._tilemap_renderer.draw(pixelated=True)
             arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (60, 80, 110, 220), 1.5)
         elif tex is not None:
@@ -160,8 +165,6 @@ class TacticalMiniMap:
 
         # 2. Linhas do Grid Tático de ALTO CONTRASTE (Luminous Steel Cyan)
         grid_color = (130, 205, 255, 175)
-        cell_w = draw_w / grid_mgr.columns
-        cell_h = draw_h / grid_mgr.rows
 
         for c in range(grid_mgr.columns + 1):
             lx = draw_x + c * cell_w
@@ -298,8 +301,7 @@ class TacticalMiniMap:
                 clamped_row = max(0, min(grid_mgr.rows - 1, row))
 
                 # Validação tática de movimentação via TileMap / CombatManager
-                tile_map = self.combat_manager.tile_map
-                if tile_map is not None and not tile_map.is_walkable(clamped_col, clamped_row):
+                if not self.combat_manager.is_walkable(clamped_col, clamped_row):
                     prev_pos = combatant.position
                     prev_x = prev_pos.get("x", 0)
                     prev_y = prev_pos.get("y", 0)
