@@ -1,0 +1,66 @@
+{
+    "uid": "encounter_04092026064728",
+    "title": "Emboscada na Floresta",
+    "description": "Grupo de monstros surpreende os heróis em uma clareira.",
+    "map_type": "tilemap",
+    "map_source": "creations/maps/Sprite-0007_map.json",
+    "map_file": "creations/maps/Sprite-0007_map.json",
+    "environment": {
+        "is_sunlight": false,
+        "is_raining": false
+    },
+    "grid": {
+        "columns": 21,
+        "feet_per_square": 5
+    },
+    "combatants": [
+        {
+            "entity_type": "playable_character",
+            "character_id": "char_020920262116",
+            "is_hidden": false,
+            "position": {
+                "col": 0,
+                "row": 6
+            }
+        },
+        {
+            "entity_type": "playable_character",
+            "character_id": "char_240820261336",
+            "is_hidden": false,
+            "position": {
+                "col": 0,
+                "row": 8
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold 1",
+            "is_hidden": false,
+            "position": {
+                "col": 8,
+                "row": 2
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "kobold",
+            "instance_name": "Kobold 2",
+            "is_hidden": false,
+            "position": {
+                "col": 11,
+                "row": 2
+            }
+        },
+        {
+            "entity_type": "monster",
+            "monster_id": "winged_kobold",
+            "instance_name": "Kobold Alado",
+            "is_hidden": false,
+            "position": {
+                "col": 11,
+                "row": 11
+            }
+        }
+    ]
+}

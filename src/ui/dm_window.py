@@ -57,6 +57,7 @@ class DMWindow(arcade.Window):
 
         # Estado Global da Janela
         self.active_tab: int = 2 if self.session_manager.is_combat_active else 0
+        self.is_ctrl_held: bool = False
 
         # Listener Reativo de Sessão
         self.session_manager.add_listener(self._on_session_changed)
@@ -235,18 +236,35 @@ class DMWindow(arcade.Window):
                     on_select_combatant=lambda uid: setattr(self.combat_tab, "selected_combatant_uid", uid)
                 )
 
+    def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
+        """Trata movimento do cursor do mouse, atualizando o overlay de magia em tempo real."""
+        self.switch_to()
+        arcade.set_window(self)
+        split_x = self.width * 0.50
+        if x >= split_x and self.session_manager.is_combat_active:
+            self.mini_map.handle_mouse_motion(x, y)
+        else:
+            self.mini_map.handle_mouse_leave()
+
     def on_mouse_drag(self, x: float, y: float, dx: float, dy: float, buttons: int, modifiers: int) -> None:
         self.switch_to()
         arcade.set_window(self)
+        split_x = self.width * 0.50
+        if x < split_x and self.active_tab == 2:
+            self.combat_tab.handle_mouse_drag(x, y, dx, dy, buttons, modifiers)
         if self.active_tab == 3:
             self.creator_tab.handle_mouse_drag(x, y)
-        else:
+        elif x >= split_x:
             self.mini_map.handle_mouse_drag(x, y)
+            if self.session_manager.is_combat_active:
+                self.mini_map.handle_mouse_motion(x, y)
 
     def on_mouse_release(self, x: float, y: float, button: int, modifiers: int) -> None:
         self.switch_to()
         arcade.set_window(self)
         split_x = self.width * 0.50
+        if x < split_x and self.active_tab == 2:
+            self.combat_tab.handle_mouse_release(x, y, button, modifiers)
         if self.active_tab == 3:
             self.creator_tab.handle_mouse_release(x, y, split_x)
         else:
@@ -255,34 +273,55 @@ class DMWindow(arcade.Window):
     def on_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> None:
         self.switch_to()
         arcade.set_window(self)
+        split_x = self.width * 0.50
         if self.active_tab == 3:
             self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)
+        elif x >= split_x and self.session_manager.is_combat_active:
+            self.mini_map.handle_mouse_scroll(x, y, scroll_x, scroll_y, is_ctrl=self.is_ctrl_held)
 
     def on_update(self, delta_time: float) -> None:
         """Atualização de quadro e lógica periódica dos componentes."""
         if self.active_tab == 3:
             self.creator_tab.on_update(delta_time)
+        elif self.active_tab == 2:
+            self.combat_tab.on_update(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
-        """Trata atalhos de teclado e digitação no Criador de Encontros."""
+        """Trata atalhos de teclado e digitação no Criador de Encontros e no Painel de Feitiços."""
         self.switch_to()
         arcade.set_window(self)
+
+        # Rastreia estado da tecla Ctrl
+        if symbol in (arcade.key.LCTRL, arcade.key.RCTRL) or bool(modifiers & arcade.key.MOD_CTRL):
+            self.is_ctrl_held = True
+
         if self.active_tab == 3:
             self.creator_tab.handle_key_press(symbol, modifiers)
+        elif self.active_tab == 2:
+            self.combat_tab.handle_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int) -> None:
-        """Trata liberação de teclas (como backspace repeat) no Criador de Encontros."""
+        """Trata liberação de teclas (como backspace repeat) no Criador e no Painel de Feitiços."""
         self.switch_to()
         arcade.set_window(self)
+
+        # Atualiza estado da tecla Ctrl
+        if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
+            self.is_ctrl_held = False
+
         if self.active_tab == 3:
             self.creator_tab.handle_key_release(symbol, modifiers)
+        elif self.active_tab == 2:
+            self.combat_tab.handle_key_release(symbol, modifiers)
 
     def on_text(self, text: str) -> None:
-        """Trata entrada de texto digitado no Criador de Encontros."""
+        """Trata entrada de texto digitado no Criador e no Painel de Feitiços."""
         self.switch_to()
         arcade.set_window(self)
         if self.active_tab == 3:
             self.creator_tab.handle_text_input(text)
+        elif self.active_tab == 2:
+            self.combat_tab.handle_text_input(text)
 
     def on_text_input(self, text: str) -> None:
         """Compatibilidade para versão do Arcade que usa on_text_input."""

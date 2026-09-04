@@ -1,8 +1,9 @@
 import logging
 import random
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Tuple
 from ..domain.models.entity import Entity
 from ..domain.models.tile_map import TileMap
+from ..domain.models.spell_template import SpellTemplate, SpellShape
 from ..domain.loaders.encounter_loader import EncounterLoader
 from .grid_manager import GridManager
 
@@ -13,7 +14,8 @@ class CombatManager:
     """
     Motor central de gerenciamento de encontros de combate e turnos do Medusa VTT.
     Responsável por carregar o encontro, rolar e ordenar iniciativas com desempates (D&D 5E),
-    gerenciar o ponteiro de turno ativo, rodadas, despachar dano/cura, visibilidade e posicionamento.
+    gerenciar o ponteiro de turno ativo, rodadas, despachar dano/cura, visibilidade, posicionamento
+    e projeção tática de áreas de efeito de feitiços (SpellTemplate).
     """
 
     def __init__(self, encounter_loader: Optional[EncounterLoader] = None) -> None:
@@ -33,6 +35,9 @@ class CombatManager:
         self.__turn_order: List[Entity] = []
         self.__current_turn_index: int = -1
         self.__round_number: int = 1
+
+        # Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE)
+        self.__active_spell_template: Optional[SpellTemplate] = None
 
         self.__listeners: List[Callable[[], None]] = []
 
@@ -117,6 +122,16 @@ class CombatManager:
     @property
     def has_combat_started(self) -> bool:
         return self.__current_turn_index >= 0 and len(self.__turn_order) > 0
+
+    @property
+    def active_spell_template(self) -> Optional[SpellTemplate]:
+        """Template de área de efeito de feitiço ativo para projeção tática."""
+        return self.__active_spell_template
+
+    @active_spell_template.setter
+    def active_spell_template(self, template: Optional[SpellTemplate]) -> None:
+        self.__active_spell_template = template
+        self.notify_listeners()
 
     # --- Observer / Notificação de Mudanças ---
 
@@ -443,12 +458,72 @@ class CombatManager:
             return True
         return False
 
+    # --- Projeção Tática de Magias (Spell AoE Overlay) ---
+
+    def set_spell_template(self, template: Optional[SpellTemplate]) -> None:
+        """Define ou limpa o template de magia ativo e notifica os ouvintes."""
+        self.__active_spell_template = template
+        if template is not None:
+            logger.info(
+                f"Template de magia configurado: shape={template.shape.value} "
+                f"size={template.size_feet}ft width={template.width_feet}ft "
+                f"active={template.is_active} rot={template.rotation_degrees:.1f}°."
+            )
+        else:
+            logger.info("Template de magia desativado.")
+        self.notify_listeners()
+
+    def update_spell_origin(self, world_x: float, world_y: float) -> None:
+        """Atualiza a posição de origem da magia no espaço de mundo contínuo e notifica ouvintes."""
+        if self.__active_spell_template is not None:
+            self.__active_spell_template = self.__active_spell_template.with_origin((world_x, world_y))
+            self.__active_spell_template = self.__active_spell_template.with_visibility(True)
+            self.notify_listeners()
+
+    def rotate_spell(self, delta_degrees: float) -> None:
+        """Incrementa/decrementa o ângulo de rotação da magia em passos angulares com wrap-around."""
+        if self.__active_spell_template is not None:
+            new_rot = (self.__active_spell_template.rotation_degrees + delta_degrees) % 360.0
+            self.__active_spell_template = self.__active_spell_template.with_rotation(new_rot)
+            logger.debug(f"Rotação da magia ajustada: {self.__active_spell_template.rotation_degrees:.1f}°")
+            self.notify_listeners()
+
+    def toggle_spell_active(self, is_active: Optional[bool] = None) -> bool:
+        """Alterna ou define o estado de ativação da projeção de magia."""
+        if self.__active_spell_template is not None:
+            new_active = not self.__active_spell_template.is_active if is_active is None else bool(is_active)
+            self.__active_spell_template = self.__active_spell_template.with_active(new_active)
+            logger.info(f"Projeção de magia: is_active={new_active}")
+            self.notify_listeners()
+            return new_active
+        else:
+            # Inicializa um template padrão baseado no grid ativo
+            feet = float(self.__grid_data.get("feet_per_square", 5.0))
+            self.__active_spell_template = SpellTemplate(
+                shape=SpellShape.CIRCLE,
+                size_feet=feet * 4.0,
+                width_feet=feet,
+                rotation_degrees=0.0,
+                origin_world=(0.0, 0.0),
+                is_active=True,
+                is_visible=True,
+            )
+            logger.info("Template padrão de magia inicializado e ativado.")
+            self.notify_listeners()
+            return True
+
+    def set_spell_visibility(self, is_visible: bool) -> None:
+        """Define a visibilidade temporária da projeção de magia (ex: mouse saiu do minimapa)."""
+        if self.__active_spell_template is not None and self.__active_spell_template.is_visible != is_visible:
+            self.__active_spell_template = self.__active_spell_template.with_visibility(is_visible)
+            self.notify_listeners()
+
     # --- Encerramento e Reset de Combate ---
 
     def reset_combat(self) -> None:
         """
         Reseta o estado do combate: limpa combatentes ativos, fila de iniciativas,
-        ponteiro de turnos, rodadas, referências de mapa e GridManager.
+        ponteiro de turnos, rodadas, referências de mapa, GridManager e SpellTemplate.
         Notifica todos os Observers conectados.
         """
         enc_title = self.__title
@@ -465,6 +540,7 @@ class CombatManager:
         self.__environment = {"is_sunlight": False, "is_raining": False}
         self.__grid_data = {"columns": 25, "feet_per_square": 5}
         self.__grid_manager = None
+        self.__active_spell_template = None
 
         self.__combatants.clear()
         self.__turn_order.clear()

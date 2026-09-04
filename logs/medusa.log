@@ -201,3 +201,134 @@
 [2026-09-03 22:48:16,603] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
 [2026-09-03 22:48:16,625] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
 [2026-09-03 22:48:16,631] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-03 23:00:28,071] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-03 23:00:28,071] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-03 23:00:28,535] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-03 23:00:28,652] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-03 23:00:28,652] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-03 23:00:32,476] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-03 23:00:32,548] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-03 23:00:32,570] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-03 23:00:32,576] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:46:46,036] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 06:46:46,036] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 06:46:46,503] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 06:46:46,607] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 06:46:46,608] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 06:46:52,398] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-04 06:46:52,466] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 06:46:52,489] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 06:46:52,496] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:47:10,731] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 06:47:10,734] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:47:10,735] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 5 combatentes para o mapa 'Sprite-0007 Map' (Tipo: tilemap).
+[2026-09-04 06:47:13,757] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kaz' posicionado no grid: [0, 6].
+[2026-09-04 06:47:15,214] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Bolo de Morango' posicionado no grid: [0, 8].
+[2026-09-04 06:47:17,330] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [8, 2].
+[2026-09-04 06:47:20,278] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 2' posicionado no grid: [11, 2].
+[2026-09-04 06:47:24,164] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold Alado' posicionado no grid: [11, 11].
+[2026-09-04 06:47:28,077] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_04092026064728.json' (UID: encounter_04092026064728, 5 combatentes).
+[2026-09-04 06:47:28,078] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_04092026064728.json'.
+[2026-09-04 06:47:28,091] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 2 imagens de mapa, 2 tilemaps, 2 PJs, 10 monstros.
+[2026-09-04 06:47:36,552] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_03092026095002
+[2026-09-04 06:47:36,556] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'test_map_1.json'.
+[2026-09-04 06:47:36,556] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_03092026095002) [tipo=tilemap] com 6 combatentes.
+[2026-09-04 06:47:36,715] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'test_map_1' inicializado: 63 tiles fatiados a partir de 'test_map_1.png'.
+[2026-09-04 06:47:36,717] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 16 sprites instanciados para mapa 'test_map_1' (4x4).
+[2026-09-04 06:47:36,776] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 16 sprites instanciados para mapa 'test_map_1' (4x4).
+[2026-09-04 06:47:54,250] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 06:47:54,253] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 06:47:54,254] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 06:47:54,275] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:47:54,292] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:57:57,387] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 06:57:57,387] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 06:57:57,856] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 06:57:57,950] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 06:57:57,951] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 06:58:04,553] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 06:58:04,558] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 06:58:04,560] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 06:58:04,585] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 06:58:04,592] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:58:04,856] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 06:58:11,386] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=square size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 06:58:12,283] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 06:58:13,351] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:19,366] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=2.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:19,511] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=2.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:23,044] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=1.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:23,259] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=10.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:32,420] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=square size=10.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:39,904] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=10.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:42,825] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=12.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 06:58:43,004] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 07:01:50,011] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 07:01:50,011] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 07:01:50,463] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 07:01:50,559] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 07:01:50,560] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 07:01:56,978] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 07:01:56,983] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 07:01:56,984] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 07:01:57,009] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 07:01:57,016] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:01:57,283] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:01:59,546] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=square size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:02:00,716] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:02:02,902] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:02:04,901] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 07:02:21,841] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=60.0°.
+[2026-09-04 07:02:53,978] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 07:02:53,978] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 07:02:54,459] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 07:02:54,555] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 07:02:54,556] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 07:02:58,101] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 07:02:58,106] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 07:02:58,106] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 07:02:58,130] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 07:02:58,136] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:02:58,394] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:03:00,308] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:03:02,093] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:03:03,450] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 07:03:26,366] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=65.0°.
+[2026-09-04 07:03:49,794] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 07:03:49,795] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 07:03:50,244] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 07:03:50,366] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 07:03:50,367] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 07:03:54,813] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 07:03:54,818] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 07:03:54,819] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 07:03:55,050] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 07:03:55,061] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:03:55,110] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:03:56,260] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:03:57,384] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 07:03:58,310] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 07:04:19,628] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=120.0ft width=5.0ft active=True rot=158.0°.
+[2026-09-04 07:04:23,648] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=1.0ft width=5.0ft active=True rot=158.0°.
+[2026-09-04 07:04:23,758] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=14.0ft width=5.0ft active=True rot=158.0°.
+[2026-09-04 07:08:47,972] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 07:08:47,973] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 07:08:48,415] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 07:08:48,527] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 07:08:48,527] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 07:08:52,875] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 07:08:52,879] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 07:08:52,880] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 07:08:53,130] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 07:08:53,141] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:08:53,190] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 sprites instanciados para mapa 'Sprite-007' (21x12).
+[2026-09-04 07:08:56,025] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 07:08:57,757] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 07:09:07,202] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=329.0°.
+[2026-09-04 07:09:26,047] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=120.0ft width=5.0ft active=True rot=13.0°.
+[2026-09-04 07:09:27,962] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=True rot=13.0°.
+[2026-09-04 07:09:57,935] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=False rot=27.0°.
+[2026-09-04 07:10:00,314] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 1' movido de (8, 2) para (8, 2).
+[2026-09-04 07:10:26,723] [INFO] [src.manager.session_manager]: Encerrando combate e retornando exibição para: IDLE
+[2026-09-04 07:10:26,723] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada na Floresta' (encounter_04092026064728).
+[2026-09-04 07:10:26,725] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.

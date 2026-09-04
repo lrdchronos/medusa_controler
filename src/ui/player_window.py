@@ -10,6 +10,7 @@ from ..manager.grid_manager import GridManager
 from .initiative_hud import InitiativeHUD
 from .utils.sprite_utils import SpriteFactory, CombatToken
 from .utils.tilemap_renderer import TileMapRenderer
+from .utils.aoe_renderer import AoERenderer
 from ..domain.models.playablechar import PlayableCharacter
 
 logger = logging.getLogger(__name__)
@@ -438,7 +439,18 @@ class PlayerWindow(arcade.Window):
                 token_key=combatant.uid,
             )
 
-        # 4. Fila de Iniciativas como Overlay Flutuante Translúcido no Topo da Tela
+        # 4. Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE Overlay)
+        if combat_manager.grid_manager is not None and combat_manager.grid_manager.map_width > 0:
+            scale_factor = draw_w / combat_manager.grid_manager.map_width
+            AoERenderer.draw(
+                template=combat_manager.active_spell_template,
+                grid_manager=combat_manager.grid_manager,
+                draw_x=draw_x,
+                draw_y=draw_y,
+                scale=scale_factor,
+            )
+
+        # 5. Fila de Iniciativas como Overlay Flutuante Translúcido no Topo da Tela
         self.hud.draw(w, h)
 
     def on_update(self, delta_time: float) -> None:

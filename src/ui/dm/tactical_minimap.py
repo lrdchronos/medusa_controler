@@ -8,6 +8,7 @@ from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
 from ..utils.sprite_utils import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
+from ..utils.aoe_renderer import AoERenderer
 
 logger = logging.getLogger(__name__)
 
@@ -210,6 +211,15 @@ class TacticalMiniMap:
                 text_cache=self._text_cache,
             )
 
+        # 4. Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE Overlay)
+        AoERenderer.draw(
+            template=self.combat_manager.active_spell_template,
+            grid_manager=grid_mgr,
+            draw_x=draw_x,
+            draw_y=draw_y,
+            scale=scale,
+        )
+
         # Banner Superior do Mini-Mapa
         arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, banner_h), (12, 16, 22, 230))
         arcade.draw_line(vx, vy + vh - banner_h, vx + vw, vy + vh - banner_h, (50, 65, 90, 200), 1)
@@ -250,6 +260,65 @@ class TacticalMiniMap:
         self._get_text("dm_idle_hdr", "🟢 ESPELHO DE ESPERA (IDLE)", vx + 16, vy + vh - 18, (46, 204, 113, 255), 10, bold=True).draw()
 
     # --- PROCESSAMENTO DE EVENTOS DE MOUSE ---
+
+    def handle_mouse_motion(self, x: float, y: float) -> bool:
+        """
+        Trata o movimento do mouse sobre o minimapa.
+        Se a projeção de feitiço estiver ativa:
+          - Converte as coordenadas da tela para coordenadas de mundo reais considerando offset e escala.
+          - Atualiza origin_world no SpellTemplate.
+          - Notifica os ouvintes (DMWindow e PlayerWindow) para redesenho reativo.
+        """
+        grid_mgr = self.combat_manager.grid_manager
+        tpl = self.combat_manager.active_spell_template
+        if grid_mgr is None or tpl is None or not tpl.is_active:
+            return False
+
+        draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
+        if draw_w <= 0 or draw_h <= 0 or grid_mgr.map_width <= 0:
+            return False
+
+        # Verifica se o cursor está sobre a área do mapa desenhado
+        if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+            local_x = float(x) - draw_x
+            local_y = float(y) - draw_y
+            scale = draw_w / grid_mgr.map_width
+
+            world_x = max(0.0, min(grid_mgr.map_width, local_x / scale))
+            world_y = max(0.0, min(grid_mgr.map_height, local_y / scale))
+
+            self.combat_manager.update_spell_origin(world_x, world_y)
+            return True
+        else:
+            self.handle_mouse_leave()
+            return False
+
+    def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float, is_ctrl: Optional[bool] = None) -> bool:
+        """
+        Trata rotação da roda do mouse sobre o minimapa.
+        Se a projeção estiver ativa e o cursor sobre o minimapa:
+          - Passo padrão de 2 graus; se a tecla Ctrl estiver pressionada, passo rápido de 15 graus.
+          - Incrementa ou decrementa rotation_degrees com wrap-around cíclico.
+          - Interrompe a propagação do evento.
+        """
+        grid_mgr = self.combat_manager.grid_manager
+        tpl = self.combat_manager.active_spell_template
+        if grid_mgr is None or tpl is None or not tpl.is_active:
+            return False
+
+        draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
+        if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+            ctrl_active = is_ctrl if is_ctrl is not None else getattr(self.window, "is_ctrl_held", False)
+            step = 15.0 if ctrl_active else 2.0
+            delta = step if scroll_y > 0 else -step
+            self.combat_manager.rotate_spell(delta)
+            return True
+
+        return False
+
+    def handle_mouse_leave(self) -> None:
+        """Desativa a visibilidade temporária da projeção quando o mouse sai dos limites do minimapa."""
+        self.combat_manager.set_spell_visibility(False)
 
     def handle_mouse_press(self, x: float, y: float, split_x: float, h: float, on_select_combatant: Optional[Callable[[str], None]] = None) -> bool:
         """Inicia drag & drop de token sob o cursor do mouse."""

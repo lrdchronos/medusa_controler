@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class GridManager:
         map_width: float,
         map_height: float,
         columns: int = 25,
-        feet_per_square: int = 5,
+        feet_per_square: Union[float, int] = 5.0,
         offset_x: float = 0.0,
         offset_y: float = 0.0,
         scale_factor: float = 1.0,
@@ -27,7 +27,7 @@ class GridManager:
         self._map_width: float = max(1.0, float(map_width))
         self._map_height: float = max(1.0, float(map_height))
         self._columns: int = max(1, int(columns))
-        self._feet_per_square: int = max(1, int(feet_per_square))
+        self._feet_per_square: float = max(0.01, float(feet_per_square))
         self._offset_x: float = float(offset_x)
         self._offset_y: float = float(offset_y)
         self._scale_factor: float = max(0.0001, float(scale_factor))
@@ -60,8 +60,18 @@ class GridManager:
         return self._cell_size
 
     @property
-    def feet_per_square(self) -> int:
+    def cell_size_pixels(self) -> float:
+        """Alias para cell_size representando o tamanho físico da célula em pixels no mundo."""
+        return self._cell_size
+
+    @property
+    def feet_per_square(self) -> float:
         return self._feet_per_square
+
+    @property
+    def pixels_per_foot(self) -> float:
+        """Métrica dinâmica de conversão: pixels por pé calculados a partir da célula ativa e feet_per_square."""
+        return self._cell_size / self._feet_per_square
 
     @property
     def offset_x(self) -> float:

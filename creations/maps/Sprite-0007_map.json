@@ -299,5 +299,16 @@
       "y": 6
     },
     "height": 1
-  }
+  },
+  "assets": [
+    {
+      "sprite": "",
+      "type": "",
+      "position": {
+        "x": 6,
+        "y": 6
+      },
+      "scale": 1.0
+    }
+  ]
 }
