@@ -175,7 +175,14 @@ class CombatTabView:
             self._get_text(f"r_{idx}_init", str(combatant.initiative_score), 445, cy, (241, 196, 15, 255), 8, bold=True, anchor_x="center").draw()
 
             # Status
-            st_s = "💀 Morto" if not combatant.is_alive else ("⚡ Turno" if is_active else "🟢 Pronto")
+            if not combatant.is_alive:
+                st_s = "💀 Morto"
+            elif combatant.is_hidden:
+                st_s = "🥷 Oculto"
+            elif is_active:
+                st_s = "⚡ Turno"
+            else:
+                st_s = "🟢 Pronto"
             self._get_text(f"r_{idx}_st", st_s, 500, cy, (220, 220, 220, 255), 7, bold=False, anchor_x="center").draw()
 
             # Oculto Toggle (is_hidden)

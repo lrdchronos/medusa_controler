@@ -7,6 +7,7 @@ from .text_input import TextInputWidget, SmartTextInput
 from ....domain.models.tile_map import TileMap
 from ...utils.tilemap_renderer import TileMapRenderer
 from ....manager.grid_manager import GridManager
+from ...components.discrete_scroll_list import DiscreteScrollList
 
 logger = logging.getLogger(__name__)
 
@@ -150,18 +151,22 @@ class CreatorConfigForm:
         self.__monster_counts: Dict[str, int] = {}
         self.__error_message: Optional[str] = None
 
-        # Estado da Listagem Rolável e Busca
+        # Estado da Listagem Rolável Discreta e Busca
         self.__search_query: str = ""
         self.__filtered_monsters: List[Dict[str, Any]] = []
-        self.__scroll_offset: float = 0.0
         self.__visible_height: float = 160.0
         self.__item_height: float = 38.0
         self.__item_gap: float = 4.0
+        self.__scroll_list = DiscreteScrollList(
+            item_height=int(self.__item_height),
+            spacing=int(self.__item_gap),
+            height=self.__visible_height,
+        )
 
         # Estado de Arraste da Barra de Rolagem
         self.__is_dragging_scrollbar: bool = False
         self.__scrollbar_drag_start_y: float = 0.0
-        self.__scrollbar_drag_start_offset: float = 0.0
+        self.__scrollbar_drag_start_offset: int = 0
         self.__last_list_bounds: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
 
         self._init_defaults()
@@ -388,16 +393,33 @@ class CreatorConfigForm:
         return [m.copy() for m in self.__filtered_monsters]
 
     @property
+    def scroll_list(self) -> DiscreteScrollList:
+        """Referência ao componente OOD de rolagem discreta."""
+        return self.__scroll_list
+
+    @property
+    def start_index(self) -> int:
+        return self.__scroll_list.start_index
+
+    @start_index.setter
+    def start_index(self, val: int) -> None:
+        self.__scroll_list.start_index = val
+
+    @property
     def scroll_offset(self) -> float:
-        return self.__scroll_offset
+        total_item_h = self.__item_height + self.__item_gap
+        return float(self.__scroll_list.start_index * total_item_h)
 
     @scroll_offset.setter
     def scroll_offset(self, value: float) -> None:
+        total_item_h = self.__item_height + self.__item_gap
         try:
             val = float(value)
         except (ValueError, TypeError):
             val = 0.0
-        self.__scroll_offset = max(0.0, min(self.max_scroll, val))
+        if total_item_h > 0:
+            target_idx = int(round(val / total_item_h))
+            self.__scroll_list.start_index = target_idx
 
     @property
     def visible_height(self) -> float:
@@ -406,6 +428,7 @@ class CreatorConfigForm:
     @visible_height.setter
     def visible_height(self, value: float) -> None:
         self.__visible_height = max(50.0, float(value))
+        self.__scroll_list.height = self.__visible_height
 
     @property
     def item_height(self) -> float:
@@ -414,6 +437,7 @@ class CreatorConfigForm:
     @item_height.setter
     def item_height(self, value: float) -> None:
         self.__item_height = max(20.0, float(value))
+        self.__scroll_list.item_height = int(self.__item_height)
 
     @property
     def item_gap(self) -> float:
@@ -422,6 +446,7 @@ class CreatorConfigForm:
     @item_gap.setter
     def item_gap(self, value: float) -> None:
         self.__item_gap = max(0.0, float(value))
+        self.__scroll_list.spacing = int(self.__item_gap)
 
     @property
     def is_dragging_scrollbar(self) -> bool:
@@ -433,11 +458,11 @@ class CreatorConfigForm:
 
     @property
     def last_list_bounds(self) -> Tuple[float, float, float, float]:
-        return self.__last_list_bounds
+        return self.__scroll_list.bounds
 
     @last_list_bounds.setter
     def last_list_bounds(self, bounds: Tuple[float, float, float, float]) -> None:
-        self.__last_list_bounds = (float(bounds[0]), float(bounds[1]), float(bounds[2]), float(bounds[3]))
+        self.__scroll_list.set_bounds(float(bounds[0]), float(bounds[1]), float(bounds[2]), float(bounds[3]))
 
     # --- Métodos de Conveniência e Manipulação de Estado ---
 
@@ -496,14 +521,14 @@ class CreatorConfigForm:
         """Aplica o filtro de busca por substring e reseta o scroll para o topo."""
         self.__search_query = query.strip()
         self.__filtered_monsters = filter_monster_presets(self.__available_monsters, self.__search_query)
-        self.__scroll_offset = 0.0
+        self.__scroll_list.items = self.__filtered_monsters
+        self.__scroll_list.reset_scroll()
 
     @property
     def max_scroll(self) -> float:
         """Calcula o limite máximo de deslocamento de rolagem."""
         total_item_h = self.__item_height + self.__item_gap
-        total_content_height = len(self.__filtered_monsters) * total_item_h
-        return max(0.0, total_content_height - self.__visible_height + 8.0)
+        return float(self.__scroll_list.max_start_index * total_item_h)
 
     def update(self, delta_time: float) -> None:
         self.__title_input.update(delta_time)
@@ -722,6 +747,8 @@ class CreatorConfigForm:
         list_left = 16.0
         list_bottom_y = list_top_y - self.__visible_height
         self.__last_list_bounds = (list_left, list_top_y, list_w, self.__visible_height)
+        self.__scroll_list.set_bounds(list_left, list_top_y, list_w, self.__visible_height)
+        self.__scroll_list.items = self.__filtered_monsters
 
         # Fundo do Container Rolável
         arcade.draw_rect_filled(
@@ -733,11 +760,6 @@ class CreatorConfigForm:
             COLOR_PANEL_BORDER,
             1,
         )
-
-        total_item_h = self.__item_height + self.__item_gap
-        has_scrollbar = (len(self.__filtered_monsters) * total_item_h > self.__visible_height)
-        card_w = list_w - (14 if has_scrollbar else 8)
-        card_cx = list_left + 4 + card_w / 2
 
         if not self.__filtered_monsters:
             msg = (
@@ -757,20 +779,21 @@ class CreatorConfigForm:
                 anchor_x="center",
             )
         else:
-            for idx, mon in enumerate(self.__filtered_monsters):
+            visible_items = self.__scroll_list.visible_items
+            for slot_idx, (idx, mon) in enumerate(visible_items):
+                slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
                 self._draw_monster_card(
                     mon=mon,
                     idx=idx,
-                    card_cx=card_cx,
-                    card_w=card_w,
-                    total_item_h=total_item_h,
-                    list_top_y=list_top_y,
-                    list_bottom_y=list_bottom_y,
+                    card_cx=slot_cx,
+                    card_cy=slot_cy,
+                    card_w=slot_w,
+                    card_h=slot_h,
                     text_cache=text_cache,
                 )
 
-        if has_scrollbar:
-            self._draw_scrollbar(list_left, list_top_y, list_w, total_item_h)
+        if len(self.__filtered_monsters) > self.__scroll_list.visible_item_count:
+            self.__scroll_list._draw_scroll_indicator(text_cache)
 
         return list_bottom_y
 
@@ -779,28 +802,19 @@ class CreatorConfigForm:
         mon: Dict[str, Any],
         idx: int,
         card_cx: float,
+        card_cy: float,
         card_w: float,
-        total_item_h: float,
-        list_top_y: float,
-        list_bottom_y: float,
+        card_h: float,
         text_cache: Dict[str, arcade.Text],
     ) -> None:
-        item_top = list_top_y + self.__scroll_offset - idx * total_item_h - 4
-        item_cy = item_top - self.__item_height / 2
-        item_bottom = item_top - self.__item_height
-
-        # Clipping / Descarte de itens fora do viewport visível
-        if item_bottom > list_top_y or item_top < list_bottom_y:
-            return
-
         mid = mon["uid"]
         qty = self.__monster_counts.get(mid, 0)
 
         # Cartão do Monstro
         card_bg = COLOR_CARD_BG_SELECTED if qty > 0 else COLOR_CARD_BG
         card_bd = COLOR_ACCENT_GOLD if qty > 0 else (45, 60, 85, 180)
-        arcade.draw_rect_filled(arcade.XYWH(card_cx, item_cy, card_w, self.__item_height), card_bg)
-        arcade.draw_rect_outline(arcade.XYWH(card_cx, item_cy, card_w, self.__item_height), card_bd, 1.5 if qty > 0 else 1)
+        arcade.draw_rect_filled(arcade.XYWH(card_cx, card_cy, card_w, card_h), card_bg)
+        arcade.draw_rect_outline(arcade.XYWH(card_cx, card_cy, card_w, card_h), card_bd, 1.5 if qty > 0 else 1)
 
         # 1. Miniatura / Token Dark Fantasy via SpriteFactory
         token_cx = card_cx - card_w / 2 + 18
@@ -808,7 +822,7 @@ class CreatorConfigForm:
             name=mon.get("name", mid),
             is_player=False,
             x=token_cx,
-            y=item_cy,
+            y=card_cy,
             radius=12.0,
             is_alive=True,
             is_hidden=False,
@@ -825,7 +839,7 @@ class CreatorConfigForm:
             f"m_name_{mid}",
             mon_name[:22],
             text_x,
-            item_cy + 7,
+            card_cy + 7,
             name_color,
             8,
             True,
@@ -840,7 +854,7 @@ class CreatorConfigForm:
             f"m_stat_{mid}",
             mon_stats,
             text_x,
-            item_cy - 7,
+            card_cy - 7,
             COLOR_TEXT_MUTED,
             7,
             False,
@@ -854,17 +868,17 @@ class CreatorConfigForm:
         bp_x = card_right - 18
 
         # [-]
-        arcade.draw_rect_filled(arcade.XYWH(bm_x, item_cy, 18, 18), COLOR_BTN_BG)
-        self._render_text(f"b_m_min_{mid}", "-", bm_x, item_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
+        arcade.draw_rect_filled(arcade.XYWH(bm_x, card_cy, 18, 18), COLOR_BTN_BG)
+        self._render_text(f"b_m_min_{mid}", "-", bm_x, card_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
 
         # [qtd]
-        arcade.draw_rect_filled(arcade.XYWH(qty_x, item_cy, 22, 18), (18, 24, 34, 255))
+        arcade.draw_rect_filled(arcade.XYWH(qty_x, card_cy, 22, 18), (18, 24, 34, 255))
         qty_color = COLOR_ACCENT_GOLD if qty > 0 else COLOR_TEXT_WHITE
         self._render_text(
             f"val_mqty_{mid}",
             str(qty),
             qty_x,
-            item_cy,
+            card_cy,
             qty_color,
             8,
             True,
@@ -873,25 +887,8 @@ class CreatorConfigForm:
         )
 
         # [+]
-        arcade.draw_rect_filled(arcade.XYWH(bp_x, item_cy, 18, 18), COLOR_BTN_BG)
-        self._render_text(f"b_m_plus_{mid}", "+", bp_x, item_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-    def _draw_scrollbar(self, list_left: float, list_top_y: float, list_w: float, total_item_h: float) -> None:
-        track_x = list_left + list_w - 6
-        track_w = 6.0
-        track_h = self.__visible_height - 8.0
-        track_cy = list_top_y - self.__visible_height / 2
-        arcade.draw_rect_filled(arcade.XYWH(track_x, track_cy, track_w, track_h), (25, 32, 45, 200))
-
-        total_content_height = len(self.__filtered_monsters) * total_item_h
-        thumb_h = max(20.0, track_h * (self.__visible_height / total_content_height))
-        scroll_ratio = self.__scroll_offset / self.max_scroll if self.max_scroll > 0 else 0.0
-        track_travel = track_h - thumb_h
-        thumb_top_y = (list_top_y - 4) - scroll_ratio * track_travel
-        thumb_cy = thumb_top_y - thumb_h / 2
-
-        thumb_col = COLOR_ACCENT_GOLD if self.__is_dragging_scrollbar else (70, 95, 130, 220)
-        arcade.draw_rect_filled(arcade.XYWH(track_x, thumb_cy, track_w, thumb_h), thumb_col)
+        arcade.draw_rect_filled(arcade.XYWH(bp_x, card_cy, 18, 18), COLOR_BTN_BG)
+        self._render_text(f"b_m_plus_{mid}", "+", bp_x, card_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
 
     def _draw_error_and_submit(self, panel_w: float, list_bottom_y: float, text_cache: Dict[str, arcade.Text]) -> None:
         # Mensagem de Erro
@@ -1090,17 +1087,8 @@ class CreatorConfigForm:
     # --- Tratamento de Eventos de Mouse e Rolagem ---
 
     def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
-        """
-        Processa a rolagem do mouse sobre o container de monstros.
-        scroll_y > 0 significa rolar para cima (reduz scroll_offset), scroll_y < 0 rola para baixo.
-        """
-        list_l, list_t, list_w, list_h = self.__last_list_bounds
-        if list_l <= x <= list_l + list_w and list_t - list_h <= y <= list_t:
-            step = 30.0
-            new_offset = self.__scroll_offset - (scroll_y * step)
-            self.scroll_offset = new_offset
-            return True
-        return False
+        """Processa a rolagem discreta do mouse sobre o container de monstros."""
+        return self.__scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y)
 
     def handle_mouse_press(self, x: float, y: float, panel_w: float, top_y: float) -> Optional[str]:
         """Processa cliques no formulário e na listagem rolável de monstros."""
@@ -1261,72 +1249,68 @@ class CreatorConfigForm:
         return False
 
     def _handle_monster_list_clicks(self, x: float, y: float) -> bool:
-        list_l, list_t, list_w, list_h = self.__last_list_bounds
-        list_bottom_y = list_t - list_h
-
-        total_item_h = self.__item_height + self.__item_gap
-        has_scrollbar = (len(self.__filtered_monsters) * total_item_h > self.__visible_height)
-        card_w = list_w - (14 if has_scrollbar else 8)
-        card_cx = list_l + 4 + card_w / 2
+        if not self.__scroll_list.is_point_inside(x, y):
+            return False
 
         # Clique na Scrollbar
-        if has_scrollbar:
-            track_x = list_l + list_w - 6
-            track_h = self.__visible_height - 8.0
-            total_content_height = len(self.__filtered_monsters) * total_item_h
-            thumb_h = max(20.0, track_h * (self.__visible_height / total_content_height))
-            track_travel = track_h - thumb_h
-
-            if abs(x - track_x) <= 8 and (list_bottom_y <= y <= list_t):
+        if len(self.__filtered_monsters) > self.__scroll_list.visible_item_count:
+            list_l, list_t, list_w, list_h = self.__scroll_list.bounds
+            track_x = list_l + list_w - 4.0 - 3.0
+            if abs(x - track_x) <= 10:
                 self.__is_dragging_scrollbar = True
                 self.__scrollbar_drag_start_y = y
-                self.__scrollbar_drag_start_offset = self.__scroll_offset
-                click_ratio = max(0.0, min(1.0, ((list_t - 4 - thumb_h / 2) - y) / max(1.0, track_travel)))
-                self.scroll_offset = click_ratio * self.max_scroll
+                self.__scrollbar_drag_start_offset = self.__scroll_list.start_index
+                track_h = max(10.0, list_h - 8.0)
+                visible_count = self.__scroll_list.visible_item_count
+                thumb_h = max(16.0, track_h * (visible_count / max(1, len(self.__filtered_monsters))))
+                track_travel = max(1.0, track_h - thumb_h)
+                click_ratio = max(0.0, min(1.0, ((list_t - 4.0 - thumb_h / 2.0) - y) / track_travel))
+                self.__scroll_list.start_index = int(round(click_ratio * self.__scroll_list.max_start_index))
                 return True
 
         # Clique nos itens / steppers dentro do viewport
-        if list_l <= x <= list_l + list_w and list_bottom_y <= y <= list_t:
-            for idx, mon in enumerate(self.__filtered_monsters):
-                item_top = list_t + self.__scroll_offset - idx * total_item_h - 4
-                item_cy = item_top - self.__item_height / 2
-                item_bottom = item_top - self.__item_height
+        visible_items = self.__scroll_list.visible_items
+        for slot_idx, (idx, mon) in enumerate(visible_items):
+            slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
+            left = slot_cx - slot_w / 2.0
+            right = slot_cx + slot_w / 2.0
+            top = slot_cy + slot_h / 2.0
+            bottom = slot_cy - slot_h / 2.0
 
-                if item_bottom > list_t or item_top < list_bottom_y:
-                    continue
+            if left <= x <= right and bottom <= y <= top:
+                mid = mon["uid"]
+                card_right = slot_cx + slot_w / 2.0
+                bm_x = card_right - 62
+                bp_x = card_right - 18
 
-                if abs(y - item_cy) <= self.__item_height / 2:
-                    mid = mon["uid"]
-                    card_right = card_cx + card_w / 2
-                    bm_x = card_right - 62
-                    bp_x = card_right - 18
+                # [-]
+                if abs(x - bm_x) <= 12:
+                    self.decrement_monster(mid)
+                    return True
 
-                    # [-]
-                    if abs(x - bm_x) <= 10:
-                        self.decrement_monster(mid)
-                        return True
+                # [+]
+                if abs(x - bp_x) <= 12:
+                    self.increment_monster(mid)
+                    return True
 
-                    # [+]
-                    if abs(x - bp_x) <= 10:
-                        self.increment_monster(mid)
-                        return True
+                return True
 
         return False
 
     def handle_mouse_drag(self, x: float, y: float) -> bool:
         """Processa arraste da barra de rolagem e seleção de texto nos inputs."""
-        if self.__is_dragging_scrollbar and self.max_scroll > 0:
-            list_l, list_t, list_w, list_h = self.__last_list_bounds
-            total_item_h = self.__item_height + self.__item_gap
-            total_content_height = len(self.__filtered_monsters) * total_item_h
-            track_h = self.__visible_height - 8.0
-            thumb_h = max(20.0, track_h * (self.__visible_height / total_content_height))
-            track_travel = track_h - thumb_h
+        if self.__is_dragging_scrollbar and self.__scroll_list.max_start_index > 0:
+            list_l, list_t, list_w, list_h = self.__scroll_list.bounds
+            total_items = max(1, len(self.__filtered_monsters))
+            visible_count = self.__scroll_list.visible_item_count
+            track_h = max(10.0, list_h - 8.0)
+            thumb_h = max(16.0, track_h * (visible_count / total_items))
+            track_travel = max(1.0, track_h - thumb_h)
 
             delta_y = self.__scrollbar_drag_start_y - y
-            delta_ratio = delta_y / max(1.0, track_travel)
-            new_offset = self.__scrollbar_drag_start_offset + delta_ratio * self.max_scroll
-            self.scroll_offset = new_offset
+            delta_ratio = delta_y / track_travel
+            new_idx = int(round(self.__scrollbar_drag_start_offset + delta_ratio * self.__scroll_list.max_start_index))
+            self.__scroll_list.start_index = new_idx
             return True
 
         if self.__title_input.is_focused:

@@ -195,7 +195,7 @@ class TestMonsterSearchAndScroll(unittest.TestCase):
     # --- 4. Matemática de Rolagem (Scrollable Container e Mouse Scroll) ---
 
     def test_scrolling_math_and_mouse_scroll(self):
-        """Valida o cálculo de max_scroll e a rolagem via on_mouse_scroll."""
+        """Valida o cálculo de max_start_index e a rolagem discreta via on_mouse_scroll."""
         many_monsters = [
             {
                 "uid": f"mon_{i}",
@@ -213,22 +213,27 @@ class TestMonsterSearchAndScroll(unittest.TestCase):
             available_monsters=many_monsters,
         )
 
-        # Configura dimensões do container
+        # Configura dimensões do container (altura 160: 160 // (38+4) = 3 visíveis -> max_start = 12)
         form.last_list_bounds = (16.0, 400.0, 608.0, 160.0)
         self.assertTrue(form.max_scroll > 0.0)
+        self.assertEqual(form.start_index, 0)
         self.assertEqual(form.scroll_offset, 0.0)
 
-        # Rola para baixo (scroll_y = -1) -> aumenta offset
-        scrolled = form.handle_mouse_scroll(x=200.0, y=350.0, scroll_x=0.0, scroll_y=-2.0)
+        # Rola para baixo (scroll_y = -1) -> avança 1 item no start_index
+        scrolled = form.handle_mouse_scroll(x=200.0, y=350.0, scroll_x=0.0, scroll_y=-1.0)
         self.assertTrue(scrolled)
-        self.assertEqual(form.scroll_offset, 60.0)
+        self.assertEqual(form.start_index, 1)
+        self.assertEqual(form.scroll_offset, 42.0)  # 1 * (38 + 4)
 
-        # Rola além do topo (scroll_y = 5) -> clamp em 0.0
+        # Rola além do topo (scroll_y = 5) -> clamp em 0
         form.handle_mouse_scroll(x=200.0, y=350.0, scroll_x=0.0, scroll_y=5.0)
+        self.assertEqual(form.start_index, 0)
         self.assertEqual(form.scroll_offset, 0.0)
 
-        # Rola além do final -> clamp em max_scroll
-        form.handle_mouse_scroll(x=200.0, y=350.0, scroll_x=0.0, scroll_y=-50.0)
+        # Rola até o final
+        for _ in range(20):
+            form.handle_mouse_scroll(x=200.0, y=350.0, scroll_x=0.0, scroll_y=-1.0)
+        self.assertEqual(form.start_index, form.scroll_list.max_start_index)
         self.assertEqual(form.scroll_offset, form.max_scroll)
 
         # Rolagem fora dos limites da lista não faz nada

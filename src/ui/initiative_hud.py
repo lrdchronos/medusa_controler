@@ -54,7 +54,8 @@ class InitiativeHUD:
         return cached
 
     def draw(self, screen_width: int, screen_height: int) -> None:
-        turn_order: List[Entity] = self.combat_manager.turn_order
+        # Regra de Ocultação Tática: criaturas ocultas não aparecem no HUD dos jogadores
+        turn_order: List[Entity] = [c for c in self.combat_manager.turn_order if not c.is_hidden]
         if not turn_order:
             return
 
@@ -82,12 +83,11 @@ class InitiativeHUD:
         pulse = math.sin(current_time * 4.0) * 2.5
 
         active_combatant = self.combat_manager.active_character
-        active_index = self.combat_manager.current_turn_index
 
         for idx, combatant in enumerate(turn_order):
             cx = start_x + idx * spacing
             cy = center_y
-            is_active = (combatant == active_combatant) or (idx == active_index)
+            is_active = (combatant == active_combatant)
 
             # 2. Definição do Tipo e Paleta de Cores
             is_player = isinstance(combatant, PlayableCharacter)

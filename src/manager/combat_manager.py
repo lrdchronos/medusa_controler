@@ -422,25 +422,66 @@ class CombatManager:
 
     # --- Visibilidade Tática e Movimentação no Grid ---
 
+    def reveal_combatant(self, uid_or_name: str) -> Optional[Entity]:
+        """
+        Revela um combatente oculto (is_hidden = False) e o insere na próxima posição
+        da ordem de ação em relação ao turno ativo:
+          new_index = (self.current_turn_index + 1)
+        Notifica os ouvintes (Observer Pattern) para sincronização imediata da DMWindow e PlayerWindow.
+        """
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is None:
+            logger.warning(f"Combatente '{uid_or_name}' não encontrado para revelação.")
+            return None
+
+        combatant.set_hidden(False)
+
+        if self.has_combat_started and self.__turn_order:
+            if combatant in self.__turn_order:
+                old_idx = self.__turn_order.index(combatant)
+                if old_idx != self.__current_turn_index:
+                    self.__turn_order.pop(old_idx)
+                    if old_idx < self.__current_turn_index:
+                        self.__current_turn_index -= 1
+                    target_idx = self.__current_turn_index + 1
+                    self.__turn_order.insert(target_idx, combatant)
+            else:
+                target_idx = self.__current_turn_index + 1
+                self.__turn_order.insert(target_idx, combatant)
+        elif combatant not in self.__turn_order:
+            self.__turn_order.append(combatant)
+
+        logger.info(
+            f"Combatente '{combatant.name}' revelado com sucesso e posicionado como próximo a agir na fila de turnos."
+        )
+        self.notify_listeners()
+        return combatant
+
     def toggle_combatant_visibility(self, uid_or_name: str) -> bool:
         """Alterna a visibilidade tática (is_hidden) de um combatente."""
         combatant = self.get_combatant(uid_or_name)
         if combatant is not None:
-            new_hidden = not combatant.is_hidden
-            combatant.set_hidden(new_hidden)
-            status_desc = "Oculto (Invisível aos Jogadores)" if new_hidden else "Visível (Exibido aos Jogadores)"
-            logger.info(f"Visibilidade alterada: '{combatant.name}' agora está {status_desc}.")
-            self.notify_listeners()
-            return new_hidden
+            if combatant.is_hidden:
+                self.reveal_combatant(uid_or_name)
+                return False
+            else:
+                combatant.set_hidden(True)
+                logger.info(f"Visibilidade alterada: '{combatant.name}' agora está Oculto (Invisível aos Jogadores).")
+                self.notify_listeners()
+                return True
         return False
 
     def set_combatant_visibility(self, uid_or_name: str, is_hidden: bool) -> bool:
         """Define explicitamente a visibilidade tática de um combatente."""
         combatant = self.get_combatant(uid_or_name)
         if combatant is not None:
-            combatant.set_hidden(is_hidden)
-            logger.info(f"Visibilidade definida: '{combatant.name}' is_hidden={is_hidden}.")
-            self.notify_listeners()
+            if not is_hidden and combatant.is_hidden:
+                self.reveal_combatant(uid_or_name)
+            else:
+                combatant.set_hidden(is_hidden)
+                status_desc = "Oculto" if is_hidden else "Visível"
+                logger.info(f"Visibilidade definida: '{combatant.name}' is_hidden={is_hidden} ({status_desc}).")
+                self.notify_listeners()
             return True
         return False
 

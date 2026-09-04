@@ -10,6 +10,7 @@ from ....domain.builders.encounter_builder import EncounterBuilder
 from ....domain.models.tile_map import TileMap
 from ...utils.tilemap_renderer import TileMapRenderer
 from ...utils.sprite_utils import SpriteFactory
+from ...components.discrete_scroll_list import DiscreteScrollList
 
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class CreatorTacticalStage:
       - Borda/Doca de Reserva de Spawn.
       - Interatividade Drag & Drop com Snap-to-Grid (grid_to_world_center).
       - Controle de visibilidade inicial (is_hidden) via clique duplo ou botão direito.
+      - Paginação e listagem de todos os combatentes via DiscreteScrollList.
       - Geração e persistência do arquivo JSON via EncounterBuilder.
     """
 
@@ -33,6 +35,8 @@ class CreatorTacticalStage:
         self.grid_manager: Optional[GridManager] = None
         self.tile_map: Optional[TileMap] = None
         self.tilemap_renderer: Optional[TileMapRenderer] = None
+
+        self.scroll_list: DiscreteScrollList = DiscreteScrollList(item_height=28, spacing=4)
 
         self.dragged_combatant_idx: Optional[int] = None
         self.drag_pos: Tuple[float, float] = (0.0, 0.0)
@@ -133,6 +137,9 @@ class CreatorTacticalStage:
                     "row": 0,
                 })
 
+        self.scroll_list.items = self.staging_combatants
+        self.scroll_list.reset_scroll()
+
         logger.info(
             f"CreatorTacticalStage inicializado com {len(self.staging_combatants)} combatentes para o mapa '{config_data.get('map_name')}' (Tipo: {map_type})."
         )
@@ -210,33 +217,75 @@ class CreatorTacticalStage:
         arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, tip_y, panel_w - 24, 22), (20, 30, 42, 255))
         self._render_text("stg_tip", "💡 Arraste da Reserva para o Grid | Clique Dir / Duplo: Ocultar", panel_w / 2, tip_y, (160, 210, 255, 255), 7, False, text_cache, anchor_x="center")
 
-        # Roster de Combatentes
+        # Roster de Combatentes com DiscreteScrollList
         list_top = tip_y - 18
-        row_h = 28
-        for idx, item in enumerate(self.staging_combatants[:7]):
-            ry = list_top - idx * (row_h + 4) - row_h / 2
+        feedback_area_h = 30 if (self.success_message or self.error_message) else 10
+        btn_area_h = 60
+        list_h = max(60.0, list_top - feedback_area_h - btn_area_h - 20.0)
+
+        self.scroll_list.set_bounds(x=12.0, y=list_top, width=panel_w - 24.0, height=list_h)
+        self.scroll_list.items = self.staging_combatants
+
+        # Renderização dos slots visíveis
+        visible_items = self.scroll_list.visible_items
+        for slot_idx, (idx, item) in enumerate(visible_items):
+            slot_cx, slot_cy, slot_w, slot_h = self.scroll_list.get_slot_rect(slot_idx)
             is_placed = item["placed"]
             is_hidden = item["is_hidden"]
             is_player = item["is_player"]
+            is_selected = (idx == self.dragged_combatant_idx)
 
-            row_bg = (30, 42, 58, 255) if is_placed else (22, 28, 38, 255)
-            row_bd = (46, 204, 113, 200) if is_placed else (70, 90, 120, 180)
+            if is_selected:
+                row_bg = (45, 62, 85, 255)
+                row_bd = (241, 196, 15, 255)
+            elif is_placed:
+                row_bg = (30, 42, 58, 255)
+                row_bd = (46, 204, 113, 200)
+            else:
+                row_bg = (22, 28, 38, 255)
+                row_bd = (70, 90, 120, 180)
 
-            arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, ry, panel_w - 24, row_h), row_bg)
-            arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, ry, panel_w - 24, row_h), row_bd, 1)
+            arcade.draw_rect_filled(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), row_bg)
+            arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), row_bd, 1.5 if is_selected else 1.0)
 
+            # Miniatura do token / ícone
+            token_cx = slot_cx - slot_w / 2.0 + 14.0
+            SpriteFactory.draw_tactical_token(
+                name=item["name"],
+                is_player=is_player,
+                x=token_cx,
+                y=slot_cy,
+                radius=10.0,
+                is_alive=True,
+                is_hidden=is_hidden,
+                is_selected=is_selected,
+                is_active=False,
+                text_cache=text_cache,
+                token_key=f"stg_slot_tok_{idx}",
+            )
+
+            # Nome do combatente
+            text_x = token_cx + 14.0
             name_c = (100, 200, 255, 255) if is_player else (255, 138, 128, 255)
-            self._render_text(f"stg_n_{idx}", item["name"][:16], 20, ry, name_c, 8, True, text_cache)
+            self._render_text(f"stg_n_{idx}", item["name"][:14], text_x, slot_cy, name_c, 8, True, text_cache)
 
-            pos_str = f"[{item['col']},{item['row']}]" if is_placed else "Reserva"
-            pos_c = (46, 204, 113, 255) if is_placed else (241, 196, 15, 255)
-            self._render_text(f"stg_p_{idx}", pos_str, panel_w - 90, ry, pos_c, 8, True, text_cache, anchor_x="center")
+            # Status de posicionamento (marcador verde se posicionado; cinza/dourado se pendente)
+            pos_str = f"[{item['col']},{item['row']}]" if is_placed else "Pendente"
+            pos_c = (46, 204, 113, 255) if is_placed else (140, 155, 175, 255)
+            pos_x = slot_cx + slot_w / 2.0 - 52.0
+            self._render_text(f"stg_p_{idx}", pos_str, pos_x, slot_cy, pos_c, 7, True, text_cache, anchor_x="center")
 
+            # Alternador de visibilidade (is_hidden)
             eye_s = "👁️❌" if is_hidden else "👁️"
-            self._render_text(f"stg_eye_{idx}", eye_s, panel_w - 30, ry, (255, 255, 255, 255), 9, False, text_cache, anchor_x="center")
+            eye_x = slot_cx + slot_w / 2.0 - 14.0
+            self._render_text(f"stg_eye_{idx}", eye_s, eye_x, slot_cy, (255, 255, 255, 255), 9, False, text_cache, anchor_x="center")
+
+        # Indicador visual discreto da scroll list
+        if len(self.staging_combatants) > self.scroll_list.visible_item_count:
+            self.scroll_list._draw_scroll_indicator(text_cache)
 
         # Feedback
-        feedback_y = list_top - min(len(self.staging_combatants), 7) * (row_h + 4) - 16
+        feedback_y = list_top - list_h - 14
         if self.success_message:
             arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, feedback_y, panel_w - 24, 24), (27, 77, 62, 255))
             self._render_text("stg_succ", f"✅ {self.success_message[:38]}", panel_w / 2, feedback_y, (163, 228, 215, 255), 8, True, text_cache, anchor_x="center")
@@ -431,17 +480,26 @@ class CreatorTacticalStage:
         return self._handle_canvas_press(x, y, button)
 
     def _handle_sidebar_press(self, x: float, y: float, panel_w: float, top_y: float) -> Optional[str]:
-        sec_y = top_y - 18
-        tip_y = sec_y - 20
-        list_top = tip_y - 18
-        row_h = 28
+        # Interação com itens visíveis da DiscreteScrollList
+        visible_items = self.scroll_list.visible_items
+        for slot_idx, (idx, item) in enumerate(visible_items):
+            slot_cx, slot_cy, slot_w, slot_h = self.scroll_list.get_slot_rect(slot_idx)
+            left = slot_cx - slot_w / 2.0
+            right = slot_cx + slot_w / 2.0
+            top = slot_cy + slot_h / 2.0
+            bottom = slot_cy - slot_h / 2.0
 
-        # Toggle de visibilidade pelo roster da sidebar
-        for idx, item in enumerate(self.staging_combatants[:7]):
-            ry = list_top - idx * (row_h + 4) - row_h / 2
-            if abs(y - ry) <= row_h / 2:
-                if abs(x - (panel_w - 30)) <= 15:
+            if left <= x <= right and bottom <= y <= top:
+                eye_x = slot_cx + slot_w / 2.0 - 14.0
+                if abs(x - eye_x) <= 15:
                     item["is_hidden"] = not item["is_hidden"]
+                    logger.info(f"Combatente '{item['name']}' visibilidade alternada para is_hidden={item['is_hidden']}")
+                    return None
+                else:
+                    # Seleciona para posicionamento tático (Drag & Drop)
+                    self.dragged_combatant_idx = idx
+                    self.drag_pos = (float(x), float(y))
+                    logger.info(f"Combatente '{item['name']}' selecionado na sidebar para posicionamento.")
                     return None
 
         # Botões Inferiores
@@ -459,6 +517,10 @@ class CreatorTacticalStage:
             return "SAVE_ENCOUNTER"
 
         return None
+
+    def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
+        """Processa a rolagem discreta na lista lateral de combatentes."""
+        return self.scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y)
 
     def _handle_canvas_press(self, x: float, y: float, button: int) -> Optional[str]:
         now = time.time()

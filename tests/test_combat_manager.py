@@ -127,6 +127,98 @@ class TestCombatManager(unittest.TestCase):
         self.assertEqual(self.manager.encounter_uid, "")
         self.assertGreater(len(notified), 0)
 
+    def test_reveal_combatant_inserts_as_next_turn(self):
+        """Ao ser revelado no meio do combate, a criatura é inserida imediatamente na próxima posição da fila."""
+        manual = {
+            "Bolo de Morango": 20,
+            "Cultista Líder": 15,
+            "Kobold A": 12,
+            "Kobold B": 10,
+            "Kobold C": 5,
+        }
+        self.manager.roll_initiatives(manual_rolls=manual)
+        self.assertTrue(self.manager.has_combat_started)
+        self.assertEqual(self.manager.current_turn_index, 0)
+        self.assertEqual(self.manager.active_character.name, "Bolo de Morango")
+
+        # Oculta Kobold C (que está no índice 4)
+        kobold_c = self.manager.get_combatant("Kobold C")
+        self.assertIsNotNone(kobold_c)
+        self.manager.set_combatant_visibility("Kobold C", is_hidden=True)
+        self.assertTrue(kobold_c.is_hidden)
+
+        # Revela Kobold C durante o turno ativo de Bolo (índice 0)
+        notified = []
+        self.manager.add_listener(lambda: notified.append(True))
+        revealed = self.manager.reveal_combatant("Kobold C")
+
+        self.assertEqual(revealed, kobold_c)
+        self.assertFalse(kobold_c.is_hidden)
+        self.assertGreater(len(notified), 0)
+
+        # Deve ser o próximo na fila de iniciativas (posição 1)
+        self.assertEqual(self.manager.turn_order[1], kobold_c)
+
+        # Avançar o turno ativa imediatamente o combatente recém-revelado
+        next_char = self.manager.next_turn()
+        self.assertEqual(next_char, kobold_c)
+        self.assertEqual(self.manager.active_character, kobold_c)
+
+    def test_reveal_combatant_when_active_is_last_in_round(self):
+        """Revelar combatente quando o turno ativo é o último da rodada insere no final antes do wrap."""
+        manual = {
+            "Bolo de Morango": 20,
+            "Cultista Líder": 15,
+            "Kobold A": 12,
+            "Kobold B": 10,
+            "Kobold C": 5,
+        }
+        self.manager.roll_initiatives(manual_rolls=manual)
+        num_combatants = len(self.manager.turn_order)
+
+        # Avança até o último combatente (Kobold C, índice 4)
+        for _ in range(num_combatants - 1):
+            self.manager.next_turn()
+        self.assertEqual(self.manager.current_turn_index, num_combatants - 1)
+        self.assertEqual(self.manager.active_character.name, "Kobold C")
+
+        # Oculta o primeiro combatente (Bolo de Morango, índice 0) e revela
+        bolo = self.manager.get_combatant("Bolo de Morango")
+        bolo.set_hidden(True)
+
+        self.manager.reveal_combatant(bolo.uid)
+        self.assertFalse(bolo.is_hidden)
+
+        # Bolo agora foi reposicionado para o final da fila (novo próximo após Kobold C)
+        self.assertEqual(self.manager.turn_order[-1], bolo)
+
+        # Avançar o turno passa para ele ainda na rodada 1
+        active = self.manager.next_turn()
+        self.assertEqual(active, bolo)
+
+    def test_toggle_visibility_triggers_reveal_when_hidden(self):
+        """Alternar visibilidade de uma criatura oculta invoca o pipeline de revelação."""
+        manual = {
+            "Bolo de Morango": 20,
+            "Cultista Líder": 15,
+            "Kobold A": 12,
+            "Kobold B": 10,
+            "Kobold C": 5,
+        }
+        self.manager.roll_initiatives(manual_rolls=manual)
+        kobold = self.manager.get_combatant("Kobold B")
+        self.assertIsNotNone(kobold)
+
+        # Oculta Kobold B
+        self.manager.set_combatant_visibility("Kobold B", is_hidden=True)
+        self.assertTrue(kobold.is_hidden)
+
+        # Toggle -> revela e posiciona como próximo (índice 1)
+        res = self.manager.toggle_combatant_visibility("Kobold B")
+        self.assertFalse(res)  # False significa que is_hidden agora é False
+        self.assertFalse(kobold.is_hidden)
+        self.assertEqual(self.manager.turn_order[1], kobold)
+
 
 if __name__ == "__main__":
     unittest.main()

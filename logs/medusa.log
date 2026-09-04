@@ -383,3 +383,15 @@
 [2026-09-04 11:15:06,548] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 4' posicionado no grid: [0, 2].
 [2026-09-04 11:15:09,866] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [1, 3].
 [2026-09-04 11:15:12,228] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 2' posicionado no grid: [0, 3].
+[2026-09-04 11:36:20,103] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 11:36:20,103] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 11:36:20,551] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 11:36:20,661] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 11:36:20,661] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 11:59:09,790] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-04 11:59:09,854] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 11:59:09,877] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 11:59:09,887] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 11:59:23,942] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 11:59:23,947] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 11:59:23,947] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 14 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap).
