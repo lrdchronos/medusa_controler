@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Union, Any
 import arcade
@@ -83,6 +84,22 @@ class TilesetManager:
     # --- Resolução de Caminhos ---
 
     @classmethod
+    def _generate_name_variants(cls, name: str) -> List[str]:
+        """Gera variações comuns de formatação de nome (ex: Sprite-007 -> Sprite-0007)."""
+        variants = [name]
+        match = re.search(r"(\D+)(\d+)", name)
+        if match:
+            prefix, digits = match.groups()
+            try:
+                num = int(digits)
+                for fmt in (f"{prefix}{num:04d}", f"{prefix}{num:03d}", f"{prefix}{num:02d}", f"{prefix}{num}"):
+                    if fmt not in variants:
+                        variants.append(fmt)
+            except ValueError:
+                pass
+        return variants
+
+    @classmethod
     def resolve_atlas_path(cls, tileset_name: str, explicit_path: Optional[Union[str, Path]] = None) -> Optional[Path]:
         """Resolve o arquivo JSON de atlas do Aseprite."""
         if explicit_path:
@@ -90,24 +107,38 @@ class TilesetManager:
             if res:
                 return res
 
-        candidates = [
-            f"assets/tilesets/{tileset_name}_atlas.json",
-            f"assets/tilesets/{tileset_name}.json",
-            f"assets/images/tilemaps/{tileset_name}_atlas.json",
-            f"assets/images/tilemaps/{tileset_name}.json",
-            f"assets/images/maps/{tileset_name}_atlas.json",
-            f"assets/images/maps/{tileset_name}.json",
-            f"assets/images/{tileset_name}.json",
-            f"assets/{tileset_name}.json",
-            f"presets/tilesets/{tileset_name}.json",
-            f"{tileset_name}.json",
-            tileset_name,
+        variants = cls._generate_name_variants(tileset_name)
+        search_dirs = [
+            "assets/tilesets",
+            "assets/images/tilemaps",
+            "assets/images/maps",
+            "assets/images",
+            "assets",
+            "presets/tilesets",
+            ".",
         ]
 
-        for cand in candidates:
-            res = _resolve_project_path(cand)
-            if res:
-                return res
+        for variant in variants:
+            for d in search_dirs:
+                for suffix in ("_atlas.json", ".json"):
+                    cand = f"{d}/{variant}{suffix}"
+                    res = _resolve_project_path(cand)
+                    if res:
+                        return res
+
+        # Varredura por aproximação de stem
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        for d in search_dirs:
+            dir_path = (root / d).resolve()
+            if not dir_path.is_dir():
+                continue
+            for f in dir_path.glob("*.json"):
+                if f.name.endswith("_map.json"):
+                    continue
+                f_stem_clean = f.stem.replace("_atlas", "").lower()
+                for v in variants:
+                    if v.lower() == f_stem_clean or v.lower() in f.stem.lower():
+                        return f.resolve()
 
         return None
 
@@ -130,21 +161,37 @@ class TilesetManager:
             if meta_cand.is_file():
                 return meta_cand.resolve()
 
-        candidates = [
-            f"assets/tilesets/{tileset_name}.png",
-            f"assets/images/tilemaps/{tileset_name}.png",
-            f"assets/images/maps/{tileset_name}.png",
-            f"assets/images/{tileset_name}.png",
-            f"assets/sprites/{tileset_name}.png",
-            f"assets/{tileset_name}.png",
-            f"{tileset_name}.png",
-            tileset_name,
+        variants = cls._generate_name_variants(tileset_name)
+        search_dirs = [
+            "assets/tilesets",
+            "assets/images/tilemaps",
+            "assets/images/maps",
+            "assets/images",
+            "assets/sprites",
+            "assets",
+            "presets/tilesets",
+            ".",
         ]
 
-        for cand in candidates:
-            res = _resolve_project_path(cand)
-            if res:
-                return res
+        for variant in variants:
+            for d in search_dirs:
+                for suffix in (".png", ".jpg", ".jpeg"):
+                    cand = f"{d}/{variant}{suffix}"
+                    res = _resolve_project_path(cand)
+                    if res:
+                        return res
+
+        # Varredura por aproximação de stem
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        for d in search_dirs:
+            dir_path = (root / d).resolve()
+            if not dir_path.is_dir():
+                continue
+            for f in dir_path.glob("*.png"):
+                f_stem_clean = f.stem.lower()
+                for v in variants:
+                    if v.lower() == f_stem_clean or v.lower() in f.stem.lower():
+                        return f.resolve()
 
         return None
 

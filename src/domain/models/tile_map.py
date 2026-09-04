@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Tuple, Any, Optional, Union, List
+from typing import Dict, Tuple, Any, Optional, Union, List, Set
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,9 @@ class TileProperties:
         self.__blocks_vision: bool = bool(blocks_vision)
 
         norm_cover = str(cover_type).strip().lower() if cover_type else "none"
+        if norm_cover == "full":
+            norm_cover = "total"
+
         if norm_cover not in VALID_COVER_TYPES:
             logger.warning(
                 f"cover_type '{cover_type}' inválido. Ajustando para 'none'. Válidos: {VALID_COVER_TYPES}"
@@ -272,67 +275,76 @@ class TileMap:
     def from_dict(cls, data: Dict[str, Any]) -> "TileMap":
         """
         Constrói uma instância de TileMap a partir de um dicionário de layout e dados táticos.
+        Delega ao TileMapLoader especializado.
         """
-        if not isinstance(data, dict):
-            raise ValueError(f"Dados inválidos para TileMap: esperado dict, recebido {type(data)}")
-
-        width = int(data.get("width", 1))
-        height = int(data.get("height", 1))
-        tileset_name = str(data.get("tileset", "default")).strip()
-
-        tactical_grid: Dict[Tuple[int, int], TileProperties] = {}
-        tile_ids: Dict[Tuple[int, int], int] = {}
-
-        raw_tiles: List[Dict[str, Any]] = data.get("tiles", [])
-        for entry in raw_tiles:
-            if not isinstance(entry, dict):
-                continue
-            tx = int(entry.get("x", 0))
-            ty = int(entry.get("y", 0))
-            tile_id = entry.get("tile_id")
-            if tile_id is not None:
-                tile_ids[(tx, ty)] = int(tile_id)
-
-            raw_props = entry.get("properties")
-            if raw_props is not None:
-                tactical_grid[(tx, ty)] = TileProperties.from_dict(raw_props)
-
-        return cls(
-            width=width,
-            height=height,
-            tileset_name=tileset_name,
-            tactical_grid=tactical_grid,
-            tile_ids=tile_ids,
-        )
+        from ..loaders.tile_map_loader import TileMapLoader
+        return TileMapLoader.load_from_dict(data)
 
     @classmethod
     def from_file(cls, file_path: Union[str, Path]) -> "TileMap":
         """
         Carrega e processa o arquivo JSON de layout do mapa com tratamento de erros.
+        Delega ao TileMapLoader especializado.
         """
-        p = Path(file_path)
-        if not p.is_file():
-            # Tenta resolver relativo a creations/maps/
-            candidate = Path("creations/maps") / p.name
-            if candidate.is_file():
-                p = candidate
-            else:
-                logger.error(f"Arquivo de mapa não encontrado: '{file_path}' (resolvido: '{p}')")
-                raise FileNotFoundError(f"Arquivo de mapa não encontrado: '{file_path}'")
+        from ..loaders.tile_map_loader import TileMapLoader
+        return TileMapLoader.load_from_file(file_path)
 
-        try:
-            with open(p, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            logger.info(f"TileMap carregado com sucesso a partir de '{p}'.")
-            return cls.from_dict(data)
-        except Exception as e:
-            logger.error(f"Erro ao carregar TileMap de '{p}': {e}")
-            raise
+    def to_dict(self, compact: bool = False) -> Dict[str, Any]:
+        """
+        Serializa a estrutura do mapa para formato JSON padrão (legado ou compacto).
+        """
+        if compact:
+            # Serialização compacta normalizada por Tile ID
+            data_matrix: List[List[int]] = []
+            block_movement_set: Set[int] = set()
+            block_vision_set: Set[int] = set()
+            difficult_terrain_set: Set[int] = set()
+            half_cover_set: Set[int] = set()
+            three_quarters_cover_set: Set[int] = set()
+            full_cover_set: Set[int] = set()
+            heights_list: List[Dict[str, Any]] = []
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Serializa a estrutura do mapa para formato JSON padrão."""
+            for y in range(self.__height):
+                row: List[int] = []
+                for x in range(self.__width):
+                    tid = self.__tile_ids.get((x, y), 0)
+                    row.append(tid)
+                    props = self.__tactical_grid.get((x, y))
+                    if props:
+                        if props.blocks_movement:
+                            block_movement_set.add(tid)
+                        if props.blocks_vision:
+                            block_vision_set.add(tid)
+                        if props.difficult_terrain:
+                            difficult_terrain_set.add(tid)
+                        if props.cover_type == "half":
+                            half_cover_set.add(tid)
+                        elif props.cover_type == "three_quarters":
+                            three_quarters_cover_set.add(tid)
+                        elif props.cover_type in ("total", "full"):
+                            full_cover_set.add(tid)
+                        if props.height > 0:
+                            heights_list.append({"pos": {"x": x, "y": y}, "height": props.height})
+                data_matrix.append(row)
+
+            return {
+                "tileset": self.__tileset_name,
+                "width": self.__width,
+                "height": self.__height,
+                "data": data_matrix,
+                "block_movement": sorted(list(block_movement_set)),
+                "block_vision": sorted(list(block_vision_set)),
+                "cover": {
+                    "half": sorted(list(half_cover_set)),
+                    "three_quarters": sorted(list(three_quarters_cover_set)),
+                    "full": sorted(list(full_cover_set)),
+                },
+                "difficult_terrain": sorted(list(difficult_terrain_set)),
+                "heights": heights_list if len(heights_list) > 1 else (heights_list[0] if heights_list else None),
+            }
+
+        # Serialização legada
         tiles_data: List[Dict[str, Any]] = []
-
         all_coords = set(self.__tile_ids.keys()) | set(self.__tactical_grid.keys())
         for x, y in sorted(all_coords, key=lambda c: (c[1], c[0])):
             entry: Dict[str, Any] = {"x": x, "y": y}
@@ -354,3 +366,7 @@ class TileMap:
             f"<TileMap '{self.__tileset_name}' {self.__width}x{self.__height} "
             f"tiles={len(self.__tile_ids)} tactical_cells={len(self.__tactical_grid)}>"
         )
+
+
+# Alias de conveniência e conformidade arquitetural
+TileMapEngine = TileMap
