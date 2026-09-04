@@ -1,0 +1,82 @@
+{
+    "uid": "char_040920261313",
+    "name": "Ornella",
+    "level": 3,
+    "ability_scores": {
+        "STR": 13,
+        "DEX": 13,
+        "CON": 12,
+        "INT": 13,
+        "WIS": 14,
+        "CHA": 16
+    },
+    "race": {
+        "race_id": "aasimar",
+        "subrace_id": "protector",
+        "racial_bonuses_applied": {
+            "CON": 1,
+            "CHA": 2
+        }
+    },
+    "classes": [
+        {
+            "class_id": "sorcerer",
+            "subclass_id": "demigod",
+            "level": 3
+        }
+    ],
+    "background": {
+        "background_id": "outlander",
+        "specialty": null
+    },
+    "alignment": "neutral_good",
+    "languages": [
+        "common",
+        "celestial",
+        "sylvan"
+    ],
+    "proficiencies": {
+        "saving_throws": [
+            "STR",
+            "CON",
+            "CHA"
+        ],
+        "skills": [
+            "athletics",
+            "insight",
+            "persuasion",
+            "survival"
+        ],
+        "tools": [
+            "lyre"
+        ]
+    },
+    "vitality": {
+        "max_hp": 19,
+        "current_hp": 19,
+        "temporary_hp": 0,
+        "hit_die_type": 6,
+        "hit_dice_remaining": 3
+    },
+    "resources": {},
+    "equipment": [
+        {
+            "item_id": "crossbow_light",
+            "equipped": true
+        },
+        {
+            "item_id": "dagger",
+            "equipped": true
+        }
+    ],
+    "coins": {
+        "cp": 0,
+        "sp": 0,
+        "ep": 0,
+        "gp": 50,
+        "pp": 0
+    },
+    "active_features": [
+        "font_of_magic"
+    ]
+}

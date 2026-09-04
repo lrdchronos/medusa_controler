@@ -273,6 +273,10 @@ class DMWindow(arcade.Window):
     def on_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> None:
         self.switch_to()
         arcade.set_window(self)
+        if self.initiative_modal.is_open:
+            if self.initiative_modal.handle_scroll(x, y, scroll_x, scroll_y):
+                return
+
         split_x = self.width * 0.50
         if self.active_tab == 3:
             self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)

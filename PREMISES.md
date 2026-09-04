@@ -8,6 +8,13 @@ Este arquivo define as leis universais e padrões técnicos do projeto Medusa. T
 - **OOD sempre**: O código deve priorizar a orientação por objetos e o conceito de single responsibility. Em resumo: evitar código procedural espalhado
 - **Modularização sempre**: O código deve ser modular e bem organizado. Evitar arquivos monolíticos e código espalhado. Separar responsabilidades.
 
+### Diretriz de Arquitetura: DRY e Reuso Estrito de Componentes
+- **Varredura Obrigatória Pré-Implementação:**
+  - Antes de implementar qualquer comportamento comum ou corriqueiro de interface (como rolagem com mouse, drag-and-drop, clique/hover de botões, paginação, campos de texto editáveis ou recortes de textura), a IA **DEVE** inspecionar a base existente (`src/ui/components/`, `src/ui/utils/` e `src/manager/`)[cite: 4].
+  - É proibido duplicar lógica de controle de eventos de entrada se já houver um componente canônico do sistema (ex: usar `SmartTextInput` em vez de inputs manuais[cite: 4], usar `SpriteFactory` em vez de carregar texturas soltas[cite: 4], e usar `DiscreteScrollList` em vez de acumular `scroll_y` avulso).
+- **Abstração Quando Inexistente:**
+  - Se um padrão de interface ou comportamento utilitário for necessário e ainda não existir uma solução genérica, implemente-o primeiro como uma classe ou helper reutilizável desacoplado (dentro de `src/ui/components/` ou `src/ui/utils/`)[cite: 4], para só então utilizá-lo na funcionalidade específica.
+
 ---
 
 ## 1. Regras de Ouro da Arquitetura (Invioláveis)

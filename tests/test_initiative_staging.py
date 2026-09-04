@@ -101,6 +101,184 @@ class TestInitiativeStagingAndVisibility(unittest.TestCase):
         self.manager.set_combatant_position(kobold.uid, 7, 12)
         self.assertEqual(kobold.position, {"x": 7, "y": 12})
 
+    def test_large_combat_group_initiative_integrity_and_staging(self):
+        """Valida a integridade de dados e ordenação de iniciativas para combates grandes (15+ entidades)."""
+        manager = CombatManager()
+        # 5 PJs + 12 Monstros = 17 participantes
+        pcs = [
+            PlayableCharacter(
+                name=f"Heroi_{i}",
+                uid=f"pc_{i}",
+                level=5,
+                max_hp=40,
+                armor_class=16,
+                ability_scores={"DEX": 10 + i},
+            )
+            for i in range(5)
+        ]
+        mobs = [
+            Monster(
+                name=f"Goblin_{j}",
+                uid=f"mob_{j}",
+                max_hp=10,
+                armor_class=12,
+                challenge_rating=0.25,
+                ability_scores={"DEX": 14},
+            )
+            for j in range(12)
+        ]
+
+        combatants_data = []
+        for pc in pcs:
+            combatants_data.append(pc)
+        for mob in mobs:
+            combatants_data.append(mob)
+
+        manager._CombatManager__combatants = combatants_data
+        manager._CombatManager__turn_order = list(combatants_data)
+
+        # 1. Rascunho preliminar para todos os 17 participantes
+        draft = manager.generate_draft_initiatives()
+        self.assertEqual(len(draft), 17)
+        for c in combatants_data:
+            self.assertIn(c.uid, draft)
+
+        # 2. Atribui scores com valores decrescentes e alguns empates
+        custom_scores = {}
+        for idx, c in enumerate(combatants_data):
+            custom_scores[c.uid] = 20 - (idx % 10)  # Gera empates controlados
+
+        manager.apply_initiatives(custom_scores)
+        self.assertTrue(manager.has_combat_started)
+        self.assertEqual(len(manager.turn_order), 17)
+
+        # 3. Verifica ordenação decrescente rigorosa
+        scores = [c.initiative_score for c in manager.turn_order]
+        for i in range(len(scores) - 1):
+            self.assertGreaterEqual(scores[i], scores[i + 1], "A ordem de iniciativa deve ser estritamente decrescente.")
+
+        # 4. Percorre todos os 17 turnos garantindo consistência
+        for t in range(17):
+            self.assertEqual(manager.current_turn_index, t)
+            active = manager.active_character
+            self.assertIsNotNone(active)
+            self.assertEqual(active, manager.turn_order[t])
+            manager.next_turn()
+
+        # Volta ao primeiro turno da rodada 2
+        self.assertEqual(manager.current_turn_index, 0)
+        self.assertEqual(manager.round_number, 2)
+
+    def test_initiative_staging_modal_discrete_scroll_and_interactions(self):
+        """Valida que o modal de staging acomoda grupos grandes via DiscreteScrollList com step discreto e cliques nos steppers."""
+        from src.manager.session_manager import SessionManager
+        from src.ui.dm.initiative_modal import InitiativeStagingModal
+
+        session = SessionManager()
+        manager = session.combat_manager
+
+        # Popula com 17 combatentes
+        combatants = [
+            Monster(name=f"Orc_{i}", uid=f"orc_{i}", max_hp=15, armor_class=13)
+            for i in range(17)
+        ]
+        manager._CombatManager__combatants = combatants
+        manager._CombatManager__turn_order = list(combatants)
+
+        modal = InitiativeStagingModal(session_manager=session)
+        modal.open()
+        self.assertTrue(modal.is_open)
+
+        # Configura dimensões do modal e bounds da lista
+        modal_w, modal_h = 540, 440
+        modal_cx, modal_cy = 640, 384
+        list_y = modal_cy + modal_h / 2 - 70
+        list_w = modal_w - 40
+        list_x = modal_cx - list_w / 2
+        list_h = 6 * 40 - 4
+        modal.scroll_list.set_bounds(list_x, list_y, list_w, list_h)
+
+        # 1. Componente de rolagem discreta com 6 slots visíveis
+        self.assertEqual(modal.scroll_list.visible_item_count, 6)
+        self.assertEqual(modal.scroll_list.max_start_index, 17 - 6)  # 11
+        self.assertEqual(modal.scroll_list.start_index, 0)
+
+        # 2. Rolagem com mouse_scroll
+        # Rola para baixo (scroll_y = -1.0)
+        scrolled = modal.handle_scroll(x=640, y=384, scroll_x=0.0, scroll_y=-1.0)
+        self.assertTrue(scrolled)
+        self.assertEqual(modal.scroll_list.start_index, 1)
+
+        # 3. Rola para o final (clamp em 11)
+        for _ in range(20):
+            modal.handle_scroll(x=640, y=384, scroll_x=0.0, scroll_y=-1.0)
+        self.assertEqual(modal.scroll_list.start_index, 11)
+
+        # 4. Rola de volta para o topo
+        for _ in range(20):
+            modal.handle_scroll(x=640, y=384, scroll_x=0.0, scroll_y=1.0)
+        self.assertEqual(modal.scroll_list.start_index, 0)
+
+        # 5. Ajuste de iniciativa pelo stepper [+]
+        first_mob = combatants[0]
+        initial_score = modal.draft_initiatives[first_mob.uid]
+
+        slot_cx, slot_cy, slot_w, slot_h = modal.scroll_list.get_slot_rect(0)
+        btn_plus_x = slot_cx + slot_w / 2 - 10
+        btn_plus_y = slot_cy
+
+        handled = modal.handle_click(btn_plus_x, btn_plus_y, w=1280, h=768)
+        self.assertTrue(handled)
+        self.assertEqual(modal.draft_initiatives[first_mob.uid], initial_score + 1)
+
+    def test_initiative_hud_sliding_window_with_large_combat(self):
+        """Valida o cálculo da janela deslizante (sliding window) e indicadores de overflow no InitiativeHUD."""
+        from src.ui.initiative_hud import InitiativeHUD
+
+        manager = CombatManager()
+        combatants = [
+            Monster(name=f"Creature_{i}", uid=f"c_{i}", max_hp=20, armor_class=10)
+            for i in range(17)
+        ]
+        manager._CombatManager__combatants = combatants
+        manager._CombatManager__turn_order = list(combatants)
+        manager.apply_initiatives({c.uid: 20 - i for i, c in enumerate(combatants)})
+
+        hud = InitiativeHUD(combat_manager=manager)
+
+        # Tela de 1024px: max_visible = (1024 - 160) // 80 = 10 itens
+        # Caso 1: Turno 0 (início da fila)
+        start, end, visible, has_prev, has_next = hud.get_visible_window(screen_width=1024, spacing=80.0)
+        self.assertEqual(start, 0)
+        self.assertEqual(end, 10)
+        self.assertEqual(len(visible), 10)
+        self.assertFalse(has_prev)
+        self.assertTrue(has_next)
+
+        # Caso 2: Turno no meio da fila (Turno 8)
+        for _ in range(8):
+            manager.next_turn()
+        self.assertEqual(manager.current_turn_index, 8)
+        start_m, end_m, visible_m, has_prev_m, has_next_m = hud.get_visible_window(screen_width=1024, spacing=80.0)
+        # half = 5 -> start = 8 - 5 = 3, end = 3 + 10 = 13
+        self.assertEqual(start_m, 3)
+        self.assertEqual(end_m, 13)
+        self.assertEqual(len(visible_m), 10)
+        self.assertTrue(has_prev_m)
+        self.assertTrue(has_next_m)
+
+        # Caso 3: Turno no final da fila (Turno 16)
+        for _ in range(8):
+            manager.next_turn()
+        self.assertEqual(manager.current_turn_index, 16)
+        start_e, end_e, visible_e, has_prev_e, has_next_e = hud.get_visible_window(screen_width=1024, spacing=80.0)
+        # Final da fila: start = 17 - 10 = 7, end = 17
+        self.assertEqual(start_e, 7)
+        self.assertEqual(end_e, 17)
+        self.assertEqual(len(visible_e), 10)
+        self.assertTrue(has_prev_e)
+        self.assertFalse(has_next_e)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -395,3 +395,218 @@
 [2026-09-04 11:59:23,942] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
 [2026-09-04 11:59:23,947] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
 [2026-09-04 11:59:23,947] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 14 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap).
+[2026-09-04 13:10:05,513] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 13:10:05,515] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 13:10:05,971] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 13:10:06,063] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 13:10:06,065] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 13:21:40,539] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 13:21:40,540] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 13:21:41,000] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 13:21:41,110] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 13:21:41,110] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 13:22:12,924] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 13:22:12,925] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 13:22:13,373] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 13:22:13,483] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 13:22:13,485] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 13:22:37,740] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-04 13:22:37,804] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:22:37,828] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 13:22:37,839] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:22:46,574] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:22:46,580] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:22:46,581] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 16 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap).
+[2026-09-04 13:22:50,461] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kaz' posicionado no grid: [24, 6].
+[2026-09-04 13:22:52,647] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Ornella' posicionado no grid: [24, 5].
+[2026-09-04 13:22:54,452] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Grunt Kahl' posicionado no grid: [24, 4].
+[2026-09-04 13:22:56,111] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Bolo de Morango' posicionado no grid: [24, 3].
+[2026-09-04 13:22:58,147] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 1' posicionado no grid: [5, 8].
+[2026-09-04 13:22:59,869] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 2' posicionado no grid: [6, 7].
+[2026-09-04 13:23:01,473] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 4' posicionado no grid: [7, 8].
+[2026-09-04 13:23:03,325] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 3' posicionado no grid: [7, 9].
+[2026-09-04 13:23:08,903] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [1, 5].
+[2026-09-04 13:23:11,043] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 2' posicionado no grid: [0, 4].
+[2026-09-04 13:23:12,813] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 3' posicionado no grid: [0, 3].
+[2026-09-04 13:23:15,138] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 4' posicionado no grid: [0, 2].
+[2026-09-04 13:23:16,990] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 5' posicionado no grid: [1, 1].
+[2026-09-04 13:23:18,642] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 6' posicionado no grid: [2, 1].
+[2026-09-04 13:23:20,129] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 7' posicionado no grid: [3, 2].
+[2026-09-04 13:23:21,967] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 8' posicionado no grid: [2, 3].
+[2026-09-04 13:23:22,937] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 7' posicionado no grid: [2, 2].
+[2026-09-04 13:23:24,076] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [2, 4].
+[2026-09-04 13:23:25,263] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 2' posicionado no grid: [1, 3].
+[2026-09-04 13:23:27,465] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [1, 2].
+[2026-09-04 13:23:36,652] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:23:36,657] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:23:36,657] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 16 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap).
+[2026-09-04 13:24:08,397] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:24:08,402] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:24:08,403] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 16 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap).
+[2026-09-04 13:24:13,334] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 1' posicionado no grid: [0, 2].
+[2026-09-04 13:24:14,671] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 2' posicionado no grid: [1, 2].
+[2026-09-04 13:24:16,310] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 3' posicionado no grid: [2, 2].
+[2026-09-04 13:24:17,979] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 4' posicionado no grid: [0, 3].
+[2026-09-04 13:24:19,830] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 5' posicionado no grid: [1, 3].
+[2026-09-04 13:24:21,653] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 6' posicionado no grid: [2, 3].
+[2026-09-04 13:24:23,339] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 8' posicionado no grid: [1, 1].
+[2026-09-04 13:24:24,993] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kobold 7' posicionado no grid: [2, 1].
+[2026-09-04 13:24:26,816] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Kaz' posicionado no grid: [24, 6].
+[2026-09-04 13:24:29,004] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Ornella' posicionado no grid: [24, 5].
+[2026-09-04 13:24:30,691] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Grunt Kahl' posicionado no grid: [24, 4].
+[2026-09-04 13:24:32,280] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Bolo de Morango' posicionado no grid: [24, 3].
+[2026-09-04 13:24:34,330] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 1' posicionado no grid: [5, 8].
+[2026-09-04 13:24:36,151] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 2' posicionado no grid: [6, 8].
+[2026-09-04 13:24:37,630] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 3' posicionado no grid: [7, 8].
+[2026-09-04 13:24:38,983] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 4' posicionado no grid: [7, 9].
+[2026-09-04 13:24:40,405] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_04092026132440.json' (UID: encounter_04092026132440, 16 combatentes).
+[2026-09-04 13:24:40,405] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_04092026132440.json'.
+[2026-09-04 13:24:40,421] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 2 imagens de mapa, 3 tilemaps, 4 PJs, 10 monstros.
+[2026-09-04 13:24:45,254] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132440
+[2026-09-04 13:24:45,260] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:24:45,261] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132440) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 13:24:45,443] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:24:45,469] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:25:23,070] [INFO] [src.manager.session_manager]: Projetando imagem: 'open_field_grass_trees.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\open_field_grass_trees.jpg)
+[2026-09-04 13:25:25,210] [INFO] [src.manager.session_manager]: Projetando imagem: 'map_mounains.png' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\map_mounains.png)
+[2026-09-04 13:25:27,063] [INFO] [src.manager.session_manager]: Projetando imagem: 'taverna_do_dragao.png' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\showcase\taverna_do_dragao.png)
+[2026-09-04 13:25:28,658] [INFO] [src.manager.session_manager]: Projetando imagem: 'open_field_grass_trees.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\open_field_grass_trees.jpg)
+[2026-09-04 13:25:31,406] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_04092026132531.json' (UID: encounter_04092026132531, 16 combatentes).
+[2026-09-04 13:25:31,407] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_04092026132531.json'.
+[2026-09-04 13:25:31,422] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 2 imagens de mapa, 3 tilemaps, 4 PJs, 10 monstros.
+[2026-09-04 13:25:43,699] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132440
+[2026-09-04 13:25:43,704] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:25:43,706] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132440) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 13:25:43,716] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:25:43,776] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:26:40,679] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 13:26:40,680] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 13:26:41,128] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 13:26:41,236] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 13:26:41,236] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 13:26:51,160] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-04 13:26:51,167] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:26:51,168] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 13:26:51,192] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 13:26:51,203] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:26:51,504] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:28:00,030] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 13:28:00,031] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 13:28:00,503] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 13:28:00,616] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 13:28:00,617] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 13:28:04,242] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-04 13:28:04,247] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 13:28:04,249] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 13:28:04,273] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 13:28:04,286] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:28:04,610] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 13:28:22,867] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 13:28:24,991] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 14:37:00,879] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 14:37:00,881] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 14:37:01,348] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 14:37:01,469] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 14:37:01,471] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 14:37:06,550] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:37:06,554] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:37:06,555] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:37:06,582] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 14:37:06,591] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 2 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:37:06,884] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 2 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:37:24,476] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 14:37:24,476] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 14:37:24,930] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 14:37:25,040] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 14:37:25,041] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 14:37:29,926] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:37:29,930] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:37:29,932] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:37:30,140] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 14:37:30,155] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 2 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:37:30,205] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 2 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:38:25,475] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 14:38:25,477] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 14:38:25,923] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 14:38:26,036] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 14:38:26,036] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 14:38:34,358] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-04 14:38:34,363] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 14:38:34,364] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 14:38:34,387] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 14:38:34,397] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:38:34,731] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:40:03,816] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 14:40:03,816] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 14:40:04,279] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 14:40:04,389] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 14:40:04,391] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 14:40:06,812] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-04 14:40:06,818] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 14:40:06,819] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 14:40:06,845] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 14:40:06,854] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:40:07,148] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:40:13,658] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:40:13,662] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:40:13,663] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:40:13,703] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 3 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:40:13,716] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 3 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:40:46,850] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (0, 6) para (1, 6).
+[2026-09-04 14:40:48,765] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (1, 6) para (0, 6).
+[2026-09-04 14:40:52,131] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:40:52,134] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:40:52,136] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:40:52,142] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 3 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:40:52,217] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 3 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:41:24,260] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:41:24,263] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:41:24,264] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:41:24,274] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 5 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:41:24,307] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 5 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:42:06,830] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:42:06,833] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:42:06,834] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:42:06,844] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 6 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:42:06,878] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 6 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:48:37,870] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 14:48:37,872] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 14:48:38,335] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 14:48:38,448] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 14:48:38,448] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 14:48:42,731] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-04 14:48:42,735] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-04 14:48:42,736] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes.
+[2026-09-04 14:48:42,947] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 14:48:42,969] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:48:43,027] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 14:51:56,133] [INFO] [src.manager.session_manager]: Projetando imagem: 'raiders_camp.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\raiders_camp.jpg)
+[2026-09-04 14:52:08,818] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-04 14:52:08,819] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada na Floresta' (encounter_04092026064728).
+[2026-09-04 14:52:08,819] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-04 14:59:05,035] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-04 14:59:05,036] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-04 14:59:05,486] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-04 14:59:05,596] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).
+[2026-09-04 14:59:05,596] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-04 14:59:22,544] [INFO] [src.manager.session_manager]: Projetando imagem: 'raiders_camp.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\raiders_camp.jpg)
+[2026-09-04 14:59:28,562] [INFO] [src.manager.session_manager]: Projetando imagem: 'open_field_grass_trees.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\open_field_grass_trees.jpg)
+[2026-09-04 14:59:29,828] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-04 14:59:29,829] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Encontro' ().
+[2026-09-04 14:59:29,830] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-04 14:59:34,216] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-04 14:59:34,283] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 14:59:34,305] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-04 14:59:34,315] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 15:00:17,253] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-04 15:00:17,259] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-04 15:00:17,260] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes.
+[2026-09-04 15:00:17,367] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 15:00:17,395] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-04 15:00:29,253] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (7, 8) para (7, 7).
+[2026-09-04 15:00:30,760] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (6, 8) para (6, 7).
+[2026-09-04 15:00:32,546] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (5, 8) para (5, 6).
+[2026-09-04 15:00:41,785] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (20, 6) para (16, 7).
+[2026-09-04 15:00:46,374] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-04 15:00:47,015] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-04 15:01:05,305] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=False rot=183.0°.

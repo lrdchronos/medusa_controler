@@ -151,7 +151,18 @@ class CreatorConfigForm:
         self.__monster_counts: Dict[str, int] = {}
         self.__error_message: Optional[str] = None
 
-        # Estado da Listagem Rolável Discreta e Busca
+        # Estado da Listagem de PJs (DiscreteScrollList - 5 slots visíveis)
+        self.__pc_item_height: float = 24.0
+        self.__pc_item_spacing: float = 2.0
+        self.__pc_visible_count: int = 5
+        self.__pc_scroll_list = DiscreteScrollList(
+            item_height=int(self.__pc_item_height),
+            spacing=int(self.__pc_item_spacing),
+            visible_item_count=self.__pc_visible_count,
+            items=self.__available_characters,
+        )
+
+        # Estado da Listagem Rolável Discreta e Busca de Monstros
         self.__search_query: str = ""
         self.__filtered_monsters: List[Dict[str, Any]] = []
         self.__visible_height: float = 160.0
@@ -172,15 +183,17 @@ class CreatorConfigForm:
         self._init_defaults()
 
     def _init_defaults(self) -> None:
-        """Inicializa seleções padrão para personagens e contagens de monstros."""
+        """Inicializa seleções padrão para personagens e contagens de monstros (iniciando estritamente com 0)."""
         if self.__available_characters and not self.__selected_character_uids:
             for char in self.__available_characters:
                 self.__selected_character_uids.add(char["uid"])
 
+        self.__pc_scroll_list.items = self.__available_characters
+
         for mon in self.__available_monsters:
             mid = mon["uid"]
             if mid not in self.__monster_counts:
-                self.__monster_counts[mid] = 2 if "kobold" in mid.lower() else 0
+                self.__monster_counts[mid] = 0
 
         self.apply_monster_filter(self.__search_query)
 
@@ -256,6 +269,7 @@ class CreatorConfigForm:
         if not isinstance(characters, list):
             raise TypeError("available_characters deve ser uma lista.")
         self.__available_characters = [c.copy() for c in characters]
+        self.__pc_scroll_list.items = self.__available_characters
 
     @property
     def available_monsters(self) -> List[Dict[str, Any]]:
@@ -393,8 +407,18 @@ class CreatorConfigForm:
         return [m.copy() for m in self.__filtered_monsters]
 
     @property
+    def pc_scroll_list(self) -> DiscreteScrollList:
+        """Referência ao componente de rolagem discreta para personagens (PJs)."""
+        return self.__pc_scroll_list
+
+    @property
+    def character_scroll_list(self) -> DiscreteScrollList:
+        """Alias para pc_scroll_list."""
+        return self.__pc_scroll_list
+
+    @property
     def scroll_list(self) -> DiscreteScrollList:
-        """Referência ao componente OOD de rolagem discreta."""
+        """Referência ao componente OOD de rolagem discreta de monstros."""
         return self.__scroll_list
 
     @property
@@ -506,6 +530,7 @@ class CreatorConfigForm:
         if available_tilemaps is not None:
             self.__available_tilemaps = [t.copy() for t in available_tilemaps]
         self.__available_characters = [c.copy() for c in available_characters]
+        self.__pc_scroll_list.items = self.__available_characters
         self.__available_monsters = [m.copy() for m in available_monsters]
 
         if self.__selected_image_index >= len(self.__available_image_maps):
@@ -708,24 +733,45 @@ class CreatorConfigForm:
         self._render_text("lbl_pcs", "• Personagens dos Jogadores (PJs):", 16, pc_sec_y, COLOR_TEXT_MAIN, 9, True, text_cache)
 
         pc_list_top = pc_sec_y - 16
-        for idx, char in enumerate(self.__available_characters[:3]):
-            cy = pc_list_top - idx * 24
+        count_shown = min(len(self.__available_characters), 5)
+        pc_list_h = count_shown * (self.__pc_item_height + self.__pc_item_spacing)
+        pc_list_w = panel_w - 32
+        pc_list_left = 16.0
+
+        if not self.__available_characters:
+            return pc_list_top
+
+        self.__pc_scroll_list.set_bounds(pc_list_left, pc_list_top, pc_list_w, pc_list_h)
+        self.__pc_scroll_list.items = self.__available_characters
+
+        visible_items = self.__pc_scroll_list.visible_items
+        for slot_idx, (idx, char) in enumerate(visible_items):
+            slot_cx, slot_cy, slot_w, slot_h = self.__pc_scroll_list.get_slot_rect(slot_idx)
             is_checked = char["uid"] in self.__selected_character_uids
 
-            cb_x = 26
+            # Fundo suave para o slot
+            slot_bg = (24, 32, 44, 255) if is_checked else (16, 21, 30, 200)
+            arcade.draw_rect_filled(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), slot_bg)
+            slot_bd = (60, 80, 110, 180) if is_checked else (35, 45, 60, 120)
+            arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), slot_bd, 1)
+
+            # Checkbox
+            cb_x = slot_cx - slot_w / 2 + 12
             cb_bg = (30, 42, 58, 255) if is_checked else (18, 24, 34, 255)
             cb_border = COLOR_ACCENT_GOLD if is_checked else (60, 75, 100, 200)
-            arcade.draw_rect_filled(arcade.XYWH(cb_x, cy, 16, 16), cb_bg)
-            arcade.draw_rect_outline(arcade.XYWH(cb_x, cy, 16, 16), cb_border, 1.5)
+            arcade.draw_rect_filled(arcade.XYWH(cb_x, slot_cy, 16, 16), cb_bg)
+            arcade.draw_rect_outline(arcade.XYWH(cb_x, slot_cy, 16, 16), cb_border, 1.5)
             if is_checked:
-                self._render_text(f"cb_check_{idx}", "✓", cb_x, cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
+                self._render_text(f"cb_check_{char['uid']}", "✓", cb_x, slot_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
 
-            char_desc = f"{char['name']} (Nv {char['level']} {char['class_summary']})"
+            char_desc = f"{char['name']} (Nv {char.get('level', 1)} {char.get('class_summary', '')})"
             lbl_color = COLOR_TEXT_CYAN if is_checked else COLOR_TEXT_MUTED
-            self._render_text(f"char_lbl_{idx}", char_desc[:38], 44, cy, lbl_color, 8, is_checked, text_cache)
+            self._render_text(f"char_lbl_{char['uid']}", char_desc[:38], cb_x + 16, slot_cy, lbl_color, 8, is_checked, text_cache)
 
-        count_shown = min(len(self.__available_characters), 3)
-        return pc_list_top - count_shown * 24
+        if len(self.__available_characters) > self.__pc_scroll_list.visible_item_count:
+            self.__pc_scroll_list._draw_scroll_indicator(text_cache)
+
+        return pc_list_top - pc_list_h
 
     def _draw_monster_search_bar(self, panel_w: float, mon_sec_y: float, text_cache: Dict[str, arcade.Text]) -> float:
         self._render_text("lbl_mons", "• Presets de Monstros (Inimigos):", 16, mon_sec_y, COLOR_TEXT_MAIN, 9, True, text_cache)
@@ -1087,7 +1133,9 @@ class CreatorConfigForm:
     # --- Tratamento de Eventos de Mouse e Rolagem ---
 
     def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
-        """Processa a rolagem discreta do mouse sobre o container de monstros."""
+        """Processa a rolagem discreta do mouse sobre o container de PJs ou de monstros."""
+        if self.__pc_scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y):
+            return True
         return self.__scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y)
 
     def handle_mouse_press(self, x: float, y: float, panel_w: float, top_y: float) -> Optional[str]:
@@ -1108,7 +1156,10 @@ class CreatorConfigForm:
         grid_y = map_row_y - 28
         pc_sec_y = grid_y - 28
         pc_list_top = pc_sec_y - 16
-        mon_sec_y = pc_list_top - min(len(self.__available_characters), 3) * 24 - 10
+        count_shown = min(len(self.__available_characters), 5)
+        pc_list_h = count_shown * (self.__pc_item_height + self.__pc_item_spacing)
+        pc_bottom_y = pc_list_top - pc_list_h
+        mon_sec_y = pc_bottom_y - 10
         search_bar_y = mon_sec_y - 20
 
         # 2. Abas de Tipo de Mapa [ 🖼️ Mapa por Imagem ] | [ 🧩 Mapa por Tileset ]
@@ -1233,9 +1284,24 @@ class CreatorConfigForm:
         return False
 
     def _handle_pc_checkboxes_click(self, x: float, y: float, panel_w: float, pc_list_top: float) -> bool:
-        for idx, char in enumerate(self.__available_characters[:3]):
-            cy = pc_list_top - idx * 24
-            if abs(y - cy) <= 12 and abs(x - panel_w / 2) <= (panel_w - 32) / 2:
+        if not self.__pc_scroll_list.is_point_inside(x, y):
+            return False
+
+        item_match = self.__pc_scroll_list.get_item_at_position(x, y)
+        if item_match is not None:
+            actual_idx, char = item_match
+            cid = char["uid"]
+            self.toggle_character(cid)
+            return True
+
+        visible_items = self.__pc_scroll_list.visible_items
+        for slot_idx, (idx, char) in enumerate(visible_items):
+            slot_cx, slot_cy, slot_w, slot_h = self.__pc_scroll_list.get_slot_rect(slot_idx)
+            left = slot_cx - slot_w / 2.0
+            right = slot_cx + slot_w / 2.0
+            top = slot_cy + slot_h / 2.0
+            bottom = slot_cy - slot_h / 2.0
+            if left <= x <= right and bottom <= y <= top:
                 cid = char["uid"]
                 self.toggle_character(cid)
                 return True

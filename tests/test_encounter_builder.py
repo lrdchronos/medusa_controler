@@ -164,6 +164,79 @@ class TestEncounterBuilder(unittest.TestCase):
             self.assertFalse(pc.is_hidden)
             self.assertEqual(pc.position, {"x": 15, "y": 3})
 
+    def test_monster_counts_initial_state_zero(self):
+        """Garante que todos os monstros carregados do catálogo iniciem com contagem estritamente 0."""
+        from src.ui.dm.creator.config_form import CreatorConfigForm
+
+        sample_monsters = [
+            {"uid": "kobold", "name": "Kobold", "cr": 0.125},
+            {"uid": "winged_kobold", "name": "Kobold Alado", "cr": 0.25},
+            {"uid": "basic_cultist", "name": "Cultista", "cr": 0.125},
+            {"uid": "red_dragon", "name": "Dragão Vermelho", "cr": 10},
+        ]
+        form = CreatorConfigForm(
+            available_maps=[{"path": "dummy.jpg", "name": "Mapa"}],
+            available_characters=[],
+            available_monsters=sample_monsters,
+        )
+
+        counts = form.monster_counts
+        for m in sample_monsters:
+            mid = m["uid"]
+            self.assertIn(mid, counts)
+            self.assertEqual(counts[mid], 0, f"Monstro {mid} deveria iniciar com quantidade 0, mas iniciou com {counts[mid]}")
+
+    def test_character_list_discrete_scroll_pagination_and_mouse_scroll(self):
+        """Valida a paginação de 5 itens visíveis e rolagem discreta por mouse_scroll quando há 6+ PJs."""
+        from src.ui.dm.creator.config_form import CreatorConfigForm
+
+        many_characters = [
+            {"uid": f"char_{i}", "name": f"Heroi {i}", "level": 3, "class_summary": "Guerreiro"}
+            for i in range(8)  # 8 personagens
+        ]
+        form = CreatorConfigForm(
+            available_maps=[{"path": "dummy.jpg", "name": "Mapa"}],
+            available_characters=many_characters,
+            available_monsters=[],
+        )
+
+        # 1. Deve acomodar 5 jogadores visíveis simultaneamente
+        self.assertEqual(form.pc_scroll_list.visible_item_count, 5)
+        self.assertEqual(form.pc_scroll_list.max_start_index, 8 - 5)  # 3
+        self.assertEqual(form.pc_scroll_list.start_index, 0)
+
+        # 2. Primeira página exibe os 5 primeiros
+        vis_uids = [char["uid"] for _, char in form.pc_scroll_list.visible_items]
+        self.assertEqual(vis_uids, ["char_0", "char_1", "char_2", "char_3", "char_4"])
+
+        # 3. Simula desenho para configurar bounds da lista de PJs
+        text_cache = {}
+        form.draw_form(panel_w=640.0, top_y=670.0, text_cache=text_cache)
+
+        # 4. Rola para baixo (scroll_y = -1.0) sobre a área de PJs
+        pc_x, pc_y, pc_w, pc_h = form.pc_scroll_list.bounds
+        inside_x = pc_x + pc_w / 2.0
+        inside_y = pc_y - pc_h / 2.0
+
+        scrolled = form.handle_mouse_scroll(x=inside_x, y=inside_y, scroll_x=0.0, scroll_y=-1.0)
+        self.assertTrue(scrolled)
+        self.assertEqual(form.pc_scroll_list.start_index, 1)
+
+        vis_uids_scrolled = [char["uid"] for _, char in form.pc_scroll_list.visible_items]
+        self.assertEqual(vis_uids_scrolled, ["char_1", "char_2", "char_3", "char_4", "char_5"])
+
+        # 5. Rola além do limite máximo (clamp em 3)
+        for _ in range(10):
+            form.handle_mouse_scroll(x=inside_x, y=inside_y, scroll_x=0.0, scroll_y=-1.0)
+        self.assertEqual(form.pc_scroll_list.start_index, 3)
+        vis_uids_end = [char["uid"] for _, char in form.pc_scroll_list.visible_items]
+        self.assertEqual(vis_uids_end, ["char_3", "char_4", "char_5", "char_6", "char_7"])
+
+        # 6. Rola de volta para o topo (scroll_y = 1.0)
+        for _ in range(10):
+            form.handle_mouse_scroll(x=inside_x, y=inside_y, scroll_x=0.0, scroll_y=1.0)
+        self.assertEqual(form.pc_scroll_list.start_index, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
