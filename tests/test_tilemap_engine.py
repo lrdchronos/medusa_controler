@@ -9,11 +9,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from src.domain.models.tile_map import TileProperties, TileMap, TileMapEngine, VALID_COVER_TYPES
+from src.domain.models.tile_map import (
+    TileProperties,
+    TileMap,
+    TileMapEngine,
+    VALID_COVER_TYPES,
+    MapAsset,
+    VALID_ASSET_TYPES,
+)
 from src.domain.loaders.tile_map_loader import TileMapLoader
 from src.domain.loaders.tileset_manager import TilesetManager
 from src.manager.grid_manager import GridManager
 from src.ui.utils.tilemap_renderer import TileMapRenderer
+from src.ui.utils.sprite_utils import AnimatedPropSprite
 from src.manager.combat_manager import CombatManager
 from src.domain.models.playablechar import PlayableCharacter
 from src.manager.session_manager import SessionManager
@@ -512,6 +520,184 @@ class TestTileMapEngine(unittest.TestCase):
         # Posição deve ter sido revertida / mantida em (0, 1)
         self.assertEqual(pc.position, {"x": 0, "y": 1})
         self.assertTrue(any("Movimento bloqueado para 'Geralt'" in msg for msg in log_cm.output))
+
+    def test_map_asset_model_and_poka_yoke(self):
+        """Testa encapsulamento e validações defensivas do MapAsset."""
+        asset = MapAsset(
+            sprite="assets/sprites/firepit.png",
+            asset_type="SPRITESHEET",
+            x=6,
+            y=4,
+            scale=1.5,
+        )
+        self.assertEqual(asset.sprite, "assets/sprites/firepit.png")
+        self.assertEqual(asset.type, "spritesheet")
+        self.assertEqual(asset.x, 6)
+        self.assertEqual(asset.y, 4)
+        self.assertEqual(asset.position, {"x": 6, "y": 4})
+        self.assertAlmostEqual(asset.scale, 1.5)
+
+        # Normalização Poka-Yoke de tipo inválido para 'sprite'
+        invalid_type_asset = MapAsset(sprite="test.png", asset_type="unknown_type")
+        self.assertEqual(invalid_type_asset.type, "sprite")
+
+        # Serialização e reconstrução
+        data = asset.to_dict()
+        reconstructed = MapAsset.from_dict(data)
+        self.assertIsNotNone(reconstructed)
+        self.assertEqual(asset, reconstructed)
+
+    def test_tilemap_parsing_assets_compact_and_legacy(self):
+        """Testa parsing de lista 'assets' em mapas de formato compacto e legado."""
+        raw_compact = {
+            "tileset": "test_map_1",
+            "width": 4,
+            "height": 4,
+            "data": [
+                [0, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ],
+            "assets": [
+                {
+                    "sprite": "assets/sprites/firepit.png",
+                    "type": "spritesheet",
+                    "position": {"x": 2, "y": 2},
+                    "scale": 1.0,
+                },
+                {
+                    "sprite": "assets/sprites/medusa_idle_1.png",
+                    "type": "sprite",
+                    "position": {"x": 1, "y": 3},
+                    "scale": 0.5,
+                },
+            ],
+        }
+
+        tile_map = TileMap.from_dict(raw_compact)
+        self.assertEqual(len(tile_map.assets), 2)
+        self.assertEqual(tile_map.assets[0].type, "spritesheet")
+        self.assertEqual(tile_map.assets[0].x, 2)
+        self.assertEqual(tile_map.assets[0].y, 2)
+        self.assertEqual(tile_map.assets[1].type, "sprite")
+        self.assertEqual(tile_map.assets[1].x, 1)
+        self.assertEqual(tile_map.assets[1].y, 3)
+
+        # Serialização preserva assets
+        compact_dict = tile_map.to_dict(compact=True)
+        self.assertIn("assets", compact_dict)
+        self.assertEqual(len(compact_dict["assets"]), 2)
+
+    def test_tilemap_parsing_absent_or_empty_assets(self):
+        """Garante que ausência ou lista vazia de assets é tratada sem erros."""
+        map_no_assets = TileMap.from_dict({
+            "tileset": "test_map_1",
+            "width": 2,
+            "height": 2,
+            "data": [[0, 0], [0, 0]],
+        })
+        self.assertEqual(len(map_no_assets.assets), 0)
+
+        map_empty_assets = TileMap.from_dict({
+            "tileset": "test_map_1",
+            "width": 2,
+            "height": 2,
+            "data": [[0, 0], [0, 0]],
+            "assets": [],
+        })
+        self.assertEqual(len(map_empty_assets.assets), 0)
+
+    def test_tilemap_renderer_props_instantiation_and_world_centering(self):
+        """Testa instanciação de camadas ground/props e posicionamento centralizado no grid."""
+        raw_map = {
+            "tileset": "test_map_1",
+            "width": 4,
+            "height": 4,
+            "data": [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ],
+            "assets": [
+                {
+                    "sprite": "assets/sprites/firepit.png",
+                    "type": "spritesheet",
+                    "position": {"x": 1, "y": 1},
+                    "scale": 1.0,
+                },
+                {
+                    "sprite": "assets/sprites/medusa_idle_1.png",
+                    "type": "sprite",
+                    "position": {"x": 2, "y": 0},
+                    "scale": 2.0,
+                },
+            ],
+        }
+        tile_map = TileMap.from_dict(raw_map)
+        grid_mgr = GridManager(map_width=128.0, map_height=128.0, columns=4, feet_per_square=5)
+        renderer = TileMapRenderer(tile_map=tile_map, grid_manager=grid_mgr, tile_size=32.0)
+
+        self.assertEqual(renderer.tile_count, 16)
+        self.assertEqual(renderer.prop_count, 2)
+        self.assertIsInstance(renderer.ground_sprites, arcade.SpriteList)
+        self.assertIsInstance(renderer.prop_sprites, arcade.SpriteList)
+
+        # Prop 0: (x=1, y=1) no mapa 4x4 -> col=1, row=(4-1)-1 = 2
+        # grid_to_world_center(1, 2) -> (16 + 1*32, 16 + 2*32) = (48.0, 80.0)
+        prop_0 = renderer.prop_sprites[0]
+        expected_cx, expected_cy = grid_mgr.grid_to_world_center(1, 2)
+        self.assertAlmostEqual(prop_0.center_x, expected_cx)
+        self.assertAlmostEqual(prop_0.center_y, expected_cy)
+        self.assertAlmostEqual(prop_0.scale_x, 1.0)
+
+        # Prop 1: (x=2, y=0) no mapa 4x4 -> col=2, row=3
+        # grid_to_world_center(2, 3) -> (16 + 2*32, 16 + 3*32) = (80.0, 112.0)
+        prop_1 = renderer.prop_sprites[1]
+        expected_cx1, expected_cy1 = grid_mgr.grid_to_world_center(2, 3)
+        self.assertAlmostEqual(prop_1.center_x, expected_cx1)
+        self.assertAlmostEqual(prop_1.center_y, expected_cy1)
+        self.assertAlmostEqual(prop_1.scale_x, 2.0)
+
+    def test_tilemap_renderer_props_animation_cycle(self):
+        """Testa que invocar update() no TileMapRenderer atualiza animações de props."""
+        raw_map = {
+            "tileset": "test_map_1",
+            "width": 2,
+            "height": 2,
+            "data": [[0, 0], [0, 0]],
+            "assets": [
+                {
+                    "sprite": "assets/sprites/firepit.png",
+                    "type": "spritesheet",
+                    "position": {"x": 0, "y": 0},
+                    "scale": 1.0,
+                }
+            ],
+        }
+        tile_map = TileMap.from_dict(raw_map)
+        renderer = TileMapRenderer(tile_map=tile_map)
+
+        anim_prop = renderer.prop_sprites[0]
+        self.assertIsInstance(anim_prop, AnimatedPropSprite)
+        self.assertEqual(anim_prop.cur_frame_idx, 0)
+
+        # Avança 0.125s através do método update do renderer
+        renderer.update(0.125)
+        self.assertEqual(anim_prop.cur_frame_idx, 1)
+
+    def test_tilemap_renderer_with_sprite_0007_props(self):
+        """Testa carregamento do mapa oficial Sprite-0007_map.json com props e desenho de camadas."""
+        tile_map = TileMap.from_file("creations/maps/Sprite-0007_map.json")
+        renderer = TileMapRenderer(tile_map=tile_map, tile_size=32.0)
+
+        self.assertEqual(renderer.tile_count, 21 * 12)
+        self.assertGreaterEqual(renderer.prop_count, 1)
+
+        # Executa ciclo de update e draw ordenado
+        renderer.update(1 / 60)
+        renderer.draw(pixelated=True)
 
 
 if __name__ == "__main__":

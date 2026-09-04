@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Tuple
 import arcade
 import PIL.Image
 import PIL.ImageDraw
@@ -33,10 +33,78 @@ def _resolve_asset_path(file_path: str) -> str:
     return file_path
 
 
+class AnimatedPropSprite(arcade.Sprite):
+    """
+    Sprite animado baseado em tempo para props e decorações de cenário em loop contínuo.
+    Suporta avanço suave de quadros via update_animation(delta_time) ou update(delta_time).
+    """
+
+    def __init__(
+        self,
+        textures: Optional[List[arcade.Texture]] = None,
+        fps: float = 8.0,
+        scale: float = 1.0,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.textures: List[arcade.Texture] = list(textures) if textures else []
+        if self.textures:
+            self.texture = self.textures[0]
+        self._fps: float = max(0.001, float(fps))
+        self._frame_duration: float = 1.0 / self._fps
+        self._time_counter: float = 0.0
+        self._cur_frame_idx: int = 0
+        self.scale = float(scale)
+
+    @property
+    def fps(self) -> float:
+        """Taxa de quadros por segundo da animação."""
+        return self._fps
+
+    @fps.setter
+    def fps(self, value: float) -> None:
+        self._fps = max(0.001, float(value))
+        self._frame_duration = 1.0 / self._fps
+
+    @property
+    def frame_duration(self) -> float:
+        """Duração de cada quadro em segundos."""
+        return self._frame_duration
+
+    @property
+    def cur_frame_idx(self) -> int:
+        """Índice do quadro atual exibido."""
+        return self._cur_frame_idx
+
+    def update_animation(self, delta_time: float = 1 / 60, *args: Any, **kwargs: Any) -> None:
+        """Avança a animação em loop contínuo com base no tempo decorrido."""
+        if len(self.textures) <= 1:
+            return
+
+        self._time_counter += float(delta_time)
+        if self._time_counter >= self._frame_duration:
+            advance = int(self._time_counter // self._frame_duration)
+            self._time_counter %= self._frame_duration
+            self._cur_frame_idx = (self._cur_frame_idx + advance) % len(self.textures)
+            self.texture = self.textures[self._cur_frame_idx]
+
+    def on_update(self, delta_time: float = 1 / 60) -> None:
+        """Hook de atualização de quadro do Arcade."""
+        self.update_animation(delta_time)
+
+    def update(self, delta_time: float = 1 / 60) -> None:
+        """Compatibilidade com chamadas genéricas de update."""
+        self.update_animation(delta_time)
+
+
+# Alias para conformidade
+AnimatedTimeBasedSprite = AnimatedPropSprite
+
+
 class SpriteFactory:
     """
     Fábrica utilitária declarativa para criação, escalonamento e posicionamento
-    de Sprites e renderização de Tokens Táticos circulares para o Medusa VTT.
+    de Sprites, Props de cenário e Tokens Táticos para o Medusa VTT.
     """
 
     _token_texture_cache: Dict[str, arcade.Texture] = {}
@@ -47,11 +115,14 @@ class SpriteFactory:
         sheet_path: str,
         x: float = 0.0,
         y: float = 0.0,
-        width: int = 48,
-        height: int = 48,
+        width: int = 32,
+        height: int = 32,
         target_size: Optional[float] = None,
         frame_count: int = 1,
         scale: float = 1.0,
+        frame_width: Optional[int] = None,
+        frame_height: Optional[int] = None,
+        fps: float = 8.0,
     ) -> arcade.Sprite:
         """
         Instancia, fatia, redimensiona e posiciona um arcade.Sprite em 1 linha.
@@ -60,23 +131,28 @@ class SpriteFactory:
             sheet_path (str): Caminho para a imagem ou spritesheet.
             x (float): Coordenada central X na tela.
             y (float): Coordenada central Y na tela.
-            width (int): Largura de cada célula/quadro na imagem original (em px).
-            height (int): Altura de cada célula/quadro na imagem original (em px).
+            width (int): Largura de cada célula/quadro na imagem original (em px, padrão 32).
+            height (int): Altura de cada célula/quadro na imagem original (em px, padrão 32).
             target_size (Optional[float]): Se informado, calcula scale automaticamente (target_size / width).
             frame_count (int): Quantidade de quadros horizontais (1 para estático, >1 para animado).
             scale (float): Escala manual aplicada caso target_size seja None.
+            frame_width (Optional[int]): Alias explícito para width.
+            frame_height (Optional[int]): Alias explícito para height.
+            fps (float): Taxa de quadros para spritesheets animados (padrão 8.0).
 
         Retorna:
             arcade.Sprite: Objeto Sprite configurado e pronto para adição em SpriteList.
         """
-        sprite = arcade.Sprite()
+        eff_width = frame_width if frame_width is not None else width
+        eff_height = frame_height if frame_height is not None else height
         resolved_path = _resolve_asset_path(sheet_path)
 
         if frame_count <= 1:
+            sprite = arcade.Sprite()
             try:
                 base_tex = arcade.load_texture(resolved_path)
-                if width > 0 and height > 0 and (base_tex.width > width or base_tex.height > height):
-                    tex = base_tex.crop(0, 0, width, height)
+                if eff_width > 0 and eff_height > 0 and (base_tex.width > eff_width or base_tex.height > eff_height):
+                    tex = base_tex.crop(0, 0, eff_width, eff_height)
                 else:
                     tex = base_tex
                 sprite.texture = tex
@@ -85,21 +161,24 @@ class SpriteFactory:
                 logger.error(f"Erro ao carregar textura do Sprite '{sheet_path}' (resolvido: '{resolved_path}'): {e}")
                 sprite.textures = []
         else:
+            textures: List[arcade.Texture] = []
             try:
                 base_tex = arcade.load_texture(resolved_path)
-                sprite.textures = [
-                    base_tex.crop(i * width, 0, width, height)
+                textures = [
+                    base_tex.crop(i * eff_width, 0, eff_width, eff_height)
                     for i in range(frame_count)
                 ]
-                if sprite.textures:
-                    sprite.texture = sprite.textures[0]
             except Exception as e:
                 logger.error(f"Erro ao carregar spritesheet animado '{sheet_path}' (resolvido: '{resolved_path}'): {e}")
-                sprite.textures = []
+
+            sprite = AnimatedPropSprite(
+                textures=textures,
+                fps=fps,
+            )
 
         # Cálculo automático da escala ou uso da escala explícita
-        if target_size is not None and width > 0:
-            effective_scale = float(target_size) / float(width)
+        if target_size is not None and eff_width > 0:
+            effective_scale = float(target_size) / float(eff_width)
         else:
             effective_scale = float(scale)
 
@@ -107,6 +186,55 @@ class SpriteFactory:
         sprite.position = (float(x), float(y))
 
         return sprite
+
+    @classmethod
+    def create_static_prop(
+        cls,
+        image_path: str,
+        scale: float = 1.0,
+    ) -> arcade.Sprite:
+        """
+        Carrega e instancia um objeto/prop estático de quadro único (padrão 32x32px) com filtro pixelated.
+        """
+        return cls.create_sprite(
+            sheet_path=image_path,
+            width=32,
+            height=32,
+            frame_count=1,
+            scale=scale,
+        )
+
+    @classmethod
+    def create_animated_prop(
+        cls,
+        spritesheet_path: str,
+        scale: float = 1.0,
+        frame_count: int = 6,
+        fps: float = 8.0,
+        frame_width: int = 32,
+        frame_height: int = 32,
+    ) -> AnimatedPropSprite:
+        """
+        Carrega e instancia um objeto/prop animado composto por quadros sequenciais de 32x32px
+        (padrão 6 frames a 8.0 FPS) em loop contínuo.
+        """
+        resolved_path = _resolve_asset_path(spritesheet_path)
+        textures: List[arcade.Texture] = []
+        try:
+            base_tex = arcade.load_texture(resolved_path)
+            textures = [
+                base_tex.crop(i * frame_width, 0, frame_width, frame_height)
+                for i in range(frame_count)
+            ]
+        except Exception as e:
+            logger.error(f"Erro ao carregar prop animado '{spritesheet_path}' (resolvido: '{resolved_path}'): {e}")
+
+        prop_sprite = AnimatedPropSprite(
+            textures=textures,
+            fps=fps,
+            scale=scale,
+        )
+        return prop_sprite
 
     @classmethod
     def get_procedural_token_texture(
@@ -398,6 +526,8 @@ class CombatToken(arcade.Sprite):
 # Aliases ergonômicos
 UIUtils = SpriteFactory
 create_sprite = SpriteFactory.create_sprite
+create_static_prop = SpriteFactory.create_static_prop
+create_animated_prop = SpriteFactory.create_animated_prop
 create_entity_token = SpriteFactory.create_entity_token_sprite
 draw_tactical_token = SpriteFactory.draw_tactical_token
 

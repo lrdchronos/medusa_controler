@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, Tuple, Any, Optional, Union, List, Set
-from ..models.tile_map import TileMap, TileProperties
+from ..models.tile_map import TileMap, TileProperties, MapAsset
 
 logger = logging.getLogger(__name__)
 
@@ -124,12 +124,23 @@ class TileMapLoader:
             tile_ids = {}
             tactical_grid = {}
 
+        # Parsing defensivo de assets e props opcionais
+        parsed_assets: List[MapAsset] = []
+        raw_assets = data.get("assets")
+        if raw_assets and isinstance(raw_assets, list):
+            for entry in raw_assets:
+                if isinstance(entry, dict):
+                    asset_obj = MapAsset.from_dict(entry)
+                    if asset_obj is not None and asset_obj.sprite:
+                        parsed_assets.append(asset_obj)
+
         return TileMap(
             width=width,
             height=height,
             tileset_name=tileset_name,
             tactical_grid=tactical_grid,
             tile_ids=tile_ids,
+            assets=parsed_assets,
         )
 
     @classmethod

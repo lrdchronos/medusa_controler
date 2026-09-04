@@ -302,8 +302,8 @@
   },
   "assets": [
     {
-      "sprite": "",
-      "type": "",
+      "sprite": "assets/sprites/firepit.png",
+      "type": "spritesheet",
       "position": {
         "x": 6,
         "y": 6

@@ -471,6 +471,8 @@ class PlayerWindow(arcade.Window):
                 self.sigil_sprite.texture = self.sigil_sprite.textures[self._idle_cur_frame]
 
         elif current_state == DisplayState.COMBAT:
+            if self._tilemap_renderer is not None:
+                self._tilemap_renderer.update(delta_time)
             self._update_tokens(delta_time)
 
         elif current_state == DisplayState.PROJECTION:
