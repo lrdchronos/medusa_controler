@@ -20,49 +20,37 @@ def main() -> None:
     setup_logging(level=logging.INFO)
     logger.info("🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E")
 
-    # 1. Inicialização do SessionManager no estado inicial IDLE
-    session_manager = SessionManager()
-    logger.info("SessionManager inicializado no estado DisplayState.IDLE.")
+    try:
+        # 1. Inicialização do SessionManager no estado inicial IDLE
+        session_manager = SessionManager()
+        logger.info("SessionManager inicializado no estado DisplayState.IDLE.")
 
-    # 2. Inicialização da Tela do Mestre (DMWindow - Arcade GUI Nativo)
-    dm_window = DMWindow(
-        session_manager=session_manager,
-        width=1280,
-        height=768,
-        title="Medusa VTT - Painel do Mestre (DM Screen)",
-    )
+        # 2. Inicialização da Tela do Mestre (DMWindow - Arcade GUI Nativo)
+        dm_window = DMWindow(
+            session_manager=session_manager,
+            width=1280,
+            height=768,
+            title="Medusa VTT - Painel do Mestre (DM Screen)",
+        )
 
-    # 3. Inicialização da Tela dos Jogadores (PlayerWindow - Arcade)
-    player_window = PlayerWindow(
-        session_manager=session_manager,
-        dm_window=dm_window,
-        width=1024,
-        height=768,
-        title="Medusa VTT - Tela dos Jogadores",
-    )
+        # 3. Inicialização da Tela dos Jogadores (PlayerWindow - Arcade com resizable=True)
+        player_window = PlayerWindow(
+            session_manager=session_manager,
+            dm_window=dm_window,
+            width=1024,
+            height=768,
+            title="Medusa VTT - Tela dos Jogadores",
+        )
+        dm_window.player_window = player_window
 
-    # 4. Configuração de Encerramento Sincronizado
-    def on_dm_close():
-        try:
-            player_window.close()
-        except Exception:
-            pass
-        arcade.exit()
-
-    def on_player_close():
-        try:
-            dm_window.close()
-        except Exception:
-            pass
-        arcade.exit()
-
-    dm_window.on_close = on_dm_close
-    player_window.on_close = on_player_close
-
-    # 5. Execução do Loop Principal
-    logger.info("Janelas ativas: Tela do Mestre (DMWindow - Arcade GUI) e Tela dos Jogadores (PlayerWindow - Arcade).")
-    logger.info("Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!")
-    arcade.run()
+        # 4. Execução do Loop Principal
+        logger.info("Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).")
+        logger.info("Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!")
+        logger.info("Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).")
+        arcade.run()
+    except Exception as e:
+        logger.critical(f"Exceção fatal na execução da aplicação: {e}", exc_info=True)
+        raise
 
 
 if __name__ == "__main__":

@@ -35,6 +35,7 @@ class DMWindow(arcade.Window):
         self,
         session_manager: SessionManager,
         root: Optional[Any] = None,
+        player_window: Optional[Any] = None,
         width: int = 1280,
         height: int = 768,
         title: str = "Medusa VTT - Painel do Mestre (DM Screen)",
@@ -45,9 +46,12 @@ class DMWindow(arcade.Window):
 
         self.session_manager = session_manager
         self.combat_manager = session_manager.combat_manager
+        self.player_window = player_window
+        if self.player_window is not None:
+            self.player_window.dm_window = self
 
         # Subcomponentes Especializados (OOD)
-        self.header = DMHeader(session_manager=self.session_manager)
+        self.header = DMHeader(session_manager=self.session_manager, dm_window=self)
         self.encounters_tab = EncountersTabView(session_manager=self.session_manager)
         self.showcase_tab = ShowcaseTabView(session_manager=self.session_manager)
         self.combat_tab = CombatTabView(session_manager=self.session_manager)
@@ -126,6 +130,88 @@ class DMWindow(arcade.Window):
     def custom_hp_value(self, value: int) -> None:
         self.combat_tab.custom_hp_value = value
 
+    # --- Propriedades e Controle de Ciclo de Vida da PlayerWindow ---
+
+    @property
+    def is_player_window_open(self) -> bool:
+        """Indica se a tela dos jogadores está instanciada e visível."""
+        if self.player_window is None:
+            return False
+        if getattr(self.player_window, "context", None) is None or getattr(self.player_window, "_closed", False):
+            return False
+        return bool(getattr(self.player_window, "visible", False))
+
+    @property
+    def is_player_fullscreen(self) -> bool:
+        """Indica se a tela dos jogadores está em modo tela cheia."""
+        if self.is_player_window_open and self.player_window is not None:
+            return bool(getattr(self.player_window, "fullscreen", False))
+        return False
+
+    def open_player_window(self) -> None:
+        """Instancia ou reexibe a PlayerWindow conectada aos managers de sessão e combate."""
+        if self.is_player_window_open:
+            logger.info("PlayerWindow já se encontra aberta.")
+            return
+
+        # Se a janela já existe e está apenas oculta (warm reuse), reexibe preservando o contexto OpenGL
+        if (
+            self.player_window is not None
+            and getattr(self.player_window, "context", None) is not None
+            and not getattr(self.player_window, "_closed", False)
+        ):
+            self.player_window.set_visible(True)
+            self.player_window.reconnect_listeners()
+            self.player_window.switch_to()
+            try:
+                self.player_window.activate()
+            except Exception:
+                pass
+            self.switch_to()
+            arcade.set_window(self)
+            logger.info("PlayerWindow reexibida com sucesso.")
+            return
+
+        from .player_window import PlayerWindow
+
+        self.player_window = PlayerWindow(
+            session_manager=self.session_manager,
+            dm_window=self,
+            width=1024,
+            height=768,
+            title="Medusa VTT - Tela dos Jogadores",
+        )
+        self.switch_to()
+        arcade.set_window(self)
+        logger.info("PlayerWindow instanciada e conectada ao SessionManager.")
+
+    def close_player_window(self) -> None:
+        """Fecha a PlayerWindow graciosamente, pausando observadores e ocultando a janela."""
+        if self.player_window is not None:
+            try:
+                self.player_window.close(hard=False)
+            except Exception as e:
+                logger.debug(f"Erro ao fechar PlayerWindow: {e}")
+            logger.info("PlayerWindow ocultada e desconectada da DMWindow.")
+
+    def toggle_player_window(self) -> None:
+        """Alterna a exibição (abre ou fecha) da PlayerWindow."""
+        if self.is_player_window_open:
+            self.close_player_window()
+        else:
+            self.open_player_window()
+
+    def toggle_player_fullscreen(self) -> None:
+        """Alterna entre tela cheia e modo janela na PlayerWindow se estiver ativa."""
+        if self.is_player_window_open and self.player_window is not None:
+            self.player_window.toggle_fullscreen()
+        else:
+            logger.warning("Não é possível alternar tela cheia: PlayerWindow está fechada.")
+
+    def notify_player_window_closed(self) -> None:
+        """Callback invocado quando a PlayerWindow é fechada externamente (ex: botão 'X' do SO)."""
+        logger.info("DMWindow notificada da ocultação da PlayerWindow.")
+
     # --- Sincronização de Estado ---
 
     def refresh_encounter_files(self) -> None:
@@ -164,7 +250,13 @@ class DMWindow(arcade.Window):
         arcade.draw_line(split_x, 0, split_x, h, (40, 50, 70, 200), 2)
 
         # 1. Painel Esquerdo: Cabeçalho, Abas e Conteúdo
-        content_top_y = self.header.draw(split_x, h, self.active_tab)
+        content_top_y = self.header.draw(
+            split_x,
+            h,
+            self.active_tab,
+            player_window_open=self.is_player_window_open,
+            is_fullscreen=self.is_player_fullscreen,
+        )
 
         if self.active_tab == 0:
             self.encounters_tab.draw(split_x, content_top_y)
@@ -203,7 +295,15 @@ class DMWindow(arcade.Window):
 
         # 2. Cliques no Lado Esquerdo (Controles e Abas)
         if x < split_x:
-            if self.header.handle_click(x, y, split_x, h, set_tab_callback=lambda idx: setattr(self, "active_tab", idx)):
+            if self.header.handle_click(
+                x,
+                y,
+                split_x,
+                h,
+                set_tab_callback=lambda idx: setattr(self, "active_tab", idx),
+                on_toggle_player_window=self.toggle_player_window,
+                on_toggle_fullscreen=self.toggle_player_fullscreen,
+            ):
                 return
 
             header_h = 56
@@ -299,6 +399,15 @@ class DMWindow(arcade.Window):
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL) or bool(modifiers & arcade.key.MOD_CTRL):
             self.is_ctrl_held = True
 
+        # Atalhos Globais da DMWindow para Controle da PlayerWindow
+        if symbol == arcade.key.F10:
+            self.toggle_player_window()
+            return
+
+        if symbol == arcade.key.F11:
+            self.toggle_player_fullscreen()
+            return
+
         if self.active_tab == 3:
             self.creator_tab.handle_key_press(symbol, modifiers)
         elif self.active_tab == 2:
@@ -334,5 +443,18 @@ class DMWindow(arcade.Window):
     def pump_events(self) -> None:
         """Compatibilidade para chamadas externas legadas."""
         pass
+
+    def on_close(self) -> None:
+        """Encerra a DMWindow, fechando graciosamente a PlayerWindow e finalizando a aplicação."""
+        logger.info("DMWindow sendo fechada. Encerrando aplicação...")
+        if self.player_window is not None:
+            try:
+                self.player_window.close(hard=True)
+            except Exception as e:
+                logger.debug(f"Erro ao fechar PlayerWindow durante encerramento da DMWindow: {e}")
+            self.player_window = None
+        super().on_close()
+        arcade.exit()
+
 
 

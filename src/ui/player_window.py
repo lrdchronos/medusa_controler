@@ -71,6 +71,18 @@ class PlayerWindow(arcade.Window):
         self._idle_cur_frame: int = 0
         self._idle_frame_duration: float = 0.20
 
+        # Registro de Listeners de Ciclo de Vida e Sessão
+        self._listeners_cleaned: bool = False
+        self._on_session_changed_listener = self._on_session_changed
+        self._on_combat_changed_listener = self._on_combat_changed
+        self.session_manager.add_listener(self._on_session_changed_listener)
+        self.session_manager.combat_manager.add_listener(self._on_combat_changed_listener)
+
+        if self.dm_window is not None:
+            self.dm_window.player_window = self
+
+        logger.info("PlayerWindow instanciada e conectada ao SessionManager.")
+
     def _get_texture(self, file_path: Optional[str]) -> Optional[arcade.Texture]:
         """Carrega e armazena em cache texturas de imagens."""
         if not file_path or not os.path.isfile(file_path):
@@ -121,15 +133,58 @@ class PlayerWindow(arcade.Window):
             cached.color = color
         return cached
 
+    @property
+    def resizable(self) -> bool:
+        """Indica se a janela é redimensionável."""
+        return bool(getattr(self, "_resizable", True))
+
+    def toggle_fullscreen(self) -> None:
+        """Alterna a PlayerWindow entre tela cheia e modo janela."""
+        target_state = not self.fullscreen
+        self.set_fullscreen(target_state)
+        state_str = "tela cheia" if target_state else "modo janela"
+        logger.info(f"PlayerWindow colocada em {state_str}.")
+
+    def switch_to(self) -> None:
+        """Ativa o contexto OpenGL da PlayerWindow se a janela estiver aberta e com contexto válido."""
+        if getattr(self, "context", None) is None or getattr(self, "_closed", False):
+            return
+        try:
+            super().switch_to()
+        except Exception:
+            pass
+
+    def reconnect_listeners(self) -> None:
+        """Reconecta listeners ao SessionManager e CombatManager ao reexibir a janela."""
+        if getattr(self, "_listeners_cleaned", True):
+            if hasattr(self, "_on_session_changed_listener"):
+                self.session_manager.add_listener(self._on_session_changed_listener)
+            if hasattr(self, "_on_combat_changed_listener"):
+                self.session_manager.combat_manager.add_listener(self._on_combat_changed_listener)
+            self._listeners_cleaned = False
+            logger.info("PlayerWindow exibida e reconectada ao SessionManager.")
+
     def on_resize(self, width: int, height: int) -> None:
-        """Atualiza dimensões da janela e da câmera dos jogadores."""
+        """Atualiza dimensões da janela e da câmera dos jogadores proporcionalmente à resolução do monitor."""
+        if not getattr(self, "visible", True) or getattr(self, "context", None) is None or getattr(self, "_closed", False):
+            return
         self.switch_to()
         arcade.set_window(self)
         super().on_resize(width, height)
         if hasattr(self, "player_camera"):
             self.player_camera.match_window()
+        layout = self._calculate_combat_layout(width, height)
+        if layout is not None:
+            draw_x, draw_y, draw_w, draw_h, cell_w, cell_h, cols, rows = layout
+            logger.debug(
+                f"PlayerWindow on_resize ({width}x{height}): Grid combat viewport={draw_w:.1f}x{draw_h:.1f} "
+                f"em offset=({draw_x:.1f}, {draw_y:.1f}), cell={cell_w:.1f}x{cell_h:.1f}."
+            )
+        logger.info(f"PlayerWindow redimensionada para {width}x{height} (fullscreen={self.fullscreen}). Viewport recalculada.")
 
     def on_draw(self) -> None:
+        if not getattr(self, "visible", True) or getattr(self, "context", None) is None or getattr(self, "_closed", False):
+            return
         self.switch_to()
         arcade.set_window(self)
         self.use()
@@ -455,6 +510,13 @@ class PlayerWindow(arcade.Window):
 
     def on_update(self, delta_time: float) -> None:
         """Ciclo de atualização: animação IDLE e interpolação suave de tokens em COMBAT."""
+        if (
+            not getattr(self, "visible", True)
+            or getattr(self, "context", None) is None
+            or getattr(self, "_closed", False)
+            or getattr(self, "_listeners_cleaned", False)
+        ):
+            return
         self.switch_to()
         arcade.set_window(self)
 
@@ -484,4 +546,84 @@ class PlayerWindow(arcade.Window):
                 self.dm_window.pump_events()
             except Exception:
                 pass
+
+    # --- Ciclo de Vida e Gerenciamento de Recursos Gracioso ---
+
+    def _on_session_changed(self) -> None:
+        """Listener reativo para mudanças de estado de exibição na sessão."""
+        state = self.session_manager.display_state
+        if state != DisplayState.COMBAT:
+            self.token_sprites.clear()
+            if self._tilemap_renderer is not None:
+                self._tilemap_renderer = None
+
+    def _on_combat_changed(self) -> None:
+        """Listener reativo para atualizações táticas no CombatManager."""
+        pass
+
+    def cleanup_resources(self, hard: bool = False) -> None:
+        """Desinscreve listeners de sessão e combate e libera recursos (soft pause ou hard release)."""
+        if getattr(self, "_listeners_cleaned", False) and not hard:
+            return
+        self._listeners_cleaned = True
+
+        try:
+            if hasattr(self, "_on_session_changed_listener"):
+                self.session_manager.remove_listener(self._on_session_changed_listener)
+        except Exception as e:
+            logger.debug(f"Erro ao desinscrever listener de sessão da PlayerWindow: {e}")
+
+        try:
+            if hasattr(self, "_on_combat_changed_listener"):
+                self.session_manager.combat_manager.remove_listener(self._on_combat_changed_listener)
+        except Exception as e:
+            logger.debug(f"Erro ao desinscrever listener de combate da PlayerWindow: {e}")
+
+        if hard:
+            self._closed = True
+            try:
+                import pyglet
+                if hasattr(self, "_dispatch_updates"):
+                    pyglet.clock.unschedule(self._dispatch_updates)
+                if hasattr(self, "_dispatch_frame"):
+                    pyglet.clock.unschedule(self._dispatch_frame)
+            except Exception:
+                pass
+
+            self._texture_cache.clear()
+            self._text_cache.clear()
+            self.token_sprites.clear()
+            self._tilemap_renderer = None
+            logger.info("Recursos e listeners da PlayerWindow liberados definitivamente (hard close).")
+        else:
+            logger.info("Listeners da PlayerWindow pausados graciosamente (soft close).")
+
+    def on_close(self) -> None:
+        """Oculta a PlayerWindow graciosamente pelo SO ('X') preservando o contexto OpenGL."""
+        logger.info("PlayerWindow ocultada via evento on_close e listeners pausados.")
+        self.set_visible(False)
+        self.cleanup_resources(hard=False)
+        if self.dm_window is not None and hasattr(self.dm_window, "notify_player_window_closed"):
+            try:
+                self.dm_window.notify_player_window_closed()
+            except Exception as e:
+                logger.debug(f"Erro ao notificar DMWindow sobre fechamento da PlayerWindow: {e}")
+
+    def close(self, hard: bool = False) -> None:
+        """Fecha a janela (soft close ocultando ou hard close destruindo)."""
+        if hard:
+            self.cleanup_resources(hard=True)
+            try:
+                super().close()
+            except Exception as e:
+                logger.debug(f"Aviso no encerramento de super().close() da PlayerWindow: {e}")
+        else:
+            self.set_visible(False)
+            self.cleanup_resources(hard=False)
+            if self.dm_window is not None and hasattr(self.dm_window, "notify_player_window_closed"):
+                try:
+                    self.dm_window.notify_player_window_closed()
+                except Exception as e:
+                    logger.debug(f"Erro ao notificar DMWindow sobre fechamento da PlayerWindow: {e}")
+
 

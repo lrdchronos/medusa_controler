@@ -72,6 +72,15 @@ def setup_logging(
     for h in handlers:
         root_logger.addHandler(h)
 
+    # 3. Gancho global para capturar e registrar exceções não tratadas (sys.excepthook)
+    def handle_uncaught_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        root_logger.critical("Exceção não tratada capturada no runtime:", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = handle_uncaught_exception
+
 
 def get_logger(name: str) -> logging.Logger:
     """Retorna um logger configurado para o módulo especificado."""
