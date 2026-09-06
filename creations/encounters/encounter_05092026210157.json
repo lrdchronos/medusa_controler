@@ -1,6 +1,6 @@
 {
     "uid": "encounter_05092026210157",
-    "title": "Emboscada na Floresta",
+    "title": "Emboscada no Vale",
     "description": "Grupo de monstros surpreende os heróis em uma clareira.",
     "map_type": "tilemap",
     "map_source": "creations/maps/estrada_vale.json",
@@ -13,6 +13,7 @@
         "columns": 21,
         "feet_per_square": 5
     },
+    "fog_of_war": [],
     "combatants": [
         {
             "entity_type": "playable_character",

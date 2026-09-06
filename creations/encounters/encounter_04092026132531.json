@@ -13,6 +13,7 @@
         "columns": 21,
         "feet_per_square": 5
     },
+    "fog_of_war": [],
     "combatants": [
         {
             "entity_type": "playable_character",
@@ -56,8 +57,8 @@
             "instance_name": "Cultista 1",
             "is_hidden": false,
             "position": {
-                "col": 5,
-                "row": 8
+                "col": 4,
+                "row": 6
             }
         },
         {
@@ -66,8 +67,8 @@
             "instance_name": "Cultista 2",
             "is_hidden": false,
             "position": {
-                "col": 6,
-                "row": 8
+                "col": 5,
+                "row": 6
             }
         },
         {
@@ -76,8 +77,8 @@
             "instance_name": "Cultista 3",
             "is_hidden": false,
             "position": {
-                "col": 7,
-                "row": 8
+                "col": 6,
+                "row": 6
             }
         },
         {
@@ -86,8 +87,8 @@
             "instance_name": "Cultista 4",
             "is_hidden": false,
             "position": {
-                "col": 7,
-                "row": 9
+                "col": 6,
+                "row": 7
             }
         },
         {

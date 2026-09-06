@@ -58,6 +58,26 @@ class EncounterLoader:
 
         return None
 
+    def delete_encounter(self, encounter_id_or_path: str) -> bool:
+        """
+        Remove com segurança e fisicamente o arquivo JSON correspondente ao encontro.
+        Retorna True em caso de sucesso ou False se o arquivo não for localizado ou ocorrer erro.
+        """
+        resolved = self.resolve_encounter_path(encounter_id_or_path)
+        if resolved is None or not resolved.is_file():
+            logger.warning(
+                f"Tentativa de exclusão falhou: encontro '{encounter_id_or_path}' não foi encontrado em: {self._encounter_dirs}"
+            )
+            return False
+
+        try:
+            resolved.unlink(missing_ok=True)
+            logger.info(f"Encontro '{encounter_id_or_path}' excluído com sucesso do disco: '{resolved}'.")
+            return True
+        except Exception as e:
+            logger.error(f"Erro ao excluir arquivo de encontro '{resolved}': {e}")
+            return False
+
     def resolve_map_path(self, map_file: Optional[str]) -> Optional[str]:
         """Resolve o caminho de imagem do mapa de batalha com fallbacks."""
         if not map_file:

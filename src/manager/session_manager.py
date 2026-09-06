@@ -137,6 +137,19 @@ class SessionManager:
         """Alias ergonômico para clear_display_to_idle()."""
         self.clear_display_to_idle()
 
+    def delete_encounter(self, encounter_id_or_path: str) -> bool:
+        """
+        Exclui com segurança um encontro do disco via EncounterLoader e notifica observadores.
+        """
+        from ..domain.loaders.encounter_loader import EncounterLoader
+
+        loader = EncounterLoader(encounter_dirs=[str(self.__encounters_dir), "creations/encounters", "creations", "."])
+        success = loader.delete_encounter(encounter_id_or_path)
+        if success:
+            logger.info(f"SessionManager: encontro '{encounter_id_or_path}' removido com sucesso.")
+            self.notify_listeners()
+        return success
+
     # --- Descoberta de Arquivos de Encontros e Imagens ---
 
     def list_available_encounters(self) -> List[Dict[str, Any]]:

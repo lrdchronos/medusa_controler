@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Optional, List, Dict, Any, Set, Tuple
 import arcade
 from ...utils.sprite_utils import SpriteFactory
@@ -600,6 +601,90 @@ class CreatorConfigForm:
             "selected_character_uids": set(self.__selected_character_uids),
             "monster_counts": dict(self.__monster_counts),
         }
+
+    def load_configuration(self, data: Dict[str, Any]) -> None:
+        """
+        Pré-carrega todos os campos do formulário a partir de um dicionário de encontro (modo de edição).
+        """
+        title = data.get("title", "")
+        self.__title_input.set_text(title)
+
+        description = data.get("description", "")
+        self.__description_input.set_text(description)
+
+        raw_map_type = data.get("map_type")
+        raw_map_source = data.get("map_source") or data.get("map_file") or data.get("map_path") or ""
+
+        if not raw_map_type:
+            raw_map_type = "tilemap" if str(raw_map_source).lower().endswith(".json") else "image"
+        self.map_type = str(raw_map_type).strip().lower()
+
+        # Seleciona o mapa correspondente
+        if self.__map_type == "tilemap":
+            found_idx = 0
+            if raw_map_source:
+                for idx, item in enumerate(self.__available_tilemaps):
+                    if (
+                        item.get("path") == raw_map_source
+                        or item.get("filename") == raw_map_source
+                        or Path(item.get("path", "")).name == Path(raw_map_source).name
+                    ):
+                        found_idx = idx
+                        break
+            self.selected_tilemap_index = found_idx
+        else:
+            found_idx = 0
+            if raw_map_source:
+                for idx, item in enumerate(self.__available_image_maps):
+                    if (
+                        item.get("path") == raw_map_source
+                        or item.get("filename") == raw_map_source
+                        or Path(item.get("path", "")).name == Path(raw_map_source).name
+                    ):
+                        found_idx = idx
+                        break
+            self.selected_image_index = found_idx
+
+        grid_data = data.get("grid", {})
+        if isinstance(grid_data, dict):
+            self.columns = grid_data.get("columns", 25)
+            self.feet_per_square = grid_data.get("feet_per_square", 5)
+
+        env_data = data.get("environment", {})
+        if isinstance(env_data, dict):
+            self.is_sunlight = bool(env_data.get("is_sunlight", False))
+
+        # Combatentes: PJs e Monstros
+        raw_combatants = data.get("combatants", [])
+        selected_pcs: Set[str] = set()
+        monster_counts: Dict[str, int] = {m["uid"]: 0 for m in self.__available_monsters}
+
+        for c in raw_combatants:
+            if isinstance(c, dict):
+                etype = c.get("entity_type", "monster")
+                if etype in ("playable_character", "character", "pc"):
+                    cid = c.get("character_id") or c.get("uid")
+                    if cid:
+                        selected_pcs.add(str(cid))
+                else:
+                    mid = c.get("monster_id")
+                    if mid:
+                        monster_counts[str(mid)] = monster_counts.get(str(mid), 0) + 1
+            else:
+                # Objeto Entity / Monster / PlayableCharacter
+                if getattr(c, "is_player", False):
+                    cid = getattr(c, "character_id", getattr(c, "uid", None))
+                    if cid:
+                        selected_pcs.add(str(cid))
+                else:
+                    mid = getattr(c, "monster_id", getattr(c, "uid", None))
+                    if mid:
+                        monster_counts[str(mid)] = monster_counts.get(str(mid), 0) + 1
+
+        self.selected_character_uids = selected_pcs
+        self.monster_counts = monster_counts
+        self.error_message = None
+        logger.info(f"CreatorConfigForm carregado para edição com {len(selected_pcs)} PJs e {sum(monster_counts.values())} monstros.")
 
     # --- Renderização OOD Modular ---
 

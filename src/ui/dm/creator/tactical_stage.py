@@ -59,6 +59,10 @@ class CreatorTacticalStage:
         self._last_click_time: float = 0.0
         self._last_clicked_idx: Optional[int] = None
 
+        self.is_editing: bool = False
+        self.editing_uid: Optional[str] = None
+        self.editing_filename: Optional[str] = None
+
         self.error_message: Optional[str] = None
         self.success_message: Optional[str] = None
         self.saved_encounter_path: Optional[str] = None
@@ -68,9 +72,16 @@ class CreatorTacticalStage:
         config_data: Dict[str, Any],
         available_characters: List[Dict[str, Any]],
         available_monsters: List[Dict[str, Any]],
+        preset_combatants: Optional[List[Dict[str, Any]]] = None,
+        is_editing: bool = False,
+        editing_uid: Optional[str] = None,
+        editing_filename: Optional[str] = None,
     ) -> None:
-        """Configura o palco tático a partir dos dados consolidados do formulário."""
+        """Configura o palco tático a partir dos dados consolidados do formulário ou de pré-carregamento."""
         self.config_data = config_data.copy()
+        self.is_editing = is_editing
+        self.editing_uid = editing_uid
+        self.editing_filename = editing_filename
         self.error_message = None
         self.success_message = None
         self.saved_encounter_path = None
@@ -116,53 +127,61 @@ class CreatorTacticalStage:
                 feet_per_square=feet_per_square,
             )
 
-        self.staging_combatants = []
+        if preset_combatants is not None and len(preset_combatants) > 0:
+            self.staging_combatants = [c.copy() for c in preset_combatants]
+        else:
+            self.staging_combatants = []
 
-        # 1. Personagens Jogadores
-        selected_uids = config_data.get("selected_character_uids", set())
-        for char in available_characters:
-            if char["uid"] in selected_uids:
-                self.staging_combatants.append({
-                    "entity_type": "playable_character",
-                    "character_id": char["uid"],
-                    "monster_id": None,
-                    "name": char["name"],
-                    "is_player": True,
-                    "is_hidden": False,
-                    "placed": False,
-                    "col": 0,
-                    "row": 0,
-                })
+            # 1. Personagens Jogadores
+            selected_uids = config_data.get("selected_character_uids", set())
+            for char in available_characters:
+                if char["uid"] in selected_uids:
+                    self.staging_combatants.append({
+                        "entity_type": "playable_character",
+                        "character_id": char["uid"],
+                        "monster_id": None,
+                        "name": char["name"],
+                        "is_player": True,
+                        "is_hidden": False,
+                        "placed": False,
+                        "col": 0,
+                        "row": 0,
+                    })
 
-        # 2. Monstros
-        counts = config_data.get("monster_counts", {})
-        for mon in available_monsters:
-            mid = mon["uid"]
-            qty = counts.get(mid, 0)
-            base_name = mon["name"]
-            for i in range(1, qty + 1):
-                instance_name = f"{base_name} {i}" if qty > 1 else base_name
-                self.staging_combatants.append({
-                    "entity_type": "monster",
-                    "character_id": None,
-                    "monster_id": mid,
-                    "name": instance_name,
-                    "is_player": False,
-                    "is_hidden": False,
-                    "placed": False,
-                    "col": 0,
-                    "row": 0,
-                })
+            # 2. Monstros
+            counts = config_data.get("monster_counts", {})
+            for mon in available_monsters:
+                mid = mon["uid"]
+                qty = counts.get(mid, 0)
+                base_name = mon["name"]
+                for i in range(1, qty + 1):
+                    instance_name = f"{base_name} {i}" if qty > 1 else base_name
+                    self.staging_combatants.append({
+                        "entity_type": "monster",
+                        "character_id": None,
+                        "monster_id": mid,
+                        "name": instance_name,
+                        "is_player": False,
+                        "is_hidden": False,
+                        "placed": False,
+                        "col": 0,
+                        "row": 0,
+                    })
 
         self.scroll_list.items = self.staging_combatants
         self.scroll_list.reset_scroll()
 
         logger.info(
-            f"CreatorTacticalStage inicializado com {len(self.staging_combatants)} combatentes para o mapa '{config_data.get('map_name')}' (Tipo: {map_type})."
+            f"CreatorTacticalStage inicializado com {len(self.staging_combatants)} combatentes para o mapa '{config_data.get('map_name')}' (Tipo: {map_type}, Edição: {self.is_editing})."
         )
 
-    def save_encounter(self, directory: str = "creations/encounters") -> Optional[Path]:
-        """Serializa e grava o encontro no disco."""
+    def save_encounter(
+        self,
+        directory: str = "creations/encounters",
+        uid: Optional[str] = None,
+        filename: Optional[str] = None,
+    ) -> Optional[Path]:
+        """Serializa e grava o encontro no disco (preservando UID se em modo de edição)."""
         self.error_message = None
         self.success_message = None
 
@@ -175,15 +194,18 @@ class CreatorTacticalStage:
         rows = self.grid_manager.rows if self.grid_manager else 14
 
         for idx, item in enumerate(self.staging_combatants):
-            if not item["placed"]:
+            if not item.get("placed", False):
                 item["col"] = idx % columns
-                item["row"] = (idx // columns) if item["is_player"] else (rows - 1 - (idx // columns))
+                item["row"] = (idx // columns) if item.get("is_player", False) else (rows - 1 - (idx // columns))
                 item["placed"] = True
+
+        target_uid = uid or self.editing_uid or self.config_data.get("uid")
 
         builder = EncounterBuilder()
         builder.with_metadata(
             title=self.config_data.get("title", "Novo Encontro"),
             description=self.config_data.get("description", ""),
+            uid=target_uid,
         )
         map_type = self.config_data.get("map_type", "image")
         map_source = self.config_data.get("map_source") or self.config_data.get("map_path", "assets/images/maps/open_field_grass_trees.jpg")
@@ -196,12 +218,12 @@ class CreatorTacticalStage:
         builder.with_fog_of_war(self.fog_manager.export_state())
 
         for item in self.staging_combatants:
-            if item["is_player"]:
+            if item.get("is_player", False):
                 builder.add_character(
                     character_id=item["character_id"],
                     col=item["col"],
                     row=item["row"],
-                    is_hidden=item["is_hidden"],
+                    is_hidden=item.get("is_hidden", False),
                 )
             else:
                 builder.add_monster(
@@ -209,14 +231,16 @@ class CreatorTacticalStage:
                     instance_name=item["name"],
                     col=item["col"],
                     row=item["row"],
-                    is_hidden=item["is_hidden"],
+                    is_hidden=item.get("is_hidden", False),
                 )
 
         try:
-            saved_path = builder.save_to_file(directory=directory)
+            target_filename = filename or self.editing_filename or (f"{target_uid}.json" if target_uid else None)
+            saved_path = builder.save_to_file(directory=directory, filename=target_filename)
             self.saved_encounter_path = str(saved_path)
-            self.success_message = f"Encontro salvo com sucesso: {saved_path.name}"
-            logger.info(f"Encontro gravado com sucesso em '{saved_path}'.")
+            action_desc = "Alterações salvas" if self.is_editing else "Encontro salvo"
+            self.success_message = f"{action_desc} com sucesso: {saved_path.name}"
+            logger.info(f"Encontro gravado com sucesso em '{saved_path}' (UID: {target_uid}).")
             return saved_path
         except Exception as e:
             self.error_message = f"Erro ao salvar: {e}"
@@ -315,20 +339,46 @@ class CreatorTacticalStage:
             self._render_text("stg_err_2", f"⚠️ {self.error_message[:38]}", panel_w / 2, feedback_y, (255, 215, 0, 255), 8, True, text_cache, anchor_x="center")
 
         # Botões de Ação
-        btn_y = 36
-        btn_w = (panel_w - 36) / 2
+        if self.is_editing:
+            # Layout em 2 linhas para acomodar Voltar, Cancelar e Salvar Alterações
+            btn_row1_y = 54
+            btn_row2_y = 20
+            btn_w = (panel_w - 36) / 2
 
-        # ⬅️ Voltar
-        b_back_x = 12 + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b_back_x, btn_y, btn_w - 4, 36), (44, 62, 80, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b_back_x, btn_y, btn_w - 4, 36), (70, 90, 120, 200), 1)
-        self._render_text("b_stg_back", "⬅️ Voltar", b_back_x, btn_y, (236, 240, 241, 255), 9, True, text_cache, anchor_x="center")
+            # ⬅️ Voltar
+            b_back_x = 12 + btn_w / 2
+            arcade.draw_rect_filled(arcade.XYWH(b_back_x, btn_row1_y, btn_w - 4, 28), (44, 62, 80, 255))
+            arcade.draw_rect_outline(arcade.XYWH(b_back_x, btn_row1_y, btn_w - 4, 28), (70, 90, 120, 200), 1)
+            self._render_text("b_stg_back", "⬅️ Voltar", b_back_x, btn_row1_y, (236, 240, 241, 255), 8, True, text_cache, anchor_x="center")
 
-        # 💾 Salvar Encontro
-        b_save_x = 12 + btn_w + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b_save_x, btn_y, btn_w - 4, 36), (192, 57, 43, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b_save_x, btn_y, btn_w - 4, 36), (231, 76, 60, 255), 2)
-        self._render_text("b_stg_save", "💾 Salvar Encontro", b_save_x, btn_y, (255, 255, 255, 255), 9, True, text_cache, anchor_x="center")
+            # ❌ Cancelar Edição
+            b_cancel_x = 12 + btn_w + btn_w / 2
+            arcade.draw_rect_filled(arcade.XYWH(b_cancel_x, btn_row1_y, btn_w - 4, 28), (55, 40, 48, 255))
+            arcade.draw_rect_outline(arcade.XYWH(b_cancel_x, btn_row1_y, btn_w - 4, 28), (140, 70, 80, 200), 1)
+            self._render_text("b_stg_cancel", "❌ Cancelar Edição", b_cancel_x, btn_row1_y, (240, 180, 180, 255), 8, True, text_cache, anchor_x="center")
+
+            # 💾 Salvar Alterações
+            b_save_w = panel_w - 24
+            b_save_x = panel_w / 2
+            arcade.draw_rect_filled(arcade.XYWH(b_save_x, btn_row2_y, b_save_w, 32), (192, 57, 43, 255))
+            arcade.draw_rect_outline(arcade.XYWH(b_save_x, btn_row2_y, b_save_w, 32), (231, 76, 60, 255), 2)
+            self._render_text("b_stg_save", "💾 Salvar Alterações", b_save_x, btn_row2_y, (255, 255, 255, 255), 10, True, text_cache, anchor_x="center")
+
+        else:
+            btn_y = 36
+            btn_w = (panel_w - 36) / 2
+
+            # ⬅️ Voltar
+            b_back_x = 12 + btn_w / 2
+            arcade.draw_rect_filled(arcade.XYWH(b_back_x, btn_y, btn_w - 4, 36), (44, 62, 80, 255))
+            arcade.draw_rect_outline(arcade.XYWH(b_back_x, btn_y, btn_w - 4, 36), (70, 90, 120, 200), 1)
+            self._render_text("b_stg_back", "⬅️ Voltar", b_back_x, btn_y, (236, 240, 241, 255), 9, True, text_cache, anchor_x="center")
+
+            # 💾 Salvar Encontro
+            b_save_x = 12 + btn_w + btn_w / 2
+            arcade.draw_rect_filled(arcade.XYWH(b_save_x, btn_y, btn_w - 4, 36), (192, 57, 43, 255))
+            arcade.draw_rect_outline(arcade.XYWH(b_save_x, btn_y, btn_w - 4, 36), (231, 76, 60, 255), 2)
+            self._render_text("b_stg_save", "💾 Salvar Encontro", b_save_x, btn_y, (255, 255, 255, 255), 9, True, text_cache, anchor_x="center")
 
     def draw_canvas(
         self,
@@ -546,18 +596,40 @@ class CreatorTacticalStage:
                     return None
 
         # Botões Inferiores
-        btn_y = 36
-        btn_w = (panel_w - 36) / 2
+        if self.is_editing:
+            btn_row1_y = 54
+            btn_row2_y = 20
+            btn_w = (panel_w - 36) / 2
 
-        # ⬅️ Voltar
-        b_back_x = 12 + btn_w / 2
-        if abs(y - btn_y) <= 18 and abs(x - b_back_x) <= (btn_w - 4) / 2:
-            return "RETURN_TO_STAGE_1"
+            # ⬅️ Voltar
+            b_back_x = 12 + btn_w / 2
+            if abs(y - btn_row1_y) <= 14 and abs(x - b_back_x) <= (btn_w - 4) / 2:
+                return "RETURN_TO_STAGE_1"
 
-        # 💾 Salvar Encontro
-        b_save_x = 12 + btn_w + btn_w / 2
-        if abs(y - btn_y) <= 18 and abs(x - b_save_x) <= (btn_w - 4) / 2:
-            return "SAVE_ENCOUNTER"
+            # ❌ Cancelar Edição
+            b_cancel_x = 12 + btn_w + btn_w / 2
+            if abs(y - btn_row1_y) <= 14 and abs(x - b_cancel_x) <= (btn_w - 4) / 2:
+                return "CANCEL_EDITING"
+
+            # 💾 Salvar Alterações
+            b_save_w = panel_w - 24
+            b_save_x = panel_w / 2
+            if abs(y - btn_row2_y) <= 16 and abs(x - b_save_x) <= b_save_w / 2:
+                return "SAVE_ENCOUNTER"
+
+        else:
+            btn_y = 36
+            btn_w = (panel_w - 36) / 2
+
+            # ⬅️ Voltar
+            b_back_x = 12 + btn_w / 2
+            if abs(y - btn_y) <= 18 and abs(x - b_back_x) <= (btn_w - 4) / 2:
+                return "RETURN_TO_STAGE_1"
+
+            # 💾 Salvar Encontro
+            b_save_x = 12 + btn_w + btn_w / 2
+            if abs(y - btn_y) <= 18 and abs(x - b_save_x) <= (btn_w - 4) / 2:
+                return "SAVE_ENCOUNTER"
 
         return None
 

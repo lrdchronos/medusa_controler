@@ -52,7 +52,7 @@ class DMWindow(arcade.Window):
 
         # Subcomponentes Especializados (OOD)
         self.header = DMHeader(session_manager=self.session_manager, dm_window=self)
-        self.encounters_tab = EncountersTabView(session_manager=self.session_manager)
+        self.encounters_tab = EncountersTabView(session_manager=self.session_manager, dm_window=self)
         self.showcase_tab = ShowcaseTabView(session_manager=self.session_manager)
         self.combat_tab = CombatTabView(session_manager=self.session_manager)
         self.creator_tab = EncounterCreatorTabView(session_manager=self.session_manager, dm_window=self)
@@ -222,6 +222,33 @@ class DMWindow(arcade.Window):
     def refresh_showcase_files(self) -> None:
         self.showcase_tab.refresh()
 
+    def open_encounter_for_editing(self, enc_dict_or_uid: Any) -> None:
+        """Carrega o encontro selecionado no Encounter Creator/Builder e transiciona para a Aba 3."""
+        if isinstance(enc_dict_or_uid, dict):
+            enc_data = enc_dict_or_uid.copy()
+        else:
+            from ..domain.loaders.encounter_loader import EncounterLoader
+            loader = EncounterLoader()
+            enc_data = loader.load_encounter(str(enc_dict_or_uid))
+
+        path = enc_data.get("path") or enc_data.get("filename")
+        if path:
+            from ..domain.loaders.encounter_loader import EncounterLoader
+            resolved = EncounterLoader().resolve_encounter_path(path)
+            if resolved and resolved.is_file():
+                try:
+                    import json
+                    with open(resolved, "r", encoding="utf-8") as f:
+                        raw = json.load(f)
+                        raw["path"] = str(resolved)
+                        enc_data = raw
+                except Exception as e:
+                    logger.error(f"Erro ao carregar raw JSON do encontro para edição: {e}")
+
+        self.creator_tab.load_for_editing(enc_data)
+        self.active_tab = 3
+        logger.info(f"DMWindow: transicionado para Encounter Builder para edição de '{enc_data.get('title')}'.")
+
     def _on_session_changed(self) -> None:
         if self.session_manager.is_combat_active and self.active_tab not in (2, 3):
             self.active_tab = 2
@@ -314,7 +341,8 @@ class DMWindow(arcade.Window):
             if self.active_tab == 0:
                 self.encounters_tab.handle_click(
                     x, y, split_x, content_top_y,
-                    on_start_combat_callback=lambda enc_id: self.session_manager.start_encounter(enc_id)
+                    on_start_combat_callback=lambda enc_id: self.session_manager.start_encounter(enc_id),
+                    on_edit_encounter_callback=self.open_encounter_for_editing,
                 )
             elif self.active_tab == 1:
                 self.showcase_tab.handle_click(x, y, split_x, content_top_y)
@@ -379,7 +407,10 @@ class DMWindow(arcade.Window):
                 return
 
         split_x = self.width * 0.50
-        if self.active_tab == 3:
+        if self.active_tab == 0 and x < split_x:
+            if self.encounters_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y):
+                return
+        elif self.active_tab == 3:
             self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)
         elif x >= split_x and self.session_manager.is_combat_active:
             self.mini_map.handle_mouse_scroll(x, y, scroll_x, scroll_y, is_ctrl=self.is_ctrl_held)

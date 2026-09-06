@@ -3506,3 +3506,200 @@
 [2026-09-06 11:24:29,197] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
 [2026-09-06 11:24:29,201] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
 [2026-09-06 11:24:29,308] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-06 11:34:02,978] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-06 11:34:02,981] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-06 11:34:03,428] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-06 11:34:03,524] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-06 11:34:03,524] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-06 11:34:03,524] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-06 11:34:03,526] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-06 11:34:03,526] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-06 11:34:14,694] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-06 11:34:14,696] [INFO] [src.ui.dm.creator.config_form]: CreatorConfigForm carregado para edição com 4 PJs e 9 monstros.
+[2026-09-06 11:34:14,696] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:34:14,697] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 11:34:14,706] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-06 11:34:14,729] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:34:14,730] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 13 combatentes para o mapa 'Estrada Vale' (Tipo: tilemap, Edição: True).
+[2026-09-06 11:34:14,731] [INFO] [src.ui.dm.encounter_creator_tab]: EncounterCreatorTabView transicionado para edição do encontro 'encounter_05092026210157' (13 combatentes restaurados).
+[2026-09-06 11:34:14,731] [INFO] [src.ui.dm_window]: DMWindow: transicionado para Encounter Builder para edição de 'Emboscada na Floresta'.
+[2026-09-06 11:34:14,929] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 11:34:14,943] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:34:32,379] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:34:32,381] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 11:34:32,395] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:34:32,396] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 13 combatentes para o mapa 'Estrada Vale' (Tipo: tilemap, Edição: True).
+[2026-09-06 11:34:34,741] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_05092026210157.json' (UID: encounter_05092026210157, 13 combatentes).
+[2026-09-06 11:34:34,742] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_05092026210157.json' (UID: encounter_05092026210157).
+[2026-09-06 11:34:34,763] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 4 imagens de mapa, 4 tilemaps, 4 PJs, 10 monstros.
+[2026-09-06 11:34:44,259] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132440
+[2026-09-06 11:34:44,265] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:34:44,266] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:34:44,266] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132440) [tipo=tilemap] com 16 combatentes e 0 células de névoa.
+[2026-09-06 11:34:44,421] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-06 11:34:44,429] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:34:44,458] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:34:53,304] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-06 11:34:53,307] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:34:53,308] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:34:53,309] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes e 0 células de névoa.
+[2026-09-06 11:34:53,327] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:34:53,341] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:35:06,793] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_01
+[2026-09-06 11:35:06,796] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:35:06,797] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada em Túnel (Encontro 01)' (encounter_01) [tipo=image] com 5 combatentes e 0 células de névoa.
+[2026-09-06 11:35:10,549] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Emboscada em Túnel (Encontro 01)'
+[2026-09-06 11:35:11,518] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_01' excluído com sucesso do disco: 'creations\encounters\encounter_01.json'.
+[2026-09-06 11:35:11,519] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_01' removido com sucesso.
+[2026-09-06 11:35:11,519] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_01' excluído após confirmação do usuário.
+[2026-09-06 11:35:19,044] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_240820261511
+[2026-09-06 11:35:19,047] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:35:19,047] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada em Túnel' (encounter_240820261511) [tipo=image] com 5 combatentes e 0 células de névoa.
+[2026-09-06 11:35:23,395] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Emboscada em Túnel'
+[2026-09-06 11:35:23,997] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_240820261511' excluído com sucesso do disco: 'creations\encounters\encounter_240820261511.json'.
+[2026-09-06 11:35:23,998] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_240820261511' removido com sucesso.
+[2026-09-06 11:35:23,998] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_240820261511' excluído após confirmação do usuário.
+[2026-09-06 11:35:27,747] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_06092026112311
+[2026-09-06 11:35:27,752] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 1509 células ativas.
+[2026-09-06 11:35:27,753] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_06092026112311) [tipo=image] com 4 combatentes e 1509 células de névoa.
+[2026-09-06 11:35:39,766] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'image'.
+[2026-09-06 11:35:39,767] [INFO] [src.ui.dm.creator.config_form]: CreatorConfigForm carregado para edição com 4 PJs e 0 monstros.
+[2026-09-06 11:35:39,768] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 1509 células ativas.
+[2026-09-06 11:35:39,769] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 4 combatentes para o mapa 'Dragon Hatchery' (Tipo: image, Edição: True).
+[2026-09-06 11:35:39,769] [INFO] [src.ui.dm.encounter_creator_tab]: EncounterCreatorTabView transicionado para edição do encontro 'encounter_06092026112311' (4 combatentes restaurados).
+[2026-09-06 11:35:39,769] [INFO] [src.ui.dm_window]: DMWindow: transicionado para Encounter Builder para edição de 'Emboscada na Floresta'.
+[2026-09-06 11:36:04,834] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:04,835] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 4 combatentes para o mapa 'Dragon Hatchery' (Tipo: image, Edição: True).
+[2026-09-06 11:36:06,160] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_06092026112311.json' (UID: encounter_06092026112311, 4 combatentes).
+[2026-09-06 11:36:06,161] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_06092026112311.json' (UID: encounter_06092026112311).
+[2026-09-06 11:36:06,182] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 4 imagens de mapa, 4 tilemaps, 4 PJs, 10 monstros.
+[2026-09-06 11:36:13,842] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_06092026112309
+[2026-09-06 11:36:13,847] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 1509 células ativas.
+[2026-09-06 11:36:13,848] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_06092026112309) [tipo=image] com 4 combatentes e 1509 células de névoa.
+[2026-09-06 11:36:17,702] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Emboscada na Floresta'
+[2026-09-06 11:36:18,635] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_06092026112309' excluído com sucesso do disco: 'creations\encounters\encounter_06092026112309.json'.
+[2026-09-06 11:36:18,636] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_06092026112309' removido com sucesso.
+[2026-09-06 11:36:18,637] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_06092026112309' excluído após confirmação do usuário.
+[2026-09-06 11:36:23,917] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_06092026112256
+[2026-09-06 11:36:23,922] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 1509 células ativas.
+[2026-09-06 11:36:23,923] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_06092026112256) [tipo=image] com 4 combatentes e 1509 células de névoa.
+[2026-09-06 11:36:27,202] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Emboscada na Floresta'
+[2026-09-06 11:36:28,000] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_06092026112256' excluído com sucesso do disco: 'creations\encounters\encounter_06092026112256.json'.
+[2026-09-06 11:36:28,001] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_06092026112256' removido com sucesso.
+[2026-09-06 11:36:28,002] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_06092026112256' excluído após confirmação do usuário.
+[2026-09-06 11:36:32,317] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-06 11:36:32,323] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 11:36:32,324] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:32,324] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes e 0 células de névoa.
+[2026-09-06 11:36:32,358] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:36:32,392] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:36:36,023] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-06 11:36:36,028] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:36:36,030] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:36,031] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes e 0 células de névoa.
+[2026-09-06 11:36:36,036] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:36,086] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:40,701] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132440
+[2026-09-06 11:36:40,705] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:36:40,706] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:40,706] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132440) [tipo=tilemap] com 16 combatentes e 0 células de névoa.
+[2026-09-06 11:36:40,713] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:40,759] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:44,906] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_03092026095002
+[2026-09-06 11:36:44,908] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'test_map_1.json'.
+[2026-09-06 11:36:44,910] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:44,910] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_03092026095002) [tipo=tilemap] com 6 combatentes e 0 células de névoa.
+[2026-09-06 11:36:44,917] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'test_map_1' inicializado: 63 tiles fatiados a partir de 'test_map_1.png'.
+[2026-09-06 11:36:44,920] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 16 ground sprites e 0 prop sprites para mapa 'test_map_1' (4x4).
+[2026-09-06 11:36:44,990] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 16 ground sprites e 0 prop sprites para mapa 'test_map_1' (4x4).
+[2026-09-06 11:36:47,118] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Emboscada na Floresta'
+[2026-09-06 11:36:47,888] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_03092026095002' excluído com sucesso do disco: 'creations\encounters\encounter_03092026095002.json'.
+[2026-09-06 11:36:47,890] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_03092026095002' removido com sucesso.
+[2026-09-06 11:36:47,890] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_03092026095002' excluído após confirmação do usuário.
+[2026-09-06 11:36:50,784] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026064728
+[2026-09-06 11:36:50,787] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-06 11:36:50,788] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:50,788] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada na Floresta' (encounter_04092026064728) [tipo=tilemap] com 5 combatentes e 0 células de névoa.
+[2026-09-06 11:36:50,803] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:50,850] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:54,124] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Emboscada na Floresta'
+[2026-09-06 11:36:55,344] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_04092026064728' excluído com sucesso do disco: 'creations\encounters\encounter_04092026064728.json'.
+[2026-09-06 11:36:55,345] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_04092026064728' removido com sucesso.
+[2026-09-06 11:36:55,345] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_04092026064728' excluído após confirmação do usuário.
+[2026-09-06 11:36:59,357] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-06 11:36:59,362] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:36:59,362] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:36:59,362] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes e 0 células de névoa.
+[2026-09-06 11:36:59,435] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:36:59,493] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:37:05,031] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-06 11:37:05,032] [INFO] [src.ui.dm.creator.config_form]: CreatorConfigForm carregado para edição com 4 PJs e 12 monstros.
+[2026-09-06 11:37:05,032] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:37:05,033] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:37:05,038] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:37:05,038] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 16 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap, Edição: True).
+[2026-09-06 11:37:05,038] [INFO] [src.ui.dm.encounter_creator_tab]: EncounterCreatorTabView transicionado para edição do encontro 'encounter_04092026132531' (16 combatentes restaurados).
+[2026-09-06 11:37:05,040] [INFO] [src.ui.dm_window]: DMWindow: transicionado para Encounter Builder para edição de 'Retardatarios no caminho'.
+[2026-09-06 11:37:05,108] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:37:05,115] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:37:06,844] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:37:06,845] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:37:06,852] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:37:06,852] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 16 combatentes para o mapa 'Acampamento Vale' (Tipo: tilemap, Edição: True).
+[2026-09-06 11:37:08,723] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 1' posicionado no grid: [4, 6].
+[2026-09-06 11:37:09,568] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 2' posicionado no grid: [5, 6].
+[2026-09-06 11:37:10,562] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 3' posicionado no grid: [6, 6].
+[2026-09-06 11:37:11,757] [INFO] [src.ui.dm.creator.tactical_stage]: Token 'Cultista 4' posicionado no grid: [6, 7].
+[2026-09-06 11:37:16,978] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_04092026132531.json' (UID: encounter_04092026132531, 16 combatentes).
+[2026-09-06 11:37:16,980] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_04092026132531.json' (UID: encounter_04092026132531).
+[2026-09-06 11:37:16,996] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 4 imagens de mapa, 4 tilemaps, 4 PJs, 10 monstros.
+[2026-09-06 11:37:21,727] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132440
+[2026-09-06 11:37:21,732] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 11:37:21,735] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:37:21,735] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132440) [tipo=tilemap] com 16 combatentes e 0 células de névoa.
+[2026-09-06 11:37:21,741] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:37:21,787] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 11:37:33,235] [INFO] [src.ui.dm.encounters_tab]: Aberto modal de confirmação para exclusão de 'Retardatarios no caminho'
+[2026-09-06 11:37:33,919] [INFO] [src.domain.loaders.encounter_loader]: Encontro 'encounter_04092026132440' excluído com sucesso do disco: 'creations\encounters\encounter_04092026132440.json'.
+[2026-09-06 11:37:33,920] [INFO] [src.manager.session_manager]: SessionManager: encontro 'encounter_04092026132440' removido com sucesso.
+[2026-09-06 11:37:33,920] [INFO] [src.ui.dm.encounters_tab]: Encontro 'encounter_04092026132440' excluído após confirmação do usuário.
+[2026-09-06 11:37:37,040] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-06 11:37:37,044] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 11:37:37,045] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:37:37,046] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes e 0 células de névoa.
+[2026-09-06 11:37:37,076] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:37:37,101] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 11:37:38,868] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 11:37:38,868] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada no Vale' (encounter_05092026210157).
+[2026-09-06 11:37:38,869] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 11:37:42,190] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_06092026112311
+[2026-09-06 11:37:42,194] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:37:42,195] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Encubadora de ovos' (encounter_06092026112311) [tipo=image] com 4 combatentes e 0 células de névoa.
+[2026-09-06 11:37:45,272] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 11:37:45,275] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 11:37:45,280] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 11:37:45,281] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 11:37:45,282] [INFO] [src.ui.player_window]: PlayerWindow colocada em tela cheia.
+[2026-09-06 11:37:52,951] [INFO] [src.domain.models.fog_manager]: Névoa de guerra aplicada a todas as 1560 células (52x30).
+[2026-09-06 11:37:59,428] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'image'.
+[2026-09-06 11:37:59,428] [INFO] [src.ui.dm.creator.config_form]: CreatorConfigForm carregado para edição com 4 PJs e 0 monstros.
+[2026-09-06 11:37:59,429] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:37:59,429] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 4 combatentes para o mapa 'Dragon Hatchery' (Tipo: image, Edição: True).
+[2026-09-06 11:37:59,429] [INFO] [src.ui.dm.encounter_creator_tab]: EncounterCreatorTabView transicionado para edição do encontro 'encounter_06092026112311' (4 combatentes restaurados).
+[2026-09-06 11:37:59,429] [INFO] [src.ui.dm_window]: DMWindow: transicionado para Encounter Builder para edição de 'Encubadora de ovos'.
+[2026-09-06 11:38:01,014] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 11:38:01,015] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 4 combatentes para o mapa 'Dragon Hatchery' (Tipo: image, Edição: True).
+[2026-09-06 11:38:02,568] [INFO] [src.domain.models.fog_manager]: Névoa de guerra aplicada a todas as 1560 células (52x30).
+[2026-09-06 11:38:25,411] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_06092026112311.json' (UID: encounter_06092026112311, 4 combatentes).
+[2026-09-06 11:38:25,412] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_06092026112311.json' (UID: encounter_06092026112311).
+[2026-09-06 11:38:32,442] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_06092026112311
+[2026-09-06 11:38:32,446] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 1512 células ativas.
+[2026-09-06 11:38:32,447] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Encubadora de ovos' (encounter_06092026112311) [tipo=image] com 4 combatentes e 1512 células de névoa.
+[2026-09-06 11:39:00,818] [INFO] [src.manager.session_manager]: Projetando imagem: 'raiders_camp.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\raiders_camp.jpg)
+[2026-09-06 11:39:12,079] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 11:39:12,079] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Encubadora de ovos' (encounter_06092026112311).
+[2026-09-06 11:39:12,080] [INFO] [src.domain.models.fog_manager]: Névoa de guerra completamente removida do mapa.
+[2026-09-06 11:39:12,081] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 11:39:17,241] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-06 11:39:17,250] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-06 11:39:17,487] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
