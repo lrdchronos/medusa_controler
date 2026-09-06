@@ -32,6 +32,7 @@ class Monster(Entity):
         preset_id: Optional[str] = None,
         entity_type: Union[EntityType, str] = EntityType.MONSTER,
         token_sprite: Optional[str] = None,
+        is_hidden: bool = False,
     ) -> None:
         super().__init__(
             name=name,
@@ -41,6 +42,7 @@ class Monster(Entity):
             uid=uid,
             speed=speed,
             position=position,
+            is_hidden=is_hidden,
             entity_type=entity_type,
             token_sprite=token_sprite,
         )

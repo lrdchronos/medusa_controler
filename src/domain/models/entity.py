@@ -167,6 +167,24 @@ class Entity(ABC):
         return self.__is_hidden
 
     @property
+    def hidden(self) -> bool:
+        """Alias canônico para is_hidden."""
+        return self.__is_hidden
+
+    @hidden.setter
+    def hidden(self, value: bool) -> None:
+        self.set_hidden(bool(value))
+
+    @property
+    def is_visible(self) -> bool:
+        """Indica se a entidade está visível no mapa e na iniciativa."""
+        return not self.__is_hidden
+
+    @is_visible.setter
+    def is_visible(self, value: bool) -> None:
+        self.set_hidden(not bool(value))
+
+    @property
     def speed(self) -> int:
         return self.__speed
 

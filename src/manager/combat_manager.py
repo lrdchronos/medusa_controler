@@ -38,6 +38,7 @@ class CombatManager:
 
         self.__combatants: List[Entity] = []
         self.__turn_order: List[Entity] = []
+        self.__hidden_combatants: Dict[str, Entity] = {}
         self.__current_turn_index: int = -1
         self.__round_number: int = 1
 
@@ -109,9 +110,19 @@ class CombatManager:
         return list(self.__combatants)
 
     @property
+    def hidden_combatants(self) -> Dict[str, Entity]:
+        """Retorna cópia defensiva do mapa de combatentes latentes/ocultos fora da ordem de turnos."""
+        return self.__hidden_combatants.copy()
+
+    @property
     def turn_order(self) -> List[Entity]:
-        """Retorna cópia defensiva da lista de turnos ordenados por iniciativa."""
+        """Retorna cópia defensiva da lista de turnos ativos ordenados por iniciativa (exclui ocultos)."""
         return list(self.__turn_order)
+
+    @property
+    def turn_order_uids(self) -> List[str]:
+        """Retorna lista indexada de UIDs que compõem a ordem corrente de turnos ativos."""
+        return [c.uid for c in self.__turn_order]
 
     @property
     def current_turn_index(self) -> int:
@@ -250,8 +261,9 @@ class CombatManager:
             )
 
         self.__combatants = list(data["combatants"])
-        # Inicialmente, a fila é a lista na ordem de inserção
-        self.__turn_order = list(self.__combatants)
+        self.__hidden_combatants = {c.uid: c for c in self.__combatants if c.is_hidden}
+        # Inicialmente, a fila é a lista de combatentes ativos não ocultos
+        self.__turn_order = [c for c in self.__combatants if not c.is_hidden]
         self.__current_turn_index = -1
         self.__round_number = 1
 
@@ -259,7 +271,43 @@ class CombatManager:
         self.__fog_manager.load_state(data.get("fog_of_war", []))
 
         logger.info(
-            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) [tipo={self.__map_type}] com {len(self.__combatants)} combatentes e {self.__fog_manager.count} células de névoa."
+            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) [tipo={self.__map_type}] com {len(self.__combatants)} combatentes "
+            f"({len(self.__hidden_combatants)} ocultos) e {self.__fog_manager.count} células de névoa."
+        )
+        self.notify_listeners()
+
+    def start_combat(self, combatants: Optional[List[Entity]] = None) -> None:
+        """
+        Inicializa formalmente o combate ativo:
+        - Itera sobre os combatentes: se combatant.is_hidden (ou hidden), adiciona a self.__hidden_combatants
+          e NÃO insere seu UID em self.__turn_order.
+        - Define round_number = 1 e current_turn_index = 0 estritamente sobre os elementos válidos de self.__turn_order.
+        - Notifica Observers conectados.
+        """
+        if combatants is not None:
+            self.__combatants = list(combatants)
+
+        self.__hidden_combatants.clear()
+        active_combatants: List[Entity] = []
+
+        for c in self.__combatants:
+            if c.is_hidden:
+                self.__hidden_combatants[c.uid] = c
+            else:
+                active_combatants.append(c)
+
+        self.__turn_order = active_combatants
+        if self.__turn_order:
+            self.__current_turn_index = 0
+            self.__round_number = 1
+        else:
+            self.__current_turn_index = -1
+            self.__round_number = 1
+
+        active_name = self.active_character.name if self.active_character else "Nenhum"
+        logger.info(
+            f"Combate iniciado com {len(self.__turn_order)} combatentes ativos "
+            f"({len(self.__hidden_combatants)} ocultos). Turno ativo: '{active_name}' (Rodada {self.__round_number})."
         )
         self.notify_listeners()
 
@@ -280,24 +328,35 @@ class CombatManager:
 
     def generate_draft_initiatives(self) -> Dict[str, int]:
         """
-        Rola 1d20 + DEX mod para cada participante e devolve um dicionário temporário
+        Rola 1d20 + DEX mod para cada participante revelado (não oculto) e devolve um dicionário temporário
         {combatant_uid: score} sem alterar o estado oficial de combate.
+        Nenhum dado de iniciativa é rolado para combatentes ocultos (hidden == True).
         """
         draft: Dict[str, int] = {}
         for combatant in self.__combatants:
+            if combatant.is_hidden:
+                continue
             d20 = random.randint(1, 20)
             score = d20 + combatant.initiative_mod
             draft[combatant.uid] = score
-        logger.debug(f"Draft de iniciativas gerado para {len(draft)} participantes.")
+        logger.debug(f"Draft de iniciativas gerado para {len(draft)} participantes revelados.")
         return draft
 
     def apply_initiatives(self, final_scores: Dict[str, int]) -> None:
         """
         Recebe o dicionário consolidado de iniciativas (UID ou Nome -> Score),
-        atribui os valores às entidades, aplica a ordenação com desempate do D&D 5E
-        (Iniciativa -> Modificador DEX -> Nome) e notifica os Observers.
+        atribui os valores às entidades ativas, aplica a ordenação com desempate do D&D 5E
+        (Iniciativa -> Modificador DEX -> Nome), isola combatentes ocultos em hidden_combatants
+        e notifica os Observers.
         """
+        self.__hidden_combatants.clear()
+        revealed_combatants: List[Entity] = []
+
         for combatant in self.__combatants:
+            if combatant.is_hidden:
+                self.__hidden_combatants[combatant.uid] = combatant
+                continue
+
             if combatant.uid in final_scores:
                 score = final_scores[combatant.uid]
             elif combatant.name in final_scores:
@@ -307,10 +366,11 @@ class CombatManager:
                 score = d20 + combatant.initiative_mod
 
             combatant.set_initiative(score)
+            revealed_combatants.append(combatant)
 
         # Ordenação com critérios de desempate D&D 5E
         self.__turn_order = sorted(
-            self.__combatants,
+            revealed_combatants,
             key=lambda c: (c.initiative_score, c.initiative_mod, c.name),
             reverse=True,
         )
@@ -323,19 +383,22 @@ class CombatManager:
 
         active_name = self.active_character.name if self.active_character else "Nenhum"
         logger.info(
-            f"Iniciativas consolidadas e aplicadas para {len(self.__combatants)} combatentes. "
-            f"Turno ativo: '{active_name}' (Rodada {self.__round_number})."
+            f"Iniciativas consolidadas e aplicadas para {len(self.__turn_order)} combatentes ativos "
+            f"({len(self.__hidden_combatants)} ocultos). Turno ativo: '{active_name}' (Rodada {self.__round_number})."
         )
         self.notify_listeners()
 
     def roll_initiatives(self, manual_rolls: Optional[Dict[str, int]] = None) -> List[Entity]:
         """
         Rola e aplica iniciativas diretamente, permitindo overrides manuais via dicionário (UID ou Nome).
+        Combatentes ocultos permanecem fora da rolagem e da fila de turnos.
         Mantém total compatibilidade e utiliza o pipeline oficial.
         """
         scores = self.generate_draft_initiatives()
         if manual_rolls:
             for combatant in self.__combatants:
+                if combatant.is_hidden:
+                    continue
                 if combatant.uid in manual_rolls:
                     scores[combatant.uid] = manual_rolls[combatant.uid]
                 elif combatant.name in manual_rolls:
@@ -400,7 +463,9 @@ class CombatManager:
         """Adiciona um combatente ao encontro e notifica ouvintes."""
         if combatant not in self.__combatants:
             self.__combatants.append(combatant)
-            if combatant not in self.__turn_order:
+            if combatant.is_hidden:
+                self.__hidden_combatants[combatant.uid] = combatant
+            elif combatant not in self.__turn_order:
                 self.__turn_order.append(combatant)
             self.notify_listeners()
 
@@ -412,46 +477,57 @@ class CombatManager:
     ) -> None:
         """
         Registra um novo combatente em tempo de execução, define sua posição
-        no grid e insere seu UID na ordem de iniciativa corrente.
+        no grid e insere seu UID na ordem de iniciativa corrente se visível.
         Suporta inserção dinâmica no slot 'next' (logo após o turno ativo) ou 'end' (final da rodada).
         """
         entity.set_position(position[0], position[1])
         if entity not in self.__combatants:
             self.__combatants.append(entity)
 
-        if self.has_combat_started and self.__turn_order:
+        if entity.is_hidden:
+            self.__hidden_combatants[entity.uid] = entity
             if entity in self.__turn_order:
                 old_idx = self.__turn_order.index(entity)
                 self.__turn_order.pop(old_idx)
                 if old_idx < self.__current_turn_index:
                     self.__current_turn_index -= 1
-
-            if initiative_slot == "next":
-                target_idx = self.__current_turn_index + 1
-                if target_idx > len(self.__turn_order):
-                    target_idx = len(self.__turn_order)
-                self.__turn_order.insert(target_idx, entity)
-            else:  # "end"
-                self.__turn_order.append(entity)
         else:
-            if entity not in self.__turn_order:
-                if initiative_slot == "next" and self.__turn_order:
-                    self.__turn_order.insert(0, entity)
-                else:
+            self.__hidden_combatants.pop(entity.uid, None)
+            if self.has_combat_started and self.__turn_order:
+                if entity in self.__turn_order:
+                    old_idx = self.__turn_order.index(entity)
+                    self.__turn_order.pop(old_idx)
+                    if old_idx < self.__current_turn_index:
+                        self.__current_turn_index -= 1
+
+                if initiative_slot == "next":
+                    target_idx = self.__current_turn_index + 1
+                    if target_idx > len(self.__turn_order):
+                        target_idx = len(self.__turn_order)
+                    self.__turn_order.insert(target_idx, entity)
+                else:  # "end"
                     self.__turn_order.append(entity)
+            else:
+                if entity not in self.__turn_order:
+                    if initiative_slot == "next" and self.__turn_order:
+                        self.__turn_order.insert(0, entity)
+                    else:
+                        self.__turn_order.append(entity)
 
         etype_val = entity.entity_type.value if hasattr(entity, "entity_type") else "unknown"
         logger.info(
             f"Novo combatente spawnado no combate: '{entity.name}' (Tipo: {etype_val}) "
-            f"na posição ({position[0]}, {position[1]}), slot de iniciativa: '{initiative_slot}'."
+            f"na posição ({position[0]}, {position[1]}), slot de iniciativa: '{initiative_slot}' (hidden={entity.is_hidden})."
         )
         self.notify_listeners()
 
     def get_combatant(self, uid_or_name: str) -> Optional[Entity]:
-        """Busca um combatente por UID ou Nome."""
+        """Busca um combatente por UID ou Nome (em combatentes gerais ou repositório de ocultos)."""
         for c in self.__combatants:
             if c.uid == uid_or_name or c.name.lower() == uid_or_name.lower():
                 return c
+        if uid_or_name in self.__hidden_combatants:
+            return self.__hidden_combatants[uid_or_name]
         return None
 
     def apply_damage(self, uid_or_name: str, amount: int) -> bool:
@@ -484,10 +560,11 @@ class CombatManager:
 
     def reveal_combatant(self, uid_or_name: str) -> Optional[Entity]:
         """
-        Revela um combatente oculto (is_hidden = False) e o insere na próxima posição
-        da ordem de ação em relação ao turno ativo:
-          new_index = (self.current_turn_index + 1)
-        Notifica os ouvintes (Observer Pattern) para sincronização imediata da DMWindow e PlayerWindow.
+        Revela um combatente oculto (is_hidden = False), resgata de hidden_combatants
+        e o insere na posição subsequente da fila de turnos em relação ao turno ativo:
+          target_index = self.current_turn_index + 1
+        Notifica os ouvintes (Observer Pattern) para sincronização imediata da DMWindow,
+        PlayerWindow e InitiativeHUD.
         """
         combatant = self.get_combatant(uid_or_name)
         if combatant is None:
@@ -495,6 +572,7 @@ class CombatManager:
             return None
 
         combatant.set_hidden(False)
+        self.__hidden_combatants.pop(combatant.uid, None)
 
         if self.has_combat_started and self.__turn_order:
             if combatant in self.__turn_order:
@@ -507,6 +585,8 @@ class CombatManager:
                     self.__turn_order.insert(target_idx, combatant)
             else:
                 target_idx = self.__current_turn_index + 1
+                if target_idx > len(self.__turn_order):
+                    target_idx = len(self.__turn_order)
                 self.__turn_order.insert(target_idx, combatant)
         elif combatant not in self.__turn_order:
             self.__turn_order.append(combatant)
@@ -518,27 +598,37 @@ class CombatManager:
         return combatant
 
     def toggle_combatant_visibility(self, uid_or_name: str) -> bool:
-        """Alterna a visibilidade tática (is_hidden) de um combatente."""
+        """Alterna a visibilidade tática (is_hidden) de um combatente e sincroniza a ordem de turnos."""
         combatant = self.get_combatant(uid_or_name)
         if combatant is not None:
             if combatant.is_hidden:
                 self.reveal_combatant(uid_or_name)
                 return False
             else:
-                combatant.set_hidden(True)
-                logger.info(f"Visibilidade alterada: '{combatant.name}' agora está Oculto (Invisível aos Jogadores).")
-                self.notify_listeners()
+                self.set_combatant_visibility(uid_or_name, is_hidden=True)
                 return True
         return False
 
     def set_combatant_visibility(self, uid_or_name: str, is_hidden: bool) -> bool:
-        """Define explicitamente a visibilidade tática de um combatente."""
+        """Define explicitamente a visibilidade tática de um combatente e sincroniza a fila de turnos."""
         combatant = self.get_combatant(uid_or_name)
         if combatant is not None:
             if not is_hidden and combatant.is_hidden:
                 self.reveal_combatant(uid_or_name)
             else:
                 combatant.set_hidden(is_hidden)
+                if is_hidden:
+                    self.__hidden_combatants[combatant.uid] = combatant
+                    if combatant in self.__turn_order:
+                        old_idx = self.__turn_order.index(combatant)
+                        self.__turn_order.pop(old_idx)
+                        if self.has_combat_started:
+                            if old_idx < self.__current_turn_index:
+                                self.__current_turn_index -= 1
+                            elif self.__current_turn_index >= len(self.__turn_order):
+                                self.__current_turn_index = max(0, len(self.__turn_order) - 1) if self.__turn_order else -1
+                else:
+                    self.__hidden_combatants.pop(combatant.uid, None)
                 status_desc = "Oculto" if is_hidden else "Visível"
                 logger.info(f"Visibilidade definida: '{combatant.name}' is_hidden={is_hidden} ({status_desc}).")
                 self.notify_listeners()
@@ -645,6 +735,7 @@ class CombatManager:
 
         self.__combatants.clear()
         self.__turn_order.clear()
+        self.__hidden_combatants.clear()
         self.__current_turn_index = -1
         self.__round_number = 1
         self.__fog_manager.clear_all()
@@ -731,7 +822,8 @@ class CombatManager:
         try:
             save_path = self.get_save_path(target_uid)
 
-            turn_order_uids = [c.uid for c in self.__turn_order]
+            turn_order_uids = [c.uid for c in self.__turn_order if not c.is_hidden]
+            hidden_combatants_uids = list(self.__hidden_combatants.keys())
             combatants_state = []
             for c in self.__combatants:
                 etype_str = c.entity_type.value if hasattr(c, "entity_type") else ("player" if getattr(c, "is_player", False) else "monster")
@@ -755,6 +847,7 @@ class CombatManager:
                 "round": self.__round_number,
                 "current_turn_index": self.__current_turn_index,
                 "turn_order": turn_order_uids,
+                "hidden_combatants": hidden_combatants_uids,
                 "fog_of_war": self.__fog_manager.export_state(),
                 "combatants_state": combatants_state,
             }
@@ -765,7 +858,7 @@ class CombatManager:
             logger.info(
                 f"Estado de combate salvo com sucesso em '{save_path}' (Rodada {self.__round_number}, "
                 f"Turno {self.__current_turn_index}, {len(combatants_state)} combatentes, "
-                f"{self.__fog_manager.count} células de névoa)."
+                f"{len(hidden_combatants_uids)} ocultos, {self.__fog_manager.count} células de névoa)."
             )
             return True
         except Exception as e:
@@ -778,6 +871,7 @@ class CombatManager:
         - Reconstrói a rodada, o combatente ativo e a fita de turnos na ordem exata salva.
         - Atualiza as instâncias de entidades com o current_hp, condições, posições (x, y) e visibilidade gravadas.
         - Recria dinamicamente tokens inseridos no meio do combate (Mid-Combat Token Spawning).
+        - Segrega combatentes ocultos em hidden_combatants e restaura turn_order exclusivamente com combatentes revelados.
         - Sincroniza o FogManager com o array 'fog_of_war' do save.
         - Notifica a PlayerWindow e a DMWindow via Padrão Observer para renderização imediata.
         """
@@ -877,20 +971,25 @@ class CombatManager:
                     elif "is_hidden" in c_state:
                         c.set_hidden(bool(c_state["is_hidden"]))
 
-            # 4. Reconstrói a Ordem Exata de Turnos (Fita de Iniciativas)
+            # Reconstrói repositório de combatentes ocultos
+            self.__hidden_combatants = {c.uid: c for c in self.__combatants if c.is_hidden}
+
+            # 4. Reconstrói a Ordem Exata de Turnos (Fita de Iniciativas) contendo exclusivamente entidades não ocultas
             saved_turn_order_uids = save_data.get("turn_order", [])
+            reordered: List[Entity] = []
             if saved_turn_order_uids:
-                reordered: List[Entity] = []
                 for uid in saved_turn_order_uids:
                     if uid in combatants_by_uid:
-                        reordered.append(combatants_by_uid[uid])
+                        ent = combatants_by_uid[uid]
+                        if not ent.is_hidden:
+                            reordered.append(ent)
 
-                # Combatentes que não constam na lista salva são mantidos ao final
-                for c in self.__combatants:
-                    if c not in reordered:
-                        reordered.append(c)
+            # Combatentes ativos/visíveis que não constam na lista salva são mantidos ao final
+            for c in self.__combatants:
+                if not c.is_hidden and c not in reordered:
+                    reordered.append(c)
 
-                self.__turn_order = reordered
+            self.__turn_order = reordered
 
             # 5. Sincroniza a Névoa de Guerra (FogManager)
             self.__fog_manager.load_state(save_data.get("fog_of_war", []))

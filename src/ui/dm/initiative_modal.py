@@ -37,9 +37,10 @@ class InitiativeStagingModal:
         return self.__scroll_list
 
     def open(self) -> None:
-        """Abre o modal gerando uma rolagem preliminar de iniciativas sem alterar o combate."""
+        """Abre o modal gerando uma rolagem preliminar de iniciativas sem alterar o combate, filtrando exclusivamente combatentes visíveis."""
         self.draft_initiatives = self.combat_manager.generate_draft_initiatives()
-        self.__scroll_list.items = self.combat_manager.combatants
+        visible_combatants = [c for c in self.combat_manager.combatants if not c.is_hidden]
+        self.__scroll_list.items = visible_combatants
         self.__scroll_list.reset_scroll()
         self.is_open = True
 
@@ -97,12 +98,14 @@ class InitiativeStagingModal:
         arcade.draw_rect_filled(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (20, 25, 35, 255))
         arcade.draw_rect_outline(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (241, 196, 15, 255), 2)
 
+        # Lista de Participantes e Scores via DiscreteScrollList (apenas revelados/visíveis)
+        combatants = [c for c in self.combat_manager.combatants if not c.is_hidden]
+
         # Cabeçalho do Modal
         self._get_text("mod_title", "🎲 STAGING DE INICIATIVAS (D&D 5E)", modal_cx, modal_cy + modal_h / 2 - 26, (241, 196, 15, 255), 13, bold=True, anchor_x="center").draw()
-        self._get_text("mod_sub", "Ajuste os valores rolados manualmente antes de iniciar a rodada:", modal_cx, modal_cy + modal_h / 2 - 50, (180, 190, 205, 255), 9, bold=False, anchor_x="center").draw()
+        sub_text = f"Ajuste os valores rolados manualmente antes de iniciar a rodada ({len(combatants)} participantes ativos):"
+        self._get_text("mod_sub", sub_text, modal_cx, modal_cy + modal_h / 2 - 50, (180, 190, 205, 255), 9, bold=False, anchor_x="center").draw()
 
-        # Lista de Participantes e Scores via DiscreteScrollList
-        combatants = self.combat_manager.combatants
         list_y = modal_cy + modal_h / 2 - 70
         list_w = modal_w - 40
         list_x = modal_cx - list_w / 2
