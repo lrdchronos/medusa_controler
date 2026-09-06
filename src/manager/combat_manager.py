@@ -1,5 +1,8 @@
 import logging
+import json
 import random
+from pathlib import Path
+from datetime import datetime
 from typing import List, Dict, Any, Optional, Callable, Tuple
 from ..domain.models.entity import Entity
 from ..domain.models.tile_map import TileMap
@@ -640,5 +643,214 @@ class CombatManager:
     def clear_combat(self) -> None:
         """Alias para reset_combat()."""
         self.reset_combat()
+
+    # --- Persistência e Save State de Combate ---
+
+    def get_save_path(self, encounter_uid: Optional[str] = None) -> Path:
+        """
+        Retorna o caminho canônico do snapshot de combate em creations/encounters/saves/{uid}_save.json,
+        garantindo a existência do diretório de destino.
+        """
+        target_uid = encounter_uid or self.__encounter_uid
+        if not target_uid:
+            target_uid = "unknown_encounter"
+        uid_stem = Path(target_uid).stem
+        if uid_stem.endswith("_save"):
+            uid_stem = uid_stem[:-5]
+
+        saves_dir = Path("creations/encounters/saves")
+        saves_dir.mkdir(parents=True, exist_ok=True)
+        return saves_dir / f"{uid_stem}_save.json"
+
+    def has_save_state(self, encounter_uid: Optional[str] = None) -> bool:
+        """
+        Verifica a existência física do arquivo de snapshot de combate correspondente.
+        """
+        target_uid = encounter_uid or self.__encounter_uid
+        if not target_uid:
+            return False
+        save_path = self.get_save_path(target_uid)
+        return save_path.is_file()
+
+    def save_combat_state(self, encounter_uid: Optional[str] = None) -> bool:
+        """
+        Captura o turno ativo (current_turn_index), rodada atual (round_number), ordem de iniciativa
+        calculada (turn_order), estado atual da névoa de guerra via FogManager.export_state() e snapshot
+        individual de cada entidade instanciada (HP atual, condições ativas, posição no grid e status hidden).
+        Grava o JSON em creations/encounters/saves/{encounter_uid}_save.json com encoding UTF-8.
+        """
+        target_uid = encounter_uid or self.__encounter_uid
+        if not target_uid:
+            logger.warning("Nenhum encontro ativo carregado para salvar o estado de combate.")
+            return False
+
+        try:
+            save_path = self.get_save_path(target_uid)
+
+            turn_order_uids = [c.uid for c in self.__turn_order]
+            combatants_state = []
+            for c in self.__combatants:
+                combatants_state.append({
+                    "uid": c.uid,
+                    "name": c.name,
+                    "is_alive": c.is_alive,
+                    "current_hp": c.current_hp,
+                    "conditions": c.conditions,
+                    "position": c.position,
+                    "hidden": c.is_hidden,
+                })
+
+            snapshot = {
+                "encounter_uid": target_uid,
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+                "round": self.__round_number,
+                "current_turn_index": self.__current_turn_index,
+                "turn_order": turn_order_uids,
+                "fog_of_war": self.__fog_manager.export_state(),
+                "combatants_state": combatants_state,
+            }
+
+            with open(save_path, "w", encoding="utf-8") as f:
+                json.dump(snapshot, f, indent=4, ensure_ascii=False)
+
+            logger.info(
+                f"Estado de combate salvo com sucesso em '{save_path}' (Rodada {self.__round_number}, "
+                f"Turno {self.__current_turn_index}, {len(combatants_state)} combatentes, "
+                f"{self.__fog_manager.count} células de névoa)."
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Erro ao salvar estado de combate do encontro '{target_uid}': {e}")
+            return False
+
+    def load_combat_state(self, encounter_uid: str) -> bool:
+        """
+        Restaura uma sessão de combate salva a partir de creations/encounters/saves/{encounter_uid}_save.json:
+        - Reconstrói a rodada, o combatente ativo e a fita de turnos na ordem exata salva.
+        - Atualiza as instâncias de entidades com o current_hp, condições, posições (x, y) e visibilidade gravadas.
+        - Sincroniza o FogManager com o array 'fog_of_war' do save.
+        - Notifica a PlayerWindow e a DMWindow via Padrão Observer para renderização imediata.
+        """
+        if not encounter_uid:
+            logger.warning("UID do encontro não fornecido para carregar estado de combate.")
+            return False
+
+        save_path = self.get_save_path(encounter_uid)
+        if not save_path.is_file():
+            logger.error(f"Arquivo de save de combate '{save_path}' não foi encontrado.")
+            return False
+
+        try:
+            with open(save_path, "r", encoding="utf-8") as f:
+                save_data = json.load(f)
+
+            # 1. Carrega o encontro base para garantir instanciação dos templates e configuração de mapa/grid
+            base_uid = save_data.get("encounter_uid", encounter_uid)
+            self.load_encounter(base_uid)
+
+            # 2. Restaura Rodada e Índice de Turno
+            self.__round_number = int(save_data.get("round", 1))
+            self.__current_turn_index = int(save_data.get("current_turn_index", -1))
+
+            # 3. Restaura Estado e Atributos de Cada Combatente
+            existing_by_uid = {c.uid: c for c in self.__combatants}
+            existing_by_name = {c.name.lower(): c for c in self.__combatants}
+
+            combatants_by_uid: Dict[str, Entity] = {}
+            for c_state in save_data.get("combatants_state", []):
+                uid = c_state.get("uid")
+                name = c_state.get("name")
+                c: Optional[Entity] = None
+
+                if uid and uid in existing_by_uid:
+                    c = existing_by_uid[uid]
+                elif name and name.lower() in existing_by_name:
+                    c = existing_by_name[name.lower()]
+                    if uid:
+                        c.set_uid(uid)
+
+                if c is not None:
+                    combatants_by_uid[c.uid] = c
+
+                    # HP e Vitalidade
+                    if "current_hp" in c_state:
+                        hp = int(c_state["current_hp"])
+                        c.set_current_hp(hp)
+                        if hp <= 0 or not c_state.get("is_alive", True):
+                            c.die()
+
+                    # Condições
+                    if "conditions" in c_state:
+                        for cond in c.conditions:
+                            c.remove_condition(cond)
+                        for cond in c_state["conditions"]:
+                            c.add_condition(cond)
+
+                    # Posição no Grid
+                    if "position" in c_state:
+                        pos = c_state["position"]
+                        if isinstance(pos, dict):
+                            px = int(pos.get("x", pos.get("col", 0)))
+                            py = int(pos.get("y", pos.get("row", 0)))
+                            c.set_position(px, py)
+
+                    # Visibilidade Tática
+                    if "hidden" in c_state:
+                        c.set_hidden(bool(c_state["hidden"]))
+                    elif "is_hidden" in c_state:
+                        c.set_hidden(bool(c_state["is_hidden"]))
+
+            # 4. Reconstrói a Ordem Exata de Turnos (Fita de Iniciativas)
+            saved_turn_order_uids = save_data.get("turn_order", [])
+            if saved_turn_order_uids:
+                reordered: List[Entity] = []
+                for uid in saved_turn_order_uids:
+                    if uid in combatants_by_uid:
+                        reordered.append(combatants_by_uid[uid])
+
+                # Combatentes que não constam na lista salva são mantidos ao final
+                for c in self.__combatants:
+                    if c not in reordered:
+                        reordered.append(c)
+
+                self.__turn_order = reordered
+
+            # 5. Sincroniza a Névoa de Guerra (FogManager)
+            self.__fog_manager.load_state(save_data.get("fog_of_war", []))
+
+            active_name = self.active_character.name if self.active_character else "Nenhum"
+            logger.info(
+                f"Estado de combate restaurado com sucesso de '{save_path.name}': "
+                f"Rodada {self.__round_number}, Turno Ativo: '{active_name}' (índice {self.__current_turn_index}), "
+                f"{len(self.__combatants)} combatentes, {self.__fog_manager.count} células de névoa."
+            )
+
+            # 6. Notifica Observers para renderização imediata
+            self.notify_listeners()
+            return True
+
+        except Exception as e:
+            logger.error(f"Erro ao carregar estado de combate a partir de '{save_path}': {e}")
+            return False
+
+    def delete_save_state(self, encounter_uid: Optional[str] = None) -> None:
+        """
+        Remove com segurança o arquivo de snapshot de combate correspondente do disco.
+        """
+        target_uid = encounter_uid or self.__encounter_uid
+        if not target_uid:
+            logger.warning("UID do encontro não fornecido para exclusão do save.")
+            return
+
+        try:
+            save_path = self.get_save_path(target_uid)
+            if save_path.is_file():
+                save_path.unlink(missing_ok=True)
+                logger.info(f"Arquivo de save de combate excluído com sucesso: '{save_path}'.")
+            else:
+                logger.debug(f"Nenhum arquivo de save encontrado para exclusão em '{save_path}'.")
+        except Exception as e:
+            logger.error(f"Erro ao excluir arquivo de save de combate para '{target_uid}': {e}")
+
 
 

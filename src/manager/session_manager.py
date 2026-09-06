@@ -116,6 +116,25 @@ class SessionManager:
         self.__display_state = DisplayState.COMBAT
         self.notify_listeners()
 
+    def resume_encounter_save(self, encounter_id_or_path: str) -> bool:
+        """
+        Restaura um snapshot de combate salvo no CombatManager e altera a exibição para COMBAT.
+        """
+        logger.info(f"Retomando sessão de combate salva: {encounter_id_or_path}")
+        success = self.__combat_manager.load_combat_state(encounter_id_or_path)
+        if success:
+            self.__display_state = DisplayState.COMBAT
+            self.notify_listeners()
+        return success
+
+    def has_encounter_save(self, encounter_id_or_path: str) -> bool:
+        """Verifica se existe um arquivo de save para o encontro indicado."""
+        return self.__combat_manager.has_save_state(encounter_id_or_path)
+
+    def delete_encounter_save(self, encounter_id_or_path: str) -> None:
+        """Exclui o arquivo de save de combate do encontro indicado."""
+        self.__combat_manager.delete_save_state(encounter_id_or_path)
+
     def end_combat(self, return_to: DisplayState = DisplayState.IDLE) -> None:
         """
         Encerra o combate ativo, reseta o estado do CombatManager e retorna a tela dos jogadores para IDLE (ou PROJECTION).

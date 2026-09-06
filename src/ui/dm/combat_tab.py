@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, List, Dict, Any, Callable, Tuple
 import arcade
 from ...manager.session_manager import SessionManager, DisplayState
@@ -6,11 +7,12 @@ from ...domain.models.entity import Entity
 from .spell_aoe_panel import SpellAoEPanel
 from .fog_control_panel import FogControlPanel
 
+logger = logging.getLogger(__name__)
 
 class CombatTabView:
     """
     Componente da Aba de Combate Ativo (Barra de Ações de Turno, Painel de Feitiços AoE,
-    Painel de Névoa de Guerra, Roster de Combatentes e Despachante de Dano/Cura).
+    Painel de Névoa de Guerra, Roster de Combatentes, Despachante de Dano/Cura e Save State).
     """
 
     def __init__(self, session_manager: SessionManager) -> None:
@@ -25,6 +27,13 @@ class CombatTabView:
             dimensions_provider=self._get_grid_dimensions,
             save_callback=self.combat_manager.save_fog_to_encounter_file,
         )
+
+        # Notificação Toast de Confirmação de Salvamento
+        self.toast_message: Optional[str] = None
+        self.toast_timer: float = 0.0
+
+        # Modal de Confirmação ao Finalizar Combate (Limpar ou Manter Save)
+        self.pending_end_combat_modal: bool = False
 
     def _get_grid_dimensions(self) -> Tuple[int, int]:
         """Retorna dimensões (colunas, linhas) da grade tática ativa."""
@@ -64,6 +73,7 @@ class CombatTabView:
             cached.x = x
             cached.y = y
             cached.color = color
+            cached.text = text
         return cached
 
     def ensure_valid_selection(self) -> None:
@@ -75,38 +85,59 @@ class CombatTabView:
         else:
             self.selected_combatant_uid = None
 
+    def trigger_save_combat(self) -> None:
+        """Salva o estado atual de combate e dispara toast de confirmação."""
+        success = self.combat_manager.save_combat_state()
+        if success:
+            self.toast_message = "Progresso do combate salvo com sucesso!"
+            self.toast_timer = 3.0
+            logger.info("Progresso do combate salvo com sucesso pelo usuário.")
+        else:
+            self.toast_message = "Falha ao salvar progresso do combate!"
+            self.toast_timer = 3.0
+
     def draw(self, panel_w: float, top_y: float) -> None:
         """Desenha todo o painel de combate ativo."""
         self.ensure_valid_selection()
+        
+        # Atualiza timer do toast
+        if self.toast_timer > 0:
+            self.toast_timer -= 1/60 # Simplificação: assumindo 60fps
 
-        # 1. Barra de Ações Rápidas de Combate
+        # 1. Barra de Ações Rápidas de Combate (5 Botões OOD)
         bar_y = top_y - 20
-        btn_w = (panel_w - 36) / 4
+        btn_w = (panel_w - 40) / 5
         btn_h = 28
 
         # Botão 1: Rolar Iniciativas (Abre Modal de Staging)
-        b1_x = 12 + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b1_x, bar_y, btn_w - 4, btn_h), (142, 68, 173, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b1_x, bar_y, btn_w - 4, btn_h), (155, 89, 182, 255), 1)
-        self._get_text("cm_b_init", "🎲 Rolar Iniciativas", b1_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        b1_x = 12 + 0 * (btn_w + 4) + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b1_x, bar_y, btn_w, btn_h), (142, 68, 173, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b1_x, bar_y, btn_w, btn_h), (155, 89, 182, 255), 1)
+        self._get_text("cm_b_init", "🎲 Inic", b1_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
         # Botão 2: Turno Anterior
-        b2_x = 12 + btn_w + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b2_x, bar_y, btn_w - 4, btn_h), (41, 128, 185, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b2_x, bar_y, btn_w - 4, btn_h), (52, 152, 219, 255), 1)
-        self._get_text("cm_b_prev", "◀ Turno Anterior", b2_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        b2_x = 12 + 1 * (btn_w + 4) + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b2_x, bar_y, btn_w, btn_h), (41, 128, 185, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b2_x, bar_y, btn_w, btn_h), (52, 152, 219, 255), 1)
+        self._get_text("cm_b_prev", "◀ Turno", b2_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
         # Botão 3: Próximo Turno
-        b3_x = 12 + 2 * btn_w + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b3_x, bar_y, btn_w - 4, btn_h), (39, 174, 96, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b3_x, bar_y, btn_w - 4, btn_h), (46, 204, 113, 255), 1)
-        self._get_text("cm_b_next", "▶ Próximo Turno", b3_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        b3_x = 12 + 2 * (btn_w + 4) + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b3_x, bar_y, btn_w, btn_h), (39, 174, 96, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b3_x, bar_y, btn_w, btn_h), (46, 204, 113, 255), 1)
+        self._get_text("cm_b_next", "▶ Turno", b3_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
-        # Botão 4: Finalizar Combate
-        b4_x = 12 + 3 * btn_w + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b4_x, bar_y, btn_w - 4, btn_h), (192, 57, 43, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b4_x, bar_y, btn_w - 4, btn_h), (231, 76, 60, 255), 1)
-        self._get_text("cm_b_end", "🏁 Finalizar Combate", b4_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        # Botão 4: Pausar e Salvar Combate
+        b4_x = 12 + 3 * (btn_w + 4) + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b4_x, bar_y, btn_w, btn_h), (211, 84, 0, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b4_x, bar_y, btn_w, btn_h), (230, 126, 34, 255), 1)
+        self._get_text("cm_b_save", "💾 Salvar", b4_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+
+        # Botão 5: Finalizar Combate
+        b5_x = 12 + 4 * (btn_w + 4) + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b5_x, bar_y, btn_w, btn_h), (192, 57, 43, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b5_x, bar_y, btn_w, btn_h), (231, 76, 60, 255), 1)
+        self._get_text("cm_b_end", "🏁 Sair", b5_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
         # 2. Informação de Rodada e Turno Ativo
         info_y = bar_y - 24
@@ -114,6 +145,15 @@ class CombatTabView:
         round_num = getattr(self.combat_manager, "round_number", getattr(self.combat_manager, "current_round", 1))
         turn_str = f"⚔️ Rodada: {round_num} • Turno Ativo: {active_char.name if active_char else 'Nenhum'}"
         self._get_text("cm_info_turn", turn_str, 16, info_y, (241, 196, 15, 255), 9, bold=True).draw()
+
+        # Notificação Toast Flutuante de Salvamento
+        if self.toast_timer > 0 and self.toast_message:
+            toast_alpha = min(255, int((self.toast_timer / 0.4) * 255)) if self.toast_timer < 0.4 else 255
+            toast_bg = (20, 60, 35, min(240, toast_alpha))
+            toast_bd = (46, 204, 113, toast_alpha)
+            arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, info_y, panel_w - 30, 22), toast_bg)
+            arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, info_y, panel_w - 30, 22), toast_bd, 1.2)
+            self._get_text("cm_toast", f"💾 {self.toast_message}", panel_w / 2, info_y, (255, 255, 255, toast_alpha), 8.5, bold=True, anchor_x="center").draw()
 
         # 3. Painel de Feitiços (Spell AoE Overlay)
         spell_next_y = self.spell_aoe_panel.draw(panel_w, info_y - 12)
@@ -280,6 +320,55 @@ class CombatTabView:
             arcade.draw_rect_outline(arcade.XYWH(panel_w - 75, custom_y, 90, 24), (100, 120, 150, 200), 1)
             self._get_text("b_toggle_vis", vis_str, panel_w - 75, custom_y, (240, 240, 245, 255), 8, bold=True, anchor_x="center").draw()
 
+        # 6. Modal de Confirmação ao Finalizar Combate (Limpar ou Manter Save)
+        if self.pending_end_combat_modal:
+            self._draw_end_combat_modal(panel_w, top_y)
+
+    def _draw_end_combat_modal(self, panel_w: float, top_y: float) -> None:
+        """Renderiza o modal de confirmação para finalizar combate e limpar ou manter o save."""
+        # Backdrop semitransparente
+        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, top_y / 2, panel_w, top_y), (10, 14, 20, 220))
+
+        modal_w = min(panel_w - 24, 460.0)
+        modal_h = 190.0
+        modal_cx = panel_w / 2
+        modal_cy = top_y / 2
+
+        # Caixa do Diálogo Dark Fantasy
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (22, 28, 38, 255))
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (192, 57, 43, 255), 2.0)
+
+        # Cabeçalho de Alerta
+        self._get_text("end_mod_hdr", "🏁 FINALIZAR COMBATE TÁTICO", modal_cx, modal_cy + modal_h / 2 - 20, (241, 196, 15, 255), 10, bold=True, anchor_x="center").draw()
+
+        # Mensagem do Modal
+        msg_line1 = "Deseja encerrar o combate e limpar o save residual do disco,"
+        msg_line2 = "ou manter o arquivo de progresso salvo para consultas futuras?"
+        self._get_text("end_mod_m1", msg_line1, modal_cx, modal_cy + 22, (220, 225, 235, 255), 8.5, bold=False, anchor_x="center").draw()
+        self._get_text("end_mod_m2", msg_line2, modal_cx, modal_cy + 5, (241, 196, 15, 255), 8.5, bold=True, anchor_x="center").draw()
+
+        # Botões de Ação
+        btn_y = modal_cy - modal_h / 2 + 55
+        btn_w = (modal_w - 32) / 2
+
+        # 1. [ 🗑️ Limpar Save & Sair ]
+        b_clean_x = modal_cx - modal_w / 2 + 12 + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b_clean_x, btn_y, btn_w - 4, 32), (192, 57, 43, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b_clean_x, btn_y, btn_w - 4, 32), (231, 76, 60, 255), 2)
+        self._get_text("end_mod_b_clean", "🗑️ Limpar Save & Sair", b_clean_x, btn_y, (255, 255, 255, 255), 8.5, bold=True, anchor_x="center").draw()
+
+        # 2. [ 💾 Manter Save & Sair ]
+        b_keep_x = modal_cx - modal_w / 2 + 12 + btn_w + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b_keep_x, btn_y, btn_w - 4, 32), (39, 174, 96, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b_keep_x, btn_y, btn_w - 4, 32), (46, 204, 113, 255), 2)
+        self._get_text("end_mod_b_keep", "💾 Manter Save & Sair", b_keep_x, btn_y, (255, 255, 255, 255), 8.5, bold=True, anchor_x="center").draw()
+
+        # 3. [ ❌ Cancelar ]
+        btn_can_y = modal_cy - modal_h / 2 + 20
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx, btn_can_y, modal_w - 28, 24), (44, 62, 80, 255))
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx, btn_can_y, modal_w - 28, 24), (70, 90, 120, 200), 1)
+        self._get_text("end_mod_b_can", "❌ Cancelar", modal_cx, btn_can_y, (200, 210, 225, 255), 8, bold=True, anchor_x="center").draw()
+
     def handle_click(
         self,
         x: float,
@@ -289,34 +378,85 @@ class CombatTabView:
         open_initiative_modal_callback: Callable[[], None],
     ) -> bool:
         """Processa cliques na aba de combate ativo."""
-        # 1. Barra de Ações Rápidas de Combate
+        # Interceptação Modal de Encerramento com Save
+        if self.pending_end_combat_modal:
+            modal_w = min(panel_w - 24, 460.0)
+            modal_h = 190.0
+            modal_cx = panel_w / 2
+            modal_cy = top_y / 2
+            btn_y = modal_cy - modal_h / 2 + 55
+            btn_w = (modal_w - 32) / 2
+
+            b_clean_x = modal_cx - modal_w / 2 + 12 + btn_w / 2
+            b_keep_x = modal_cx - modal_w / 2 + 12 + btn_w + btn_w / 2
+            btn_can_y = modal_cy - modal_h / 2 + 20
+
+            # Clique em [ 🗑️ Limpar Save & Sair ]
+            if abs(y - btn_y) <= 16 and abs(x - b_clean_x) <= (btn_w - 4) / 2:
+                logger.info("Encerrando combate e limpando save do disco.")
+                self.combat_manager.delete_save_state()
+                self.pending_end_combat_modal = False
+                self.session_manager.end_combat(DisplayState.IDLE)
+                return True
+
+            # Clique em [ 💾 Manter Save & Sair ]
+            if abs(y - btn_y) <= 16 and abs(x - b_keep_x) <= (btn_w - 4) / 2:
+                logger.info("Encerrando combate preservando save no disco.")
+                self.pending_end_combat_modal = False
+                self.session_manager.end_combat(DisplayState.IDLE)
+                return True
+
+            # Clique em [ ❌ Cancelar ]
+            if abs(y - btn_can_y) <= 12 and abs(x - modal_cx) <= (modal_w - 28) / 2:
+                logger.info("Encerramento de combate cancelado pelo usuário.")
+                self.pending_end_combat_modal = False
+                return True
+
+            # Clique fora fecha modal
+            if not (abs(x - modal_cx) <= modal_w / 2 and abs(y - modal_cy) <= modal_h / 2):
+                self.pending_end_combat_modal = False
+                return True
+
+            return True
+
+        # 1. Barra de Ações Rápidas de Combate (5 Botões OOD)
         bar_y = top_y - 20
-        btn_w = (panel_w - 36) / 4
+        btn_w = (panel_w - 40) / 5
         btn_h = 28
 
         if abs(y - bar_y) <= btn_h / 2:
             # Botão 1: Rolar Iniciativas
-            b1_x = 12 + btn_w / 2
-            if abs(x - b1_x) <= (btn_w - 4) / 2:
+            b1_x = 12 + 0 * (btn_w + 4) + btn_w / 2
+            if abs(x - b1_x) <= btn_w / 2:
                 open_initiative_modal_callback()
                 return True
 
             # Botão 2: Turno Anterior
-            b2_x = 12 + btn_w + btn_w / 2
-            if abs(x - b2_x) <= (btn_w - 4) / 2:
+            b2_x = 12 + 1 * (btn_w + 4) + btn_w / 2
+            if abs(x - b2_x) <= btn_w / 2:
                 self.combat_manager.previous_turn()
                 return True
 
             # Botão 3: Próximo Turno
-            b3_x = 12 + 2 * btn_w + btn_w / 2
-            if abs(x - b3_x) <= (btn_w - 4) / 2:
+            b3_x = 12 + 2 * (btn_w + 4) + btn_w / 2
+            if abs(x - b3_x) <= btn_w / 2:
                 self.combat_manager.next_turn()
                 return True
 
-            # Botão 4: Finalizar Combate
-            b4_x = 12 + 3 * btn_w + btn_w / 2
-            if abs(x - b4_x) <= (btn_w - 4) / 2:
-                self.session_manager.end_combat(DisplayState.IDLE)
+            # Botão 4: Pausar e Salvar Combate
+            b4_x = 12 + 3 * (btn_w + 4) + btn_w / 2
+            if abs(x - b4_x) <= btn_w / 2:
+                self.trigger_save_combat()
+                return True
+
+            # Botão 5: Finalizar Combate
+            b5_x = 12 + 4 * (btn_w + 4) + btn_w / 2
+            if abs(x - b5_x) <= btn_w / 2:
+                if self.combat_manager.has_save_state():
+                    self.pending_end_combat_modal = True
+                    logger.info("Save detectado ao finalizar combate. Abrindo modal de confirmação.")
+                else:
+                    self.session_manager.end_combat(DisplayState.IDLE)
                 return True
 
         # 2. Cliques no Painel de Feitiços (SpellAoEPanel)
@@ -432,7 +572,13 @@ class CombatTabView:
         return self.spell_aoe_panel.handle_text_input(text)
 
     def on_update(self, dt: float) -> None:
-        """Atualiza animações e inputs do painel de feitiços e névoa."""
+        """Atualiza animações e inputs do painel de feitiços, névoa e toast de salvamento."""
+        if self.toast_timer > 0:
+            self.toast_timer = max(0.0, self.toast_timer - dt)
+            if self.toast_timer == 0:
+                self.toast_message = None
+
         self.spell_aoe_panel.on_update(dt)
         self.fog_panel.fog_manager = self.combat_manager.fog_manager
         self.fog_panel.on_update(dt)
+

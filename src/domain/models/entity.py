@@ -218,6 +218,11 @@ class Entity(ABC):
 
     # --- Métodos de Modificação de Estado ---
 
+    def set_uid(self, uid: str) -> None:
+        """Define o UID da entidade de forma controlada."""
+        if uid and str(uid).strip():
+            self.__uid = str(uid).strip()
+
     def set_name(self, name: str) -> None:
         if name and name.strip():
             self.__name = name.strip()

@@ -35,6 +35,9 @@ class EncountersTabView:
         # Estado do Modal de Confirmação de Exclusão (Poka-Yoke)
         self.pending_delete_encounter: Optional[Dict[str, Any]] = None
 
+        # Estado do Modal de Retomada de Save (Save State)
+        self.pending_resume_encounter: Optional[Dict[str, Any]] = None
+
         self.refresh()
 
     def refresh(self) -> None:
@@ -79,12 +82,12 @@ class EncountersTabView:
 
     def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
         """Processa a rolagem discreta com a roda do mouse na lista de encontros."""
-        if self.pending_delete_encounter is not None:
+        if self.pending_delete_encounter is not None or self.pending_resume_encounter is not None:
             return True
         return self.scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y)
 
     def draw(self, panel_w: float, top_y: float) -> None:
-        """Desenha a lista de encontros via DiscreteScrollList, cartão de detalhes e modal de exclusão."""
+        """Desenha a lista de encontros via DiscreteScrollList, cartão de detalhes e modais de ação."""
         # 1. Cabeçalho da Seção
         sec_y = top_y - 20
         self._get_text("enc_sec_t", "ARQUIVOS DE ENCONTRO DISPONÍVEIS", 16, sec_y, (241, 196, 15, 255), 11, bold=True).draw()
@@ -120,8 +123,14 @@ class EncountersTabView:
                 arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), bd_c, 2 if is_selected else 1)
 
                 # Título e Subtítulo
+                enc_uid = enc.get("uid") or enc.get("filename", "")
+                has_save = self.session_manager.has_encounter_save(enc_uid)
+
                 title_str = enc.get("title") or enc.get("filename") or enc.get("file_name") or enc.get("uid", "Encontro")
-                self._get_text(f"enc_item_t_{idx}", f"⚔️ {title_str[:28]}", slot_cx - slot_w / 2 + 12, slot_cy + 9, (241, 196, 15, 255) if is_selected else (220, 225, 235, 255), 9, bold=True).draw()
+                save_indicator = " 💾 [SAVE]" if has_save else ""
+                full_title = f"⚔️ {title_str[:22]}{save_indicator}"
+                title_color = (241, 196, 15, 255) if is_selected else ((255, 215, 0, 255) if has_save else (220, 225, 235, 255))
+                self._get_text(f"enc_item_t_{idx}", full_title, slot_cx - slot_w / 2 + 12, slot_cy + 9, title_color, 9, bold=True).draw()
 
                 filename_str = enc.get("filename") or enc.get("file_name") or enc.get("path", "")
                 count = enc.get("combatants_count", 0)
@@ -161,8 +170,11 @@ class EncountersTabView:
             title_str = sel_enc.get("title") or sel_enc.get("filename") or sel_enc.get("file_name", "")
             filename_str = sel_enc.get("filename") or sel_enc.get("file_name") or sel_enc.get("path", "")
             map_str = sel_enc.get("map_path") or sel_enc.get("map_source") or sel_enc.get("map_file") or "assets/images/battlemaps/forest_01.png"
+            sel_uid = sel_enc.get("uid") or sel_enc.get("filename", "")
+            sel_has_save = self.session_manager.has_encounter_save(sel_uid)
 
-            self._get_text("enc_d_t", f"DETALHES DO ENCONTRO: {title_str[:32]}", 24, card_top - 18, (241, 196, 15, 255), 10, bold=True).draw()
+            save_suffix = " (Sessão Salva Disponível 💾)" if sel_has_save else ""
+            self._get_text("enc_d_t", f"DETALHES: {title_str[:26]}{save_suffix}", 24, card_top - 18, (241, 196, 15, 255), 10, bold=True).draw()
             self._get_text("enc_d_f", f"• Arquivo: {filename_str}", 24, card_top - 38, (200, 210, 225, 255), 8.5, bold=False).draw()
             self._get_text("enc_d_m", f"• Mapa: {map_str[:42]}", 24, card_top - 56, (200, 210, 225, 255), 8.5, bold=False).draw()
 
@@ -194,11 +206,16 @@ class EncountersTabView:
             btn_start_y = card_top - 165
             arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, btn_start_y, panel_w - 40, 36), (192, 57, 43, 255))
             arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, btn_start_y, panel_w - 40, 36), (231, 76, 60, 255), 2)
-            self._get_text("enc_b_start", "▶ INICIAR ENCONTRO TÁTICO", panel_w / 2, btn_start_y, (255, 255, 255, 255), 10.5, bold=True, anchor_x="center").draw()
+            btn_label = "💾 RETOMAR OU INICIAR ENCONTRO" if sel_has_save else "▶ INICIAR ENCONTRO TÁTICO"
+            self._get_text("enc_b_start", btn_label, panel_w / 2, btn_start_y, (255, 255, 255, 255), 10, bold=True, anchor_x="center").draw()
 
         # 4. Modal de Confirmação de Exclusão (Poka-Yoke)
         if self.pending_delete_encounter is not None:
             self._draw_delete_confirmation_modal(panel_w, top_y)
+
+        # 5. Modal de Decisão de Save State (Retomar ou Começar do Zero)
+        if self.pending_resume_encounter is not None:
+            self._draw_resume_confirmation_modal(panel_w, top_y)
 
     def _draw_delete_confirmation_modal(self, panel_w: float, top_y: float) -> None:
         """Renderiza o modal de confirmação de exclusão sobreposto."""
@@ -242,6 +259,54 @@ class EncountersTabView:
         arcade.draw_rect_outline(arcade.XYWH(b_conf_x, btn_y, btn_w - 4, 32), (231, 76, 60, 255), 2)
         self._get_text("del_mod_b_conf", "Confirmar Exclusão", b_conf_x, btn_y, (255, 255, 255, 255), 9, bold=True, anchor_x="center").draw()
 
+    def _draw_resume_confirmation_modal(self, panel_w: float, top_y: float) -> None:
+        """Renderiza o modal de decisão para retomar save ou iniciar do zero."""
+        # Backdrop semitransparente
+        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, top_y / 2, panel_w, top_y), (10, 14, 20, 220))
+
+        enc = self.pending_resume_encounter or {}
+        title = enc.get("title") or enc.get("filename") or enc.get("uid", "Encontro")
+
+        modal_w = min(panel_w - 24, 460.0)
+        modal_h = 190.0
+        modal_cx = panel_w / 2
+        modal_cy = top_y / 2
+
+        # Caixa do Diálogo Dark Fantasy
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (22, 28, 38, 255))
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (241, 196, 15, 255), 2.0)
+
+        # Cabeçalho de Alerta / Info
+        self._get_text("res_mod_hdr", "💾 SESSÃO DE COMBATE SALVA DETECTADA", modal_cx, modal_cy + modal_h / 2 - 20, (241, 196, 15, 255), 10, bold=True, anchor_x="center").draw()
+
+        # Mensagem do Modal
+        msg_line1 = f"Existe uma sessão de combate salva para '{title[:28]}'."
+        msg_line2 = "Deseja retomar de onde parou ou iniciar do zero?"
+        self._get_text("res_mod_m1", msg_line1, modal_cx, modal_cy + 22, (220, 225, 235, 255), 8.5, bold=False, anchor_x="center").draw()
+        self._get_text("res_mod_m2", msg_line2, modal_cx, modal_cy + 5, (241, 196, 15, 255), 8.5, bold=True, anchor_x="center").draw()
+
+        # Botões de Ação
+        btn_y = modal_cy - modal_h / 2 + 55
+        btn_w = (modal_w - 32) / 2
+
+        # 1. [ 💾 Retomar Último Save ]
+        b_res_x = modal_cx - modal_w / 2 + 12 + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b_res_x, btn_y, btn_w - 4, 32), (39, 174, 96, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b_res_x, btn_y, btn_w - 4, 32), (46, 204, 113, 255), 2)
+        self._get_text("res_mod_b_resume", "💾 Retomar Último Save", b_res_x, btn_y, (255, 255, 255, 255), 8.5, bold=True, anchor_x="center").draw()
+
+        # 2. [ 🔄 Começar do Zero ]
+        b_zero_x = modal_cx - modal_w / 2 + 12 + btn_w + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b_zero_x, btn_y, btn_w - 4, 32), (192, 57, 43, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b_zero_x, btn_y, btn_w - 4, 32), (231, 76, 60, 255), 2)
+        self._get_text("res_mod_b_zero", "🔄 Começar do Zero", b_zero_x, btn_y, (255, 255, 255, 255), 8.5, bold=True, anchor_x="center").draw()
+
+        # 3. [ ❌ Cancelar ]
+        btn_can_y = modal_cy - modal_h / 2 + 20
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx, btn_can_y, modal_w - 28, 24), (44, 62, 80, 255))
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx, btn_can_y, modal_w - 28, 24), (70, 90, 120, 200), 1)
+        self._get_text("res_mod_b_can", "❌ Cancelar", modal_cx, btn_can_y, (200, 210, 225, 255), 8, bold=True, anchor_x="center").draw()
+
     def handle_click(
         self,
         x: float,
@@ -251,7 +316,53 @@ class EncountersTabView:
         on_start_combat_callback: Callable[[str], None],
         on_edit_encounter_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> bool:
-        """Processa cliques na aba de encontros com suporte a exclusão modal e edição."""
+        """Processa cliques na aba de encontros com suporte a exclusão modal, save state e edição."""
+        # Interceptação Modal de Decisão de Save State
+        if self.pending_resume_encounter is not None:
+            modal_w = min(panel_w - 24, 460.0)
+            modal_h = 190.0
+            modal_cx = panel_w / 2
+            modal_cy = top_y / 2
+            btn_y = modal_cy - modal_h / 2 + 55
+            btn_w = (modal_w - 32) / 2
+
+            b_res_x = modal_cx - modal_w / 2 + 12 + btn_w / 2
+            b_zero_x = modal_cx - modal_w / 2 + 12 + btn_w + btn_w / 2
+            btn_can_y = modal_cy - modal_h / 2 + 20
+
+            enc = self.pending_resume_encounter
+            enc_id = enc.get("uid") or enc.get("id") or enc.get("filename") or enc.get("path", "")
+
+            # Clique em [ 💾 Retomar Último Save ]
+            if abs(y - btn_y) <= 16 and abs(x - b_res_x) <= (btn_w - 4) / 2:
+                logger.info(f"Retomando save state do encontro '{enc_id}'.")
+                self.session_manager.resume_encounter_save(enc_id)
+                self.pending_resume_encounter = None
+                if self.dm_window is not None:
+                    setattr(self.dm_window, "active_tab", 2)
+                return True
+
+            # Clique em [ 🔄 Começar do Zero ]
+            if abs(y - btn_y) <= 16 and abs(x - b_zero_x) <= (btn_w - 4) / 2:
+                logger.info(f"Descartando save e iniciando do zero encontro '{enc_id}'.")
+                self.session_manager.delete_encounter_save(enc_id)
+                self.pending_resume_encounter = None
+                on_start_combat_callback(enc_id)
+                return True
+
+            # Clique em [ ❌ Cancelar ]
+            if abs(y - btn_can_y) <= 12 and abs(x - modal_cx) <= (modal_w - 28) / 2:
+                logger.info("Abertura de encontro cancelada no modal de save state.")
+                self.pending_resume_encounter = None
+                return True
+
+            # Clique fora fecha modal
+            if not (abs(x - modal_cx) <= modal_w / 2 and abs(y - modal_cy) <= modal_h / 2):
+                self.pending_resume_encounter = None
+                return True
+
+            return True
+
         # Interceptação Modal de Exclusão Poka-Yoke
         if self.pending_delete_encounter is not None:
             modal_w = min(panel_w - 28, 420.0)
@@ -361,7 +472,11 @@ class EncountersTabView:
             btn_start_y = card_top - 165
             if abs(y - btn_start_y) <= 18 and abs(x - panel_w / 2) <= (panel_w - 40) / 2:
                 enc_id = sel_enc.get("uid") or sel_enc.get("id") or sel_enc.get("filename") or sel_enc.get("path", "")
-                on_start_combat_callback(enc_id)
+                if self.session_manager.has_encounter_save(enc_id):
+                    self.pending_resume_encounter = sel_enc
+                    logger.info(f"Save detectado para '{enc_id}'. Abrindo modal de decisão.")
+                else:
+                    on_start_combat_callback(enc_id)
                 return True
 
         return False
