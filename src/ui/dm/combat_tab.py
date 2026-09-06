@@ -1,15 +1,16 @@
-from typing import Optional, List, Dict, Any, Callable
+from typing import Optional, List, Dict, Any, Callable, Tuple
 import arcade
 from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
 from ...domain.models.entity import Entity
 from .spell_aoe_panel import SpellAoEPanel
+from .fog_control_panel import FogControlPanel
 
 
 class CombatTabView:
     """
     Componente da Aba de Combate Ativo (Barra de Ações de Turno, Painel de Feitiços AoE,
-    Roster de Combatentes e Despachante de Dano/Cura).
+    Painel de Névoa de Guerra, Roster de Combatentes e Despachante de Dano/Cura).
     """
 
     def __init__(self, session_manager: SessionManager) -> None:
@@ -19,6 +20,19 @@ class CombatTabView:
         self.custom_hp_value: int = 8
         self.text_cache: Dict[str, arcade.Text] = {}
         self.spell_aoe_panel = SpellAoEPanel(session_manager=self.session_manager)
+        self.fog_panel = FogControlPanel(
+            fog_manager=self.combat_manager.fog_manager,
+            dimensions_provider=self._get_grid_dimensions,
+            save_callback=self.combat_manager.save_fog_to_encounter_file,
+        )
+
+    def _get_grid_dimensions(self) -> Tuple[int, int]:
+        """Retorna dimensões (colunas, linhas) da grade tática ativa."""
+        grid_mgr = self.combat_manager.grid_manager
+        if grid_mgr is not None:
+            return (grid_mgr.columns, grid_mgr.rows)
+        return (25, 14)
+
 
     def _get_text(
         self,
@@ -104,8 +118,11 @@ class CombatTabView:
         # 3. Painel de Feitiços (Spell AoE Overlay)
         spell_next_y = self.spell_aoe_panel.draw(panel_w, info_y - 12)
 
-        # 4. Tabela de Combatentes (Roster)
-        table_top = spell_next_y
+        # 4. Painel de Névoa de Guerra (Fog of War Control Panel)
+        fog_next_y = self.fog_panel.draw(panel_w, spell_next_y)
+
+        # 5. Tabela de Combatentes (Roster)
+        table_top = fog_next_y
         table_h = 22
         table_y = table_top - table_h / 2
 
@@ -126,7 +143,8 @@ class CombatTabView:
         # Linhas de Combatentes (Turn Order ou Lista Geral)
         combatants = self.combat_manager.turn_order if self.combat_manager.has_combat_started else self.combat_manager.combatants
         row_h = 24
-        max_rows = 6 if not self.spell_aoe_panel.is_collapsed else 8
+        panels_collapsed = (1 if self.spell_aoe_panel.is_collapsed else 0) + (1 if self.fog_panel.is_collapsed else 0)
+        max_rows = 4 + panels_collapsed * 2
 
         for idx, combatant in enumerate(combatants[:max_rows]):
             cy = table_top - table_h - idx * (row_h + 2) - row_h / 2
@@ -140,63 +158,54 @@ class CombatTabView:
                 row_bg = (24, 50, 40, 255)
                 row_border = (46, 204, 113, 200)
             else:
-                row_bg = (20, 26, 36, 255) if idx % 2 == 0 else (16, 21, 30, 255)
-                row_border = (40, 50, 70, 150)
+                row_bg = (18, 24, 34, 255) if idx % 2 == 0 else (22, 28, 40, 255)
+                row_border = (50, 65, 90, 150)
 
             arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, cy, panel_w - 24, row_h), row_bg)
-            arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, cy, panel_w - 24, row_h), row_border, 1)
+            arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, cy, panel_w - 24, row_h), row_border, 1.2 if (is_selected or is_active) else 0.8)
 
-            # Turno
-            turn_str_val = "▶ ATIVO" if is_active else f"#{idx + 1}"
-            turn_col = (241, 196, 15, 255) if is_active else (160, 175, 195, 255)
-            self._get_text(f"r_{idx}_t", turn_str_val, 28, cy, turn_col, 8, bold=True, anchor_x="left").draw()
+            # Turn Indicator
+            turn_mark = "▶" if is_active else str(idx + 1)
+            turn_color = (46, 204, 113, 255) if is_active else (140, 155, 175, 255)
+            self._get_text(f"r_turn_{idx}", turn_mark, 28, cy, turn_color, 8, bold=True, anchor_x="center").draw()
 
-            # Nome
-            name_col = (100, 200, 255, 255) if isinstance(combatant, PlayableCharacter) else (255, 138, 128, 255)
-            self._get_text(f"r_{idx}_n", combatant.name[:16], 85, cy, name_col, 8, bold=True, anchor_x="left").draw()
+            # Name
+            name_color = (100, 200, 255, 255) if isinstance(combatant, PlayableCharacter) else (255, 138, 128, 255)
+            self._get_text(f"r_name_{idx}", combatant.name[:18], 55, cy, name_color, 8, bold=True).draw()
 
-            # Tipo
-            ctype = "Jogador" if isinstance(combatant, PlayableCharacter) else "Monstro"
-            self._get_text(f"r_{idx}_ty", ctype, 240, cy, (200, 210, 225, 255), 7, bold=False, anchor_x="center").draw()
+            # Type
+            type_str = "PJ" if isinstance(combatant, PlayableCharacter) else "NPC"
+            self._get_text(f"r_type_{idx}", type_str, 240, cy, (160, 175, 195, 255), 8, bold=False, anchor_x="center").draw()
 
             # HP
-            hp_s = f"{combatant.current_hp}/{combatant.max_hp}"
-            hp_c = (46, 204, 113, 255) if combatant.current_hp > combatant.max_hp * 0.5 else (231, 76, 60, 255)
-            self._get_text(f"r_{idx}_hp", hp_s, 305, cy, hp_c, 8, bold=True, anchor_x="center").draw()
+            hp_str = f"{combatant.current_hp}/{combatant.max_hp}"
+            hp_c = (46, 204, 113, 255) if combatant.current_hp > (combatant.max_hp / 2) else (231, 76, 60, 255)
+            self._get_text(f"r_hp_{idx}", hp_str, 305, cy, hp_c, 8, bold=True, anchor_x="center").draw()
 
             # CA
-            self._get_text(f"r_{idx}_ca", str(combatant.armor_class), 365, cy, (240, 240, 240, 255), 8, bold=False, anchor_x="center").draw()
+            self._get_text(f"r_ca_{idx}", str(combatant.armor_class), 365, cy, (241, 196, 15, 255), 8, bold=True, anchor_x="center").draw()
 
             # Mod
-            mod_s = f"+{combatant.initiative_mod}" if combatant.initiative_mod >= 0 else str(combatant.initiative_mod)
-            self._get_text(f"r_{idx}_mod", mod_s, 405, cy, (180, 190, 205, 255), 8, bold=False, anchor_x="center").draw()
+            mod_str = f"{combatant.initiative_mod:+d}"
+            self._get_text(f"r_mod_{idx}", mod_str, 405, cy, (180, 190, 205, 255), 8, bold=False, anchor_x="center").draw()
 
-            # Inic
-            self._get_text(f"r_{idx}_init", str(combatant.initiative_score), 445, cy, (241, 196, 15, 255), 8, bold=True, anchor_x="center").draw()
+            # Init
+            self._get_text(f"r_init_{idx}", str(combatant.initiative_score), 445, cy, (230, 235, 245, 255), 8, bold=True, anchor_x="center").draw()
 
             # Status
-            if not combatant.is_alive:
-                st_s = "💀 Morto"
-            elif combatant.is_hidden:
-                st_s = "🥷 Oculto"
-            elif is_active:
-                st_s = "⚡ Turno"
-            else:
-                st_s = "🟢 Pronto"
-            self._get_text(f"r_{idx}_st", st_s, 500, cy, (220, 220, 220, 255), 7, bold=False, anchor_x="center").draw()
+            status_str = "Vivo" if combatant.is_alive else "Incapacitado"
+            status_c = (46, 204, 113, 255) if combatant.is_alive else (192, 57, 43, 255)
+            self._get_text(f"r_stat_{idx}", status_str, 500, cy, status_c, 7, bold=False, anchor_x="center").draw()
 
-            # Oculto Toggle (is_hidden)
-            eye_s = "👁️❌" if combatant.is_hidden else "👁️"
-            self._get_text(f"r_{idx}_eye", eye_s, panel_w - 40, cy, (255, 255, 255, 255), 8, bold=False, anchor_x="center").draw()
+            # Visibility Toggle Icon
+            vis_icon = "👁️❌" if combatant.is_hidden else "👁️"
+            self._get_text(f"r_vis_{idx}", vis_icon, panel_w - 40, cy, (255, 255, 255, 255), 9, bold=False, anchor_x="center").draw()
 
-        # 5. Despachante Rápido de Dano e Cura
-        rendered_rows = min(len(combatants), max_rows)
-        disp_top = table_top - table_h - rendered_rows * (row_h + 2) - 8
-        disp_h = 135
-        disp_cy = disp_top - disp_h / 2
-
-        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, disp_cy, panel_w - 24, disp_h), (20, 25, 35, 255))
-        arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, disp_cy, panel_w - 24, disp_h), (60, 75, 100, 200), 1)
+        # 5. Painel Inferior: Despachante de Dano / Cura do Alvo Selecionado
+        disp_top = table_top - table_h - min(len(combatants), max_rows) * (row_h + 2) - 8
+        disp_h = 130
+        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, disp_top - disp_h / 2, panel_w - 24, disp_h), (18, 24, 34, 255))
+        arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, disp_top - disp_h / 2, panel_w - 24, disp_h), (50, 65, 90, 200), 1)
 
         sel_combatant = self.combat_manager.get_combatant(self.selected_combatant_uid or "")
         if sel_combatant:
@@ -315,13 +324,22 @@ class CombatTabView:
         if self.spell_aoe_panel.handle_click(x, y, panel_w, info_y - 12):
             return True
 
-        # 3. Cliques nas Linhas da Tabela de Combatentes
         spell_body_h = 82 if not self.spell_aoe_panel.is_collapsed else 0
         spell_next_y = info_y - 12 - (28 + spell_body_h) - 8
-        table_top = spell_next_y
+
+        # 3. Cliques no Painel de Névoa de Guerra (FogControlPanel)
+        if self.fog_panel.handle_click(x, y, panel_w, spell_next_y):
+            return True
+
+        fog_body_h = 68 if not self.fog_panel.is_collapsed else 0
+        fog_next_y = spell_next_y - (26 + fog_body_h) - 8
+
+        # 4. Cliques nas Linhas da Tabela de Combatentes
+        table_top = fog_next_y
         table_h = 22
         row_h = 24
-        max_rows = 6 if not self.spell_aoe_panel.is_collapsed else 8
+        panels_collapsed = (1 if self.spell_aoe_panel.is_collapsed else 0) + (1 if self.fog_panel.is_collapsed else 0)
+        max_rows = 4 + panels_collapsed * 2
 
         combatants = self.combat_manager.turn_order if self.combat_manager.has_combat_started else self.combat_manager.combatants
 
@@ -338,7 +356,7 @@ class CombatTabView:
                     self.selected_combatant_uid = combatant.uid
                     return True
 
-        # 4. Cliques no Despachante de Dano e Cura
+        # 5. Cliques no Despachante de Dano e Cura
         rendered_rows = min(len(combatants), max_rows)
         disp_top = table_top - table_h - rendered_rows * (row_h + 2) - 8
 
@@ -414,5 +432,7 @@ class CombatTabView:
         return self.spell_aoe_panel.handle_text_input(text)
 
     def on_update(self, dt: float) -> None:
-        """Atualiza animações e inputs do painel de feitiços."""
+        """Atualiza animações e inputs do painel de feitiços e névoa."""
         self.spell_aoe_panel.on_update(dt)
+        self.fog_panel.fog_manager = self.combat_manager.fog_manager
+        self.fog_panel.on_update(dt)

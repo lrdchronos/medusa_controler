@@ -8,9 +8,11 @@ import arcade
 from ....manager.grid_manager import GridManager
 from ....domain.builders.encounter_builder import EncounterBuilder
 from ....domain.models.tile_map import TileMap
+from ....domain.models.fog_manager import FogManager
 from ...utils.tilemap_renderer import TileMapRenderer
 from ...utils.sprite_utils import SpriteFactory
 from ...components.discrete_scroll_list import DiscreteScrollList
+from ..fog_control_panel import FogControlPanel, FogTool, BrushMode
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,16 @@ class CreatorTacticalStage:
 
         self.scroll_list: DiscreteScrollList = DiscreteScrollList(item_height=28, spacing=4)
 
+        # Gerenciamento de Névoa de Guerra no Palco Tático
+        self.fog_manager: FogManager = FogManager()
+        self.fog_panel: FogControlPanel = FogControlPanel(
+            fog_manager=self.fog_manager,
+            dimensions_provider=self._get_grid_dimensions,
+            save_callback=self._handle_save_fog,
+        )
+        self._is_brushing: bool = False
+        self._last_fog_cell: Optional[Tuple[int, int]] = None
+
         self.dragged_combatant_idx: Optional[int] = None
         self.drag_pos: Tuple[float, float] = (0.0, 0.0)
 
@@ -63,6 +75,11 @@ class CreatorTacticalStage:
         self.success_message = None
         self.saved_encounter_path = None
         self.dragged_combatant_idx = None
+        self._is_brushing = False
+        self._last_fog_cell = None
+
+        # Carrega estado inicial de névoa se houver
+        self.fog_manager.load_state(self.config_data.get("fog_of_war", []))
 
         map_type = self.config_data.get("map_type", "image")
         map_source = self.config_data.get("map_source") or self.config_data.get("map_path")
@@ -176,6 +193,7 @@ class CreatorTacticalStage:
             feet_per_square=self.config_data.get("feet_per_square", 5),
         )
         builder.with_environment(is_sunlight=self.config_data.get("is_sunlight", False))
+        builder.with_fog_of_war(self.fog_manager.export_state())
 
         for item in self.staging_combatants:
             if item["is_player"]:
@@ -217,11 +235,14 @@ class CreatorTacticalStage:
         arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, tip_y, panel_w - 24, 22), (20, 30, 42, 255))
         self._render_text("stg_tip", "💡 Arraste da Reserva para o Grid | Clique Dir / Duplo: Ocultar", panel_w / 2, tip_y, (160, 210, 255, 255), 7, False, text_cache, anchor_x="center")
 
+        # Painel de Controle de Névoa de Guerra (FogControlPanel)
+        fog_next_y = self.fog_panel.draw(panel_w, tip_y - 14)
+
         # Roster de Combatentes com DiscreteScrollList
-        list_top = tip_y - 18
+        list_top = fog_next_y - 4
         feedback_area_h = 30 if (self.success_message or self.error_message) else 10
         btn_area_h = 60
-        list_h = max(60.0, list_top - feedback_area_h - btn_area_h - 20.0)
+        list_h = max(50.0, list_top - feedback_area_h - btn_area_h - 10.0)
 
         self.scroll_list.set_bounds(x=12.0, y=list_top, width=panel_w - 24.0, height=list_h)
         self.scroll_list.items = self.staging_combatants
@@ -384,6 +405,23 @@ class CreatorTacticalStage:
             ly = draw_y + r * cell_h
             arcade.draw_line(draw_x, ly, draw_x + draw_w, ly, grid_color, 1.2)
 
+        # 2.5. Camada de Névoa de Guerra (Visão do Mestre - Semi-Translúcida com borda)
+        fogged_cells = self.fog_manager.get_fogged_cells()
+        if fogged_cells:
+            for (f_col, f_row) in fogged_cells:
+                if 0 <= f_col < columns and 0 <= f_row < rows:
+                    fcx = draw_x + (f_col + 0.5) * cell_w
+                    fcy = draw_y + (f_row + 0.5) * cell_h
+                    arcade.draw_rect_filled(
+                        arcade.XYWH(fcx, fcy, cell_w, cell_h),
+                        (20, 20, 30, 160),
+                    )
+                    arcade.draw_rect_outline(
+                        arcade.XYWH(fcx, fcy, cell_w, cell_h),
+                        (80, 90, 110, 180),
+                        1.0,
+                    )
+
         # 3. Doca de Reserva
         res_x = vx + margin
         res_y = vy + 6
@@ -480,6 +518,11 @@ class CreatorTacticalStage:
         return self._handle_canvas_press(x, y, button)
 
     def _handle_sidebar_press(self, x: float, y: float, panel_w: float, top_y: float) -> Optional[str]:
+        # Cliques no Painel de Névoa de Guerra
+        tip_y = (top_y - 18) - 20
+        if self.fog_panel.handle_click(x, y, panel_w, tip_y - 14):
+            return None
+
         # Interação com itens visíveis da DiscreteScrollList
         visible_items = self.scroll_list.visible_items
         for slot_idx, (idx, item) in enumerate(visible_items):
@@ -536,6 +579,21 @@ class CreatorTacticalStage:
         radius = (min(cell_w, cell_h) * 0.88) / 2.0
         reserve_slot_w = 46.0
 
+        # Prioridade 1: Ferramenta de Névoa de Guerra ativa
+        if self.fog_panel.is_tool_active:
+            if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+                col = int(math.floor((x - draw_x) / cell_w))
+                row = int(math.floor((y - draw_y) / cell_h))
+                if 0 <= col < columns and 0 <= row < rows:
+                    if self.fog_panel.active_tool == FogTool.ADD:
+                        self.fog_manager.add_fog(col, row)
+                    elif self.fog_panel.active_tool == FogTool.REVEAL:
+                        self.fog_manager.remove_fog(col, row)
+                    self._is_brushing = True
+                    self._last_fog_cell = (col, row)
+                    return None
+
+        # Prioridade 2: Seleção e posicionamento de Tokens
         for idx, item in enumerate(reversed(self.staging_combatants)):
             real_idx = len(self.staging_combatants) - 1 - idx
 
@@ -569,11 +627,39 @@ class CreatorTacticalStage:
         return None
 
     def handle_mouse_drag(self, x: float, y: float) -> None:
+        # Pincel contínuo de névoa de guerra
+        if (
+            self._is_brushing
+            and self.fog_panel.is_tool_active
+            and self.fog_panel.brush_mode == BrushMode.CONTINUOUS
+        ):
+            draw_x, draw_y, draw_w, draw_h = self._last_map_rect
+            if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+                columns = self.config_data.get("columns", 25)
+                rows = self.grid_manager.rows if self.grid_manager else 14
+                cell_w = draw_w / columns
+                cell_h = draw_h / rows
+                col = int(math.floor((float(x) - draw_x) / cell_w))
+                row = int(math.floor((float(y) - draw_y) / cell_h))
+                if 0 <= col < columns and 0 <= row < rows:
+                    if (col, row) != self._last_fog_cell:
+                        if self.fog_panel.active_tool == FogTool.ADD:
+                            self.fog_manager.add_fog(col, row)
+                        elif self.fog_panel.active_tool == FogTool.REVEAL:
+                            self.fog_manager.remove_fog(col, row)
+                        self._last_fog_cell = (col, row)
+            return
+
         if self.dragged_combatant_idx is not None:
             self.drag_pos = (float(x), float(y))
 
     def handle_mouse_release(self, x: float, y: float, split_x: float) -> None:
-        """Aplica Snap-to-Grid no token arrastado ou retorna para a reserva."""
+        """Aplica Snap-to-Grid no token arrastado, finaliza pincel de névoa ou retorna para a reserva."""
+        if self._is_brushing:
+            self._is_brushing = False
+            self._last_fog_cell = None
+            return
+
         if self.dragged_combatant_idx is not None:
             item = self.staging_combatants[self.dragged_combatant_idx]
             draw_x, draw_y, draw_w, draw_h = self._last_map_rect
@@ -600,3 +686,17 @@ class CreatorTacticalStage:
                 logger.info(f"Token '{item['name']}' retornado para a reserva.")
 
             self.dragged_combatant_idx = None
+
+    def on_update(self, dt: float) -> None:
+        """Atualizações de temporizadores do painel de névoa."""
+        self.fog_panel.on_update(dt)
+
+    def _get_grid_dimensions(self) -> Tuple[int, int]:
+        columns = self.config_data.get("columns", 25)
+        rows = self.grid_manager.rows if self.grid_manager else 14
+        return (columns, rows)
+
+    def _handle_save_fog(self) -> bool:
+        path = self.save_encounter()
+        return path is not None
+

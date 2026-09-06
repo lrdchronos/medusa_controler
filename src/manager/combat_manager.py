@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional, Callable, Tuple
 from ..domain.models.entity import Entity
 from ..domain.models.tile_map import TileMap
 from ..domain.models.spell_template import SpellTemplate, SpellShape
+from ..domain.models.fog_manager import FogManager
 from ..domain.loaders.encounter_loader import EncounterLoader
 from .grid_manager import GridManager
 
@@ -38,6 +39,10 @@ class CombatManager:
 
         # Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE)
         self.__active_spell_template: Optional[SpellTemplate] = None
+
+        # Gerenciador de Névoa de Guerra (Fog of War)
+        self.__fog_manager: FogManager = FogManager()
+        self.__fog_manager.add_listener(self.notify_listeners)
 
         self.__listeners: List[Callable[[], None]] = []
 
@@ -88,6 +93,11 @@ class CombatManager:
     @property
     def grid_manager(self) -> Optional[GridManager]:
         return self.__grid_manager
+
+    @property
+    def fog_manager(self) -> FogManager:
+        """Gerenciador central de Névoa de Guerra (Fog of War)."""
+        return self.__fog_manager
 
     @property
     def combatants(self) -> List[Entity]:
@@ -241,8 +251,11 @@ class CombatManager:
         self.__current_turn_index = -1
         self.__round_number = 1
 
+        # Carrega estado da Névoa de Guerra
+        self.__fog_manager.load_state(data.get("fog_of_war", []))
+
         logger.info(
-            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) [tipo={self.__map_type}] com {len(self.__combatants)} combatentes."
+            f"Encontro carregado: '{self.__title}' ({self.__encounter_uid}) [tipo={self.__map_type}] com {len(self.__combatants)} combatentes e {self.__fog_manager.count} células de névoa."
         )
         self.notify_listeners()
 
@@ -587,11 +600,45 @@ class CombatManager:
         self.__turn_order.clear()
         self.__current_turn_index = -1
         self.__round_number = 1
+        self.__fog_manager.clear_all()
 
         logger.info("Estado do CombatManager resetado com sucesso.")
         self.notify_listeners()
 
+    def save_fog_to_encounter_file(self) -> bool:
+        """
+        Persiste o estado atual da névoa de guerra diretamente no arquivo JSON do encontro ativo em disco.
+        Retorna True em caso de sucesso.
+        """
+        if not self.__encounter_uid:
+            logger.warning("Não há encontro ativo carregado para salvar a névoa de guerra.")
+            return False
+
+        try:
+            resolved_path = self._encounter_loader.resolve_encounter_path(self.__encounter_uid)
+            if resolved_path is None or not resolved_path.is_file():
+                logger.error(f"Arquivo do encontro '{self.__encounter_uid}' não foi encontrado para salvar a névoa.")
+                return False
+
+            import json
+            with open(resolved_path, "r", encoding="utf-8") as f:
+                raw_json = json.load(f)
+
+            raw_json["fog_of_war"] = self.__fog_manager.export_state()
+
+            with open(resolved_path, "w", encoding="utf-8") as f:
+                json.dump(raw_json, f, indent=4, ensure_ascii=False)
+
+            logger.info(
+                f"Névoa de guerra ({self.__fog_manager.count} células) salva com sucesso em '{resolved_path.name}'."
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Erro ao persistir névoa de guerra no arquivo do encontro '{self.__encounter_uid}': {e}")
+            return False
+
     def clear_combat(self) -> None:
         """Alias para reset_combat()."""
         self.reset_combat()
+
 

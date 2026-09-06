@@ -505,8 +505,23 @@ class PlayerWindow(arcade.Window):
                 scale=scale_factor,
             )
 
+        # 4.5. Camada de Névoa de Guerra (Visão dos Jogadores - Blocos Pretos Sólidos e Opacos)
+        fog_mgr = combat_manager.fog_manager
+        fogged_cells = fog_mgr.get_fogged_cells()
+        if fogged_cells:
+            for (f_col, f_row) in fogged_cells:
+                if 0 <= f_col < cols and 0 <= f_row < rows:
+                    fcx = draw_x + (f_col + 0.5) * cell_w
+                    fcy = draw_y + (f_row + 0.5) * cell_h
+                    # Ligeira sobreposição (0.5px) para garantir oclusão total sem gaps sub-pixel
+                    arcade.draw_rect_filled(
+                        arcade.XYWH(fcx, fcy, cell_w + 0.5, cell_h + 0.5),
+                        (10, 10, 15, 255),
+                    )
+
         # 5. Fila de Iniciativas como Overlay Flutuante Translúcido no Topo da Tela
         self.hud.draw(w, h)
+
 
     def on_update(self, delta_time: float) -> None:
         """Ciclo de atualização: animação IDLE e interpolação suave de tokens em COMBAT."""

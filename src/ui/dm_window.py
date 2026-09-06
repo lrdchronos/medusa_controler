@@ -56,8 +56,9 @@ class DMWindow(arcade.Window):
         self.showcase_tab = ShowcaseTabView(session_manager=self.session_manager)
         self.combat_tab = CombatTabView(session_manager=self.session_manager)
         self.creator_tab = EncounterCreatorTabView(session_manager=self.session_manager, dm_window=self)
-        self.mini_map = TacticalMiniMap(window=self, session_manager=self.session_manager)
+        self.mini_map = TacticalMiniMap(window=self, session_manager=self.session_manager, fog_panel=self.combat_tab.fog_panel)
         self.initiative_modal = InitiativeStagingModal(session_manager=self.session_manager)
+
 
         # Estado Global da Janela
         self.active_tab: int = 2 if self.session_manager.is_combat_active else 0

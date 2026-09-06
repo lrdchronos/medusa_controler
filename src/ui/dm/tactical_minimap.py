@@ -9,6 +9,8 @@ from ...domain.models.playablechar import PlayableCharacter
 from ..utils.sprite_utils import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
 from ..utils.aoe_renderer import AoERenderer
+from .fog_control_panel import FogControlPanel, FogTool, BrushMode
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +19,20 @@ class TacticalMiniMap:
     """
     Componente do Mini-Mapa Tático Interativo (Lado Direito da DMWindow).
     Suporta Dupla Câmera, Grid Matricial de Alto Contraste, Proporção Idêntica à tela dos jogadores,
+    Camada Translúcida de Névoa de Guerra do Mestre, Pincel/Clique Unitário de Névoa,
     Drag & Drop de Tokens e Espelhamento nos estados IDLE/PROJECTION.
     """
 
-    def __init__(self, window: arcade.Window, session_manager: SessionManager) -> None:
+    def __init__(
+        self,
+        window: arcade.Window,
+        session_manager: SessionManager,
+        fog_panel: Optional[FogControlPanel] = None,
+    ) -> None:
         self.window = window
         self.session_manager = session_manager
         self.combat_manager = session_manager.combat_manager
+        self.fog_panel: Optional[FogControlPanel] = fog_panel
 
         self.dm_camera = Camera2D(window=window)
         self._texture_cache: Dict[str, arcade.Texture] = {}
@@ -33,11 +42,16 @@ class TacticalMiniMap:
         # Retângulo de desenho calculado para manter a proporção exata: (draw_x, draw_y, draw_w, draw_h)
         self._last_draw_rect: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)
 
-        # Estado de Drag & Drop
+        # Estado de Arraste e Pincel de Névoa
+        self._is_brushing: bool = False
+        self._last_fog_cell: Optional[Tuple[int, int]] = None
+
+        # Estado de Drag & Drop de Tokens
         self._dragged_combatant_uid: Optional[str] = None
         self._drag_world_pos: Tuple[float, float] = (0.0, 0.0)
 
         self.update_viewport()
+
 
     def update_viewport(self) -> None:
         """Configura a viewport da DMCamera para a metade direita da janela."""
@@ -178,6 +192,24 @@ class TacticalMiniMap:
         for r in range(grid_mgr.rows + 1):
             ly = draw_y + r * cell_h
             arcade.draw_line(draw_x, ly, draw_x + draw_w, ly, grid_color, 1.2)
+
+        # 2.5. Renderização da Camada de Névoa de Guerra (Visão do Mestre - Semi-Translúcida com borda)
+        fog_mgr = self.combat_manager.fog_manager
+        fogged_cells = fog_mgr.get_fogged_cells()
+        if fogged_cells:
+            for (f_col, f_row) in fogged_cells:
+                if 0 <= f_col < grid_mgr.columns and 0 <= f_row < grid_mgr.rows:
+                    fcx = draw_x + (f_col + 0.5) * cell_w
+                    fcy = draw_y + (f_row + 0.5) * cell_h
+                    arcade.draw_rect_filled(
+                        arcade.XYWH(fcx, fcy, cell_w, cell_h),
+                        (20, 20, 30, 160),
+                    )
+                    arcade.draw_rect_outline(
+                        arcade.XYWH(fcx, fcy, cell_w, cell_h),
+                        (80, 90, 110, 180),
+                        1.0,
+                    )
 
         # 3. Renderização de Tokens
         active_combatant = self.combat_manager.active_character
@@ -321,14 +353,35 @@ class TacticalMiniMap:
         self.combat_manager.set_spell_visibility(False)
 
     def handle_mouse_press(self, x: float, y: float, split_x: float, h: float, on_select_combatant: Optional[Callable[[str], None]] = None) -> bool:
-        """Inicia drag & drop de token sob o cursor do mouse."""
+        """Inicia edição de névoa de guerra ou drag & drop de token sob o cursor do mouse."""
         grid_mgr = self.combat_manager.grid_manager
         if grid_mgr is None:
             return False
 
         draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
+        if draw_w <= 0 or draw_h <= 0:
+            return False
+
         cell_w = draw_w / grid_mgr.columns
         cell_h = draw_h / grid_mgr.rows
+
+        # Prioridade 1: Ferramenta Manual de Névoa de Guerra ativa no painel do Mestre
+        if self.fog_panel is not None and self.fog_panel.is_tool_active:
+            if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+                local_x = float(x) - draw_x
+                local_y = float(y) - draw_y
+                col = int(math.floor(local_x / cell_w))
+                row = int(math.floor(local_y / cell_h))
+                if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
+                    if self.fog_panel.active_tool == FogTool.ADD:
+                        self.combat_manager.fog_manager.add_fog(col, row)
+                    elif self.fog_panel.active_tool == FogTool.REVEAL:
+                        self.combat_manager.fog_manager.remove_fog(col, row)
+                    self._is_brushing = True
+                    self._last_fog_cell = (col, row)
+                    return True
+
+        # Prioridade 2: Drag & Drop de Tokens
         radius = (min(cell_w, cell_h) * 0.88) / 2.0
 
         for combatant in reversed(self.combat_manager.combatants):
@@ -350,12 +403,42 @@ class TacticalMiniMap:
         return False
 
     def handle_mouse_drag(self, x: float, y: float) -> None:
-        """Atualiza a posição do token arrastado."""
+        """Trata arraste contínuo de pincel de névoa ou posicionamento de token."""
+        # 1. Pincel Contínuo de Névoa de Guerra
+        if (
+            self._is_brushing
+            and self.fog_panel is not None
+            and self.fog_panel.is_tool_active
+            and self.fog_panel.brush_mode == BrushMode.CONTINUOUS
+        ):
+            grid_mgr = self.combat_manager.grid_manager
+            if grid_mgr is not None:
+                draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
+                if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+                    cell_w = draw_w / grid_mgr.columns
+                    cell_h = draw_h / grid_mgr.rows
+                    col = int(math.floor((float(x) - draw_x) / cell_w))
+                    row = int(math.floor((float(y) - draw_y) / cell_h))
+                    if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
+                        if (col, row) != self._last_fog_cell:
+                            if self.fog_panel.active_tool == FogTool.ADD:
+                                self.combat_manager.fog_manager.add_fog(col, row)
+                            elif self.fog_panel.active_tool == FogTool.REVEAL:
+                                self.combat_manager.fog_manager.remove_fog(col, row)
+                            self._last_fog_cell = (col, row)
+            return
+
+        # 2. Atualiza posição visual do token arrastado
         if self._dragged_combatant_uid is not None:
             self._drag_world_pos = (float(x), float(y))
 
     def handle_mouse_release(self, x: float, y: float, split_x: float) -> None:
-        """Aplica Snap-to-Grid no token arrastado mapeando precisamente para a célula matricial correspondente com validação tática."""
+        """Finaliza arraste de pincel de névoa ou aplica Snap-to-Grid no token."""
+        if self._is_brushing:
+            self._is_brushing = False
+            self._last_fog_cell = None
+            return
+
         if self._dragged_combatant_uid is not None:
             combatant = self.combat_manager.get_combatant(self._dragged_combatant_uid)
             grid_mgr = self.combat_manager.grid_manager

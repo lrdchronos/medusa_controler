@@ -140,9 +140,12 @@ class EncounterCreatorTabView:
         return saved_path
 
     def on_update(self, delta_time: float) -> None:
-        """Atualiza animações de cursor e backspace repeat nos inputs."""
+        """Atualiza animações de cursor e inputs nos componentes."""
         if self.stage == 1:
             self.form.update(delta_time)
+        elif self.stage == 2:
+            self.tactical_stage.on_update(delta_time)
+
 
     # --- Renderização ---
 

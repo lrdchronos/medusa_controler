@@ -1,0 +1,440 @@
+{
+  "tileset": "Sprite-0007",
+  "width": 21,
+  "height": 12,
+  "data": [
+    [
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5,
+      5
+    ],
+    [
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55,
+      55
+    ],
+    [
+      58,
+      58,
+      59,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61,
+      61
+    ],
+    [
+      58,
+      59,
+      67,
+      23,
+      69,
+      27,
+      68,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23
+    ],
+    [
+      61,
+      67,
+      23,
+      32,
+      33,
+      31,
+      28,
+      32,
+      32,
+      32,
+      19,
+      35,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32
+    ],
+    [
+      23,
+      23,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      33,
+      28,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32
+    ],
+    [
+      32,
+      32,
+      19,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      35,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32,
+      32
+    ],
+    [
+      32,
+      19,
+      21,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      26,
+      20,
+      20,
+      20,
+      20,
+      20,
+      35,
+      32,
+      32
+    ],
+    [
+      20,
+      21,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      26,
+      20,
+      20
+    ],
+    [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ]
+  ],
+  "block_movement": [
+    1,
+    5,
+    23,
+    32
+  ],
+  "block_vision": [],
+  "cover": {
+    "half": [],
+    "three_quarters": [],
+    "full": []
+  },
+  "difficult_terrain": [],
+  "heights": {
+    "pos": {
+      "x": 6,
+      "y": 6
+    },
+    "height": 1
+  },
+  "assets": [
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 2,
+        "y": 1
+      },
+      "scale": 1.2
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 5,
+        "y": 0
+      },
+      "scale": 2.2
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 8,
+        "y": 2
+      },
+      "scale": 0.9
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 12,
+        "y": 1
+      },
+      "scale": 1.5
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 16,
+        "y": 0
+      },
+      "scale": 2.5
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 19,
+        "y": 2
+      },
+      "scale": 1.0
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 4,
+        "y": 7
+      },
+      "scale": 0.8
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 7,
+        "y": 6
+      },
+      "scale": 1.8
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 10,
+        "y": 7
+      },
+      "scale": 1.4
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 14,
+        "y": 6
+      },
+      "scale": 2.0
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 18,
+        "y": 7
+      },
+      "scale": 1.1
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 5,
+        "y": 10
+      },
+      "scale": 2.4
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "scale": 1.3
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 15,
+        "y": 10
+      },
+      "scale": 0.85
+    },
+    {
+      "sprite": "assets/sprites/rock_1.png",
+      "type": "sprite",
+      "position": {
+        "x": 20,
+        "y": 11
+      },
+      "scale": 1.7
+    }
+  ]
+}

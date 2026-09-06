@@ -28,7 +28,14 @@ class EncounterBuilder:
         self._environment: Dict[str, Any] = {"is_sunlight": False}
         self._grid: Dict[str, Any] = {"columns": 25, "feet_per_square": 5}
         self._combatants: List[Dict[str, Any]] = []
+        self._fog_of_war: List[Dict[str, int]] = []
         return self
+
+    @property
+    def fog_of_war(self) -> List[Dict[str, int]]:
+        """Lista de coordenadas de células cobertas pela névoa."""
+        return [c.copy() for c in self._fog_of_war]
+
 
     @property
     def map_type(self) -> str:
@@ -95,6 +102,27 @@ class EncounterBuilder:
             **kwargs,
         }
         return self
+
+    def with_fog_of_war(
+        self, fog_cells: Optional[Any] = None
+    ) -> "EncounterBuilder":
+        """Define a lista de células cobertas pela névoa de guerra."""
+        self._fog_of_war = []
+        if fog_cells:
+            if isinstance(fog_cells, (list, tuple)):
+                for item in fog_cells:
+                    if isinstance(item, dict):
+                        fx = item.get("x", item.get("col"))
+                        fy = item.get("y", item.get("row"))
+                        if fx is not None and fy is not None:
+                            self._fog_of_war.append({"x": int(fx), "y": int(fy)})
+                    elif isinstance(item, (list, tuple)) and len(item) >= 2:
+                        self._fog_of_war.append({"x": int(item[0]), "y": int(item[1])})
+            elif isinstance(fog_cells, set):
+                for col, row in sorted(fog_cells, key=lambda c: (c[1], c[0])):
+                    self._fog_of_war.append({"x": int(col), "y": int(row)})
+        return self
+
 
     def add_monster(
         self,
@@ -195,8 +223,10 @@ class EncounterBuilder:
             "map_file": self._map_source,  # Retrocompatibilidade
             "environment": self._environment.copy(),
             "grid": self._grid.copy(),
+            "fog_of_war": [c.copy() for c in self._fog_of_war],
             "combatants": [c.copy() for c in self._combatants],
         }
+
 
     def to_json(self, indent: int = 2) -> str:
         """Serializa o encontro para uma string JSON formatada."""

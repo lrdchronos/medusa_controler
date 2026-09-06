@@ -147,6 +147,19 @@ class EncounterLoader:
                 char.set_hidden(is_hidden)
                 combatants.append(char)
 
+        # Carregamento defensivo da Névoa de Guerra (Fog of War)
+        raw_fog = raw_data.get("fog_of_war", [])
+        fog_of_war: List[Dict[str, int]] = []
+        if isinstance(raw_fog, list):
+            for f_item in raw_fog:
+                if isinstance(f_item, dict):
+                    fx = f_item.get("x", f_item.get("col"))
+                    fy = f_item.get("y", f_item.get("row"))
+                    if fx is not None and fy is not None:
+                        try:
+                            fog_of_war.append({"x": int(fx), "y": int(fy)})
+                        except (ValueError, TypeError):
+                            logger.warning(f"Coordenada inválida ignorada em fog_of_war: {f_item}")
 
         return {
             "uid": uid,
@@ -158,4 +171,6 @@ class EncounterLoader:
             "environment": environment,
             "grid": grid,
             "combatants": combatants,
+            "fog_of_war": fog_of_war,
         }
+
