@@ -3760,3 +3760,41 @@
 [2026-09-06 11:56:39,486] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
 [2026-09-06 11:56:39,490] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
 [2026-09-06 11:56:39,666] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-06 12:11:51,131] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-06 12:11:51,133] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-06 12:11:51,592] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-06 12:11:51,701] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-06 12:11:51,701] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-06 12:11:51,701] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-06 12:11:51,703] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-06 12:11:51,703] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-06 12:11:54,971] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_240820261511
+[2026-09-06 12:11:54,974] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 12:11:54,975] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada em Túnel' (encounter_240820261511) [tipo=image] com 5 combatentes e 0 células de névoa.
+[2026-09-06 12:12:06,525] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal aberto.
+[2026-09-06 12:12:15,359] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal fechado.
+[2026-09-06 12:12:16,399] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-06 12:12:16,401] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-06 12:12:16,484] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-06 12:14:37,243] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-06 12:14:37,244] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-06 12:14:37,690] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-06 12:14:37,785] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-06 12:14:37,785] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-06 12:14:37,787] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-06 12:14:37,787] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-06 12:14:37,787] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-06 12:14:41,455] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_01
+[2026-09-06 12:14:41,457] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 12:14:41,458] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada em Túnel (Encontro 01)' (encounter_01) [tipo=image] com 5 combatentes e 0 células de névoa.
+[2026-09-06 12:14:44,009] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal aberto.
+[2026-09-06 12:15:06,571] [INFO] [src.ui.dm.add_token_modal]: AddTokenModal confirmado: {'name': 'tk1', 'entity_type': <EntityType.MONSTER: 'monster'>, 'max_hp': 8, 'current_hp': 8, 'armor_class': 12, 'initiative_slot': 'next', 'token_sprite': None}
+[2026-09-06 12:15:06,573] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal fechado.
+[2026-09-06 12:15:06,574] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN iniciado para 'tk1'.
+[2026-09-06 12:15:06,574] [INFO] [src.ui.dm.combat_tab]: Modo de posicionamento ativado no TacticalMiniMap para 'tk1'.
+[2026-09-06 12:15:09,758] [INFO] [src.manager.combat_manager]: Novo combatente spawnado no combate: 'tk1' (Tipo: monster) na posição (5, 7), slot de iniciativa: 'next'.
+[2026-09-06 12:15:09,759] [INFO] [src.ui.dm.combat_tab]: Token 'tk1' inserido e selecionado com sucesso em (5, 7).
+[2026-09-06 12:15:09,759] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN cancelado.
+[2026-09-06 12:15:12,774] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-06 12:15:12,776] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-06 12:15:12,858] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.

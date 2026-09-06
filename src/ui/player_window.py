@@ -360,7 +360,8 @@ class PlayerWindow(arcade.Window):
 
             target_x = draw_x + (px + 0.5) * cell_w
             target_y = draw_y + (py + 0.5) * cell_h
-            is_player = isinstance(combatant, PlayableCharacter)
+            is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
+            etype = getattr(combatant, "entity_type", "player" if is_player else "monster")
 
             if combatant.uid not in self.token_sprites:
                 # Novo token: inicializa imediatamente no destino
@@ -370,12 +371,14 @@ class PlayerWindow(arcade.Window):
                     is_player=is_player,
                     target_x=target_x,
                     target_y=target_y,
+                    entity_type=etype,
                 )
                 self.token_sprites[combatant.uid] = token
             else:
                 token = self.token_sprites[combatant.uid]
                 token.name = combatant.name
                 token.is_player = is_player
+                token.entity_type = etype
                 # Atualiza APENAS as coordenadas alvo (target_x, target_y)
                 token.target_x = target_x
                 token.target_y = target_y
@@ -476,7 +479,8 @@ class PlayerWindow(arcade.Window):
                 cx = draw_x + (px + 0.5) * cell_w
                 cy = draw_y + (py + 0.5) * cell_h
 
-            is_player = isinstance(combatant, PlayableCharacter)
+            is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
+            etype = getattr(combatant, "entity_type", "player" if is_player else "monster")
             is_active = (combatant == active_combatant)
             token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
 
@@ -492,6 +496,7 @@ class PlayerWindow(arcade.Window):
                 is_active=is_active,
                 text_cache=self._text_cache,
                 token_key=combatant.uid,
+                entity_type=etype,
             )
 
         # 4. Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE Overlay)

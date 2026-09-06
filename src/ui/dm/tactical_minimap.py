@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any, Tuple, Callable
 import arcade
 from arcade.camera import Camera2D
 from ...manager.session_manager import SessionManager, DisplayState
+from ...domain.models.entity import Entity, EntityType, DynamicToken
 from ...domain.models.playablechar import PlayableCharacter
 from ..utils.sprite_utils import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
@@ -20,7 +21,7 @@ class TacticalMiniMap:
     Componente do Mini-Mapa Tático Interativo (Lado Direito da DMWindow).
     Suporta Dupla Câmera, Grid Matricial de Alto Contraste, Proporção Idêntica à tela dos jogadores,
     Camada Translúcida de Névoa de Guerra do Mestre, Pincel/Clique Unitário de Névoa,
-    Drag & Drop de Tokens e Espelhamento nos estados IDLE/PROJECTION.
+    Drag & Drop de Tokens, Posicionamento Interativo de Tokens (PLACING_TOKEN) e Espelhamento nos estados IDLE/PROJECTION.
     """
 
     def __init__(
@@ -50,7 +51,39 @@ class TacticalMiniMap:
         self._dragged_combatant_uid: Optional[str] = None
         self._drag_world_pos: Tuple[float, float] = (0.0, 0.0)
 
+        # Estado de Posicionamento Interativo de Token (PLACING_TOKEN)
+        self._is_placing_token: bool = False
+        self._placing_token_data: Optional[Dict[str, Any]] = None
+        self._hover_grid_cell: Optional[Tuple[int, int]] = None
+        self._on_token_spawn_callback: Optional[Callable[[Entity, Tuple[int, int], str], None]] = None
+
         self.update_viewport()
+
+    @property
+    def is_placing_token(self) -> bool:
+        """Indica se o mini-mapa está no estado transitório de posicionamento de token."""
+        return self._is_placing_token
+
+    def start_placing_token(
+        self,
+        token_data: Dict[str, Any],
+        on_spawn: Optional[Callable[[Entity, Tuple[int, int], str], None]] = None,
+    ) -> None:
+        """Ativa o modo de posicionamento de token no grid do mini-mapa."""
+        self._is_placing_token = True
+        self._placing_token_data = token_data.copy()
+        self._on_token_spawn_callback = on_spawn
+        self._hover_grid_cell = None
+        logger.info(f"TacticalMiniMap: modo PLACING_TOKEN iniciado para '{token_data.get('name')}'.")
+
+    def cancel_placing_token(self) -> None:
+        """Cancela o modo de posicionamento de token e restaura a interação normal."""
+        if self._is_placing_token:
+            logger.info("TacticalMiniMap: modo PLACING_TOKEN cancelado.")
+        self._is_placing_token = False
+        self._placing_token_data = None
+        self._hover_grid_cell = None
+        self._on_token_spawn_callback = None
 
 
     def update_viewport(self) -> None:
@@ -227,7 +260,8 @@ class TacticalMiniMap:
 
             is_selected = (combatant.uid == selected_combatant_uid)
             is_active = (combatant == active_combatant)
-            is_player = isinstance(combatant, PlayableCharacter)
+            is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
+            etype = getattr(combatant, "entity_type", "player" if is_player else "monster")
             token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
 
             SpriteFactory.draw_tactical_token(
@@ -241,7 +275,45 @@ class TacticalMiniMap:
                 is_selected=is_selected,
                 is_active=is_active,
                 text_cache=self._text_cache,
+                entity_type=etype,
             )
+
+        # 3.5. Prévia Translúcida de Posicionamento de Token (PLACING_TOKEN)
+        if self._is_placing_token and self._placing_token_data:
+            token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
+            t_name = self._placing_token_data.get("name", "TOKEN")
+            t_type = self._placing_token_data.get("entity_type", EntityType.NEUTRAL)
+            is_p = (t_type == EntityType.PLAYER or str(t_type).lower() == "player")
+
+            if self._hover_grid_cell is not None:
+                h_col, h_row = self._hover_grid_cell
+                if 0 <= h_col < grid_mgr.columns and 0 <= h_row < grid_mgr.rows:
+                    hcx = draw_x + (h_col + 0.5) * cell_w
+                    hcy = draw_y + (h_row + 0.5) * cell_h
+                    is_walk = self.combat_manager.is_walkable(h_col, h_row)
+
+                    # Realce da célula hover
+                    if is_walk:
+                        arcade.draw_rect_filled(arcade.XYWH(hcx, hcy, cell_w, cell_h), (46, 204, 113, 70))
+                        arcade.draw_rect_outline(arcade.XYWH(hcx, hcy, cell_w, cell_h), (46, 204, 113, 220), 2.0)
+                    else:
+                        arcade.draw_rect_filled(arcade.XYWH(hcx, hcy, cell_w, cell_h), (231, 76, 60, 90))
+                        arcade.draw_rect_outline(arcade.XYWH(hcx, hcy, cell_w, cell_h), (231, 76, 60, 220), 2.0)
+
+                    # Token translúcido posicionado no centro do quadrado
+                    SpriteFactory.draw_tactical_token(
+                        name=t_name,
+                        is_player=is_p,
+                        x=hcx,
+                        y=hcy,
+                        radius=token_radius,
+                        is_alive=True,
+                        is_hidden=False,
+                        is_selected=True,
+                        entity_type=t_type,
+                        text_cache=self._text_cache,
+                        token_key="placing_preview",
+                    )
 
         # 4. Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE Overlay)
         AoERenderer.draw(
@@ -253,11 +325,17 @@ class TacticalMiniMap:
         )
 
         # Banner Superior do Mini-Mapa
-        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, banner_h), (12, 16, 22, 230))
-        arcade.draw_line(vx, vy + vh - banner_h, vx + vw, vy + vh - banner_h, (50, 65, 90, 200), 1)
-
-        map_title = f"🗺️ MINI-MAPA TÁTICO (MESTRE) • Grid {grid_mgr.columns}x{grid_mgr.rows} ({grid_mgr.feet_per_square}ft/sq)"
-        self._get_text("dm_map_hdr", map_title, vx + 16, vy + vh - 18, (241, 196, 15, 255), 10, bold=True).draw()
+        if self._is_placing_token and self._placing_token_data:
+            arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, banner_h), (24, 48, 70, 245))
+            arcade.draw_line(vx, vy + vh - banner_h, vx + vw, vy + vh - banner_h, (241, 196, 15, 255), 1.5)
+            t_name = self._placing_token_data.get("name", "")
+            banner_txt = f"📍 POSICIONAR: '{t_name}' • Clique numa célula válida (ESC / Dir cancela)"
+            self._get_text("dm_map_placing_hdr", banner_txt, vx + 16, vy + vh - 18, (241, 196, 15, 255), 9.5, bold=True).draw()
+        else:
+            arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, banner_h), (12, 16, 22, 230))
+            arcade.draw_line(vx, vy + vh - banner_h, vx + vw, vy + vh - banner_h, (50, 65, 90, 200), 1)
+            map_title = f"🗺️ MINI-MAPA TÁTICO (MESTRE) • Grid {grid_mgr.columns}x{grid_mgr.rows} ({grid_mgr.feet_per_square}ft/sq)"
+            self._get_text("dm_map_hdr", map_title, vx + 16, vy + vh - 18, (241, 196, 15, 255), 10, bold=True).draw()
 
     def _draw_showcase_preview(self, vx: float, vy: float, vw: float, vh: float) -> None:
         """Exibe miniatura da imagem projetada."""
@@ -296,17 +374,35 @@ class TacticalMiniMap:
     def handle_mouse_motion(self, x: float, y: float) -> bool:
         """
         Trata o movimento do mouse sobre o minimapa.
+        Se em modo de posicionamento de token (PLACING_TOKEN):
+          - Atualiza a célula sob o mouse para exibir prévia e snap-to-grid.
         Se a projeção de feitiço estiver ativa:
           - Converte as coordenadas da tela para coordenadas de mundo reais considerando offset e escala.
           - Atualiza origin_world no SpellTemplate.
           - Notifica os ouvintes (DMWindow e PlayerWindow) para redesenho reativo.
         """
         grid_mgr = self.combat_manager.grid_manager
+        draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
+
+        # 1. Modo de Posicionamento de Token
+        if self._is_placing_token:
+            if grid_mgr is not None and draw_w > 0 and draw_h > 0:
+                if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+                    cell_w = draw_w / grid_mgr.columns
+                    cell_h = draw_h / grid_mgr.rows
+                    col = int(math.floor((float(x) - draw_x) / cell_w))
+                    row = int(math.floor((float(y) - draw_y) / cell_h))
+                    if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
+                        self._hover_grid_cell = (col, row)
+                        return True
+            self._hover_grid_cell = None
+            return True
+
+        # 2. Projeção Tática de Magia
         tpl = self.combat_manager.active_spell_template
         if grid_mgr is None or tpl is None or not tpl.is_active:
             return False
 
-        draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
         if draw_w <= 0 or draw_h <= 0 or grid_mgr.map_width <= 0:
             return False
 
@@ -350,10 +446,20 @@ class TacticalMiniMap:
 
     def handle_mouse_leave(self) -> None:
         """Desativa a visibilidade temporária da projeção quando o mouse sai dos limites do minimapa."""
+        if self._is_placing_token:
+            self._hover_grid_cell = None
         self.combat_manager.set_spell_visibility(False)
 
-    def handle_mouse_press(self, x: float, y: float, split_x: float, h: float, on_select_combatant: Optional[Callable[[str], None]] = None) -> bool:
-        """Inicia edição de névoa de guerra ou drag & drop de token sob o cursor do mouse."""
+    def handle_mouse_press(
+        self,
+        x: float,
+        y: float,
+        split_x: float,
+        h: float,
+        button: int = arcade.MOUSE_BUTTON_LEFT,
+        on_select_combatant: Optional[Callable[[str], None]] = None,
+    ) -> bool:
+        """Inicia posicionamento de token, edição de névoa ou drag & drop de token."""
         grid_mgr = self.combat_manager.grid_manager
         if grid_mgr is None:
             return False
@@ -364,6 +470,41 @@ class TacticalMiniMap:
 
         cell_w = draw_w / grid_mgr.columns
         cell_h = draw_h / grid_mgr.rows
+
+        # Prioridade 0: Modo de Posicionamento de Token Ativo (PLACING_TOKEN)
+        if self._is_placing_token:
+            # Botão Direito cancela o modo de posicionamento
+            if button == arcade.MOUSE_BUTTON_RIGHT or button == 4:
+                self.cancel_placing_token()
+                return True
+
+            if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
+                local_x = float(x) - draw_x
+                local_y = float(y) - draw_y
+                col = int(math.floor(local_x / cell_w))
+                row = int(math.floor(local_y / cell_h))
+
+                if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
+                    if self.combat_manager.is_walkable(col, row):
+                        t_data = self._placing_token_data or {}
+                        etype = t_data.get("entity_type", EntityType.NEUTRAL)
+                        token_entity = DynamicToken(
+                            name=t_data.get("name", "Token"),
+                            max_hp=int(t_data.get("max_hp", 1)),
+                            armor_class=int(t_data.get("armor_class", 10)),
+                            entity_type=etype,
+                            token_sprite=t_data.get("token_sprite"),
+                        )
+                        slot = t_data.get("initiative_slot", "next")
+                        self.combat_manager.spawn_combatant(token_entity, (col, row), initiative_slot=slot)
+                        if self._on_token_spawn_callback:
+                            self._on_token_spawn_callback(token_entity, (col, row), slot)
+                        self.cancel_placing_token()
+                        return True
+                    else:
+                        logger.warning(f"Célula ({col}, {row}) está bloqueada para posicionamento de token.")
+                        return True
+            return True
 
         # Prioridade 1: Ferramenta Manual de Névoa de Guerra ativa no painel do Mestre
         if self.fog_panel is not None and self.fog_panel.is_tool_active:

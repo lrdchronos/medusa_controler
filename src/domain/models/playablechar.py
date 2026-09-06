@@ -1,9 +1,9 @@
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 try:
-    from .entity import Entity
+    from .entity import Entity, EntityType
 except ImportError:
-    from entity import Entity
+    from entity import Entity, EntityType
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,8 @@ class PlayableCharacter(Entity):
         coins: Optional[Dict[str, int]] = None,
         active_features: Optional[List[str]] = None,
         equipment: Optional[List[Dict[str, Any]]] = None,
+        entity_type: Union[EntityType, str] = EntityType.PLAYER,
+        token_sprite: Optional[str] = None,
     ) -> None:
         super().__init__(
             name=name,
@@ -43,6 +45,8 @@ class PlayableCharacter(Entity):
             uid=uid,
             speed=speed,
             position=position,
+            entity_type=entity_type,
+            token_sprite=token_sprite,
         )
 
         self.__level: Optional[int] = None

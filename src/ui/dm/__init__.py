@@ -6,6 +6,7 @@ from .encounter_creator_tab import EncounterCreatorTabView, EncounterBuilderView
 from .encounter_builder_view import EncounterBuilderView
 from .tactical_minimap import TacticalMiniMap
 from .initiative_modal import InitiativeStagingModal
+from .add_token_modal import AddTokenModal
 from .fog_control_panel import FogControlPanel, FogTool, BrushMode
 
 __all__ = [
@@ -17,9 +18,11 @@ __all__ = [
     "EncounterBuilderView",
     "TacticalMiniMap",
     "InitiativeStagingModal",
+    "AddTokenModal",
     "FogControlPanel",
     "FogTool",
     "BrushMode",
 ]
+
 
 

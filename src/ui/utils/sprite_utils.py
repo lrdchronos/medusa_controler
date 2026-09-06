@@ -241,11 +241,17 @@ class SpriteFactory:
         cls,
         name: str,
         is_player: bool = False,
+        entity_type: Optional[Any] = None,
         base_size: int = 64,
     ) -> arcade.Texture:
         """Gera ou recupera do cache uma textura procedural de token tático circular Dark Fantasy."""
         short_name = name.strip()[:4].upper()
-        cache_key = f"{short_name}_{'PC' if is_player else 'MON'}_{base_size}"
+        if entity_type is not None:
+            etype_str = str(entity_type.value if hasattr(entity_type, "value") else entity_type).lower()
+        else:
+            etype_str = "player" if is_player else "monster"
+
+        cache_key = f"{short_name}_{etype_str.upper()}_{base_size}"
 
         if cache_key in cls._token_texture_cache:
             return cls._token_texture_cache[cache_key]
@@ -253,8 +259,13 @@ class SpriteFactory:
         img = PIL.Image.new("RGBA", (base_size, base_size), (0, 0, 0, 0))
         draw = PIL.ImageDraw.Draw(img)
 
-        # Paleta: Jogador (Azul Escuro / Ciano / Dourado) vs Monstro (Carmim / Vermelho Sangue)
-        if is_player:
+        # Paleta: Jogador (Azul), Neutro/Magia (Dourado/Âmbar) vs Monstro (Carmim)
+        if etype_str == "neutral":
+            fill_color = (75, 55, 15, 255)
+            border_color = (241, 196, 15, 255)
+            inner_border = (255, 235, 59, 200)
+            text_color = (255, 255, 255, 255)
+        elif etype_str == "player" or is_player:
             fill_color = (25, 42, 86, 255)
             border_color = (74, 189, 255, 255)
             inner_border = (241, 196, 15, 200)
@@ -300,12 +311,13 @@ class SpriteFactory:
     def create_entity_token_sprite(
         cls,
         name: str,
-        is_player: bool,
+        is_player: bool = False,
         x: float = 0.0,
         y: float = 0.0,
         target_size: float = 64.0,
         is_hidden: bool = False,
         asset_path: Optional[str] = None,
+        entity_type: Optional[Any] = None,
     ) -> arcade.Sprite:
         """
         Cria um Sprite de Token de entidade pronto para o Grid Tático,
@@ -320,7 +332,12 @@ class SpriteFactory:
             )
         else:
             base_size = 64
-            tex = cls.get_procedural_token_texture(name=name, is_player=is_player, base_size=base_size)
+            tex = cls.get_procedural_token_texture(
+                name=name,
+                is_player=is_player,
+                entity_type=entity_type,
+                base_size=base_size,
+            )
             sprite = arcade.Sprite()
             sprite.texture = tex
             sprite.textures = [tex]
@@ -338,36 +355,46 @@ class SpriteFactory:
     def draw_tactical_token(
         cls,
         name: str,
-        is_player: bool,
-        x: float,
-        y: float,
-        radius: float,
+        is_player: bool = False,
+        x: float = 0.0,
+        y: float = 0.0,
+        radius: float = 16.0,
         is_alive: bool = True,
         is_hidden: bool = False,
         is_selected: bool = False,
         is_active: bool = False,
         text_cache: Optional[Dict[str, arcade.Text]] = None,
         token_key: Optional[str] = None,
+        entity_type: Optional[Any] = None,
     ) -> None:
         """
-        Renderiza diretamente um token circular Dark Fantasy com as iniciais do personagem/monstro,
+        Renderiza diretamente um token circular Dark Fantasy com as iniciais do personagem/monstro/efeito,
         estilizado identicamente aos badges da fita de iniciativa (InitiativeHUD).
         """
         alpha = 128 if is_hidden else 255
         alpha_ratio = alpha / 255.0
+
+        if entity_type is not None:
+            etype_str = str(entity_type.value if hasattr(entity_type, "value") else entity_type).lower()
+        else:
+            etype_str = "player" if is_player else "monster"
 
         # Cores conforme estado e tipo
         if not is_alive:
             fill_color = (55, 60, 68, alpha)
             border_color = (120, 120, 130, alpha)
             text_color = (180, 180, 180, alpha)
-        elif is_player:
-            fill_color = (25, 118, 210, alpha)    # Azul Vibrante
-            border_color = (100, 200, 255, alpha) # Ciano
+        elif etype_str == "neutral":
+            fill_color = (243, 156, 18, int(60 * alpha_ratio))   # Amarelo translúcido suave
+            border_color = (241, 196, 15, alpha)                 # Dourado / Âmbar radiante
+            text_color = (255, 255, 255, alpha)
+        elif etype_str == "player" or is_player:
+            fill_color = (25, 118, 210, alpha)                   # Azul Vibrante
+            border_color = (100, 200, 255, alpha)                # Ciano
             text_color = (255, 255, 255, alpha)
         else:
-            fill_color = (183, 28, 28, alpha)     # Vermelho Carmim
-            border_color = (255, 138, 128, alpha) # Coral
+            fill_color = (183, 28, 28, alpha)                    # Vermelho Carmim
+            border_color = (255, 138, 128, alpha)                # Coral
             text_color = (255, 255, 255, alpha)
 
         # 1. Sombra suave sob o token
@@ -390,7 +417,7 @@ class SpriteFactory:
         border_width = 3 if (is_selected or is_active) else 2
         arcade.draw_circle_outline(x, y, radius, border_color, border_width)
 
-        # 6. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, CULT)
+        # 6. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, ARMA)
         short_name = name.strip()[:4].upper()
         font_size = max(7, int(radius * 0.44))
 
@@ -456,16 +483,18 @@ class CombatToken(arcade.Sprite):
         self,
         uid: str,
         name: str,
-        is_player: bool,
+        is_player: bool = False,
         target_x: float = 0.0,
         target_y: float = 0.0,
         lerp_speed: float = 10.0,
+        entity_type: Optional[Any] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.uid: str = uid
         self.name: str = name
         self.is_player: bool = is_player
+        self.entity_type: Optional[Any] = entity_type
         self.target_x: float = float(target_x)
         self.target_y: float = float(target_y)
         self.center_x: float = float(target_x)

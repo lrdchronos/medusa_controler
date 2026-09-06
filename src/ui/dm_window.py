@@ -54,7 +54,7 @@ class DMWindow(arcade.Window):
         self.header = DMHeader(session_manager=self.session_manager, dm_window=self)
         self.encounters_tab = EncountersTabView(session_manager=self.session_manager, dm_window=self)
         self.showcase_tab = ShowcaseTabView(session_manager=self.session_manager)
-        self.combat_tab = CombatTabView(session_manager=self.session_manager)
+        self.combat_tab = CombatTabView(session_manager=self.session_manager, dm_window=self)
         self.creator_tab = EncounterCreatorTabView(session_manager=self.session_manager, dm_window=self)
         self.mini_map = TacticalMiniMap(window=self, session_manager=self.session_manager, fog_panel=self.combat_tab.fog_panel)
         self.initiative_modal = InitiativeStagingModal(session_manager=self.session_manager)
@@ -305,6 +305,10 @@ class DMWindow(arcade.Window):
         if self.initiative_modal.is_open:
             self.initiative_modal.draw(w, h)
 
+        # 4. Modal Overlay de Criação e Inserção de Tokens (Mid-Combat Token Spawning)
+        if self.combat_tab.add_token_modal.is_open:
+            self.combat_tab.add_token_modal.draw(w, h)
+
     # --- Tratamento de Eventos de Mouse ---
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
@@ -319,6 +323,11 @@ class DMWindow(arcade.Window):
                 x, y, w, h,
                 on_confirmed_callback=lambda: setattr(self, "active_tab", 2)
             )
+            return
+
+        # 1.5 Se o modal de criação de token estiver ativo, direciona exclusivamente para ele
+        if self.combat_tab.add_token_modal.is_open:
+            self.combat_tab.add_token_modal.handle_click(x, y, w, h)
             return
 
         # 2. Cliques no Lado Esquerdo (Controles e Abas)
@@ -439,6 +448,17 @@ class DMWindow(arcade.Window):
         if symbol == arcade.key.F11:
             self.toggle_player_fullscreen()
             return
+
+        if symbol == arcade.key.ESCAPE:
+            if self.combat_tab.add_token_modal.is_open:
+                self.combat_tab.add_token_modal.close()
+                return
+            if self.mini_map.is_placing_token:
+                self.mini_map.cancel_placing_token()
+                return
+            if self.initiative_modal.is_open:
+                self.initiative_modal.close()
+                return
 
         if self.active_tab == 3:
             self.creator_tab.handle_key_press(symbol, modifiers)

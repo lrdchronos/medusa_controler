@@ -1,4 +1,4 @@
-from .entity import Entity
+from .entity import Entity, EntityType, DynamicToken
 from .playablechar import PlayableCharacter
 from .monster import Monster
 from .tile_map import TileProperties, TileMap, TileMapEngine, VALID_COVER_TYPES
@@ -7,6 +7,8 @@ from .fog_manager import FogManager
 
 __all__ = [
     "Entity",
+    "EntityType",
+    "DynamicToken",
     "PlayableCharacter",
     "Monster",
     "TileProperties",
@@ -17,4 +19,5 @@ __all__ = [
     "SpellTemplate",
     "FogManager",
 ]
+
 

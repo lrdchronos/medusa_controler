@@ -1,11 +1,24 @@
 from abc import ABC
-from typing import Dict, Any, List, Optional
+from enum import Enum
+from typing import Dict, Any, List, Optional, Union
 import uuid
+
+
+class EntityType(str, Enum):
+    """
+    Categorização do alinhamento tático e tipo da entidade no Medusa VTT:
+      - PLAYER: Personagem Jogador (PC/PJ) com moldura azul/ciano canônica.
+      - MONSTER: Criatura/Monstro/Inimigo com moldura carmim/vermelha canônica.
+      - NEUTRAL: Token neutro, feitiço duradouro, invocação ou objeto interativo com moldura âmbar/dourada.
+    """
+    PLAYER = "player"
+    MONSTER = "monster"
+    NEUTRAL = "neutral"
 
 
 class Entity(ABC):
     """
-    Classe base abstrata para todas as criaturas e personagens do Medusa VTT.
+    Classe base abstrata para todas as criaturas, personagens e tokens do Medusa VTT.
     Segue regras rigorosas de encapsulamento com atributos privados (__),
     acessos via @property com cópias defensivas e métodos de manipulação de estado.
     """
@@ -20,6 +33,8 @@ class Entity(ABC):
         speed: int = 30,
         position: Optional[Dict[str, int]] = None,
         is_hidden: bool = False,
+        entity_type: Union[EntityType, str] = EntityType.NEUTRAL,
+        token_sprite: Optional[str] = None,
     ) -> None:
         self.__uid: str = uid if uid is not None else str(uuid.uuid4())
         self.__name: str = name
@@ -32,6 +47,21 @@ class Entity(ABC):
         self.__is_hidden: bool = bool(is_hidden)
         self.__speed: int = speed
         self.__position: Dict[str, int] = position.copy() if position else {"x": 0, "y": 0}
+        self.__token_sprite: Optional[str] = str(token_sprite) if token_sprite else None
+
+        # Alinhamento tático / Tipo da entidade
+        if isinstance(entity_type, EntityType):
+            self.__entity_type: EntityType = entity_type
+        elif isinstance(entity_type, str):
+            val = entity_type.strip().lower()
+            if val in ("player", "pj", "pc"):
+                self.__entity_type = EntityType.PLAYER
+            elif val in ("monster", "npc", "mon"):
+                self.__entity_type = EntityType.MONSTER
+            else:
+                self.__entity_type = EntityType.NEUTRAL
+        else:
+            self.__entity_type = EntityType.NEUTRAL
 
         # Dicionário padrão de Atributos D&D 5E
         default_abilities: Dict[str, int] = {
@@ -63,6 +93,31 @@ class Entity(ABC):
     @property
     def name(self) -> str:
         return self.__name
+
+    @property
+    def entity_type(self) -> EntityType:
+        """Retorna o alinhamento tático / tipo da entidade (PLAYER, MONSTER, NEUTRAL)."""
+        return self.__entity_type
+
+    @property
+    def is_player(self) -> bool:
+        """Indica se a entidade pertence à categoria de Personagem Jogador."""
+        return self.__entity_type == EntityType.PLAYER
+
+    @property
+    def is_monster(self) -> bool:
+        """Indica se a entidade pertence à categoria de Monstro / Criatura."""
+        return self.__entity_type == EntityType.MONSTER
+
+    @property
+    def is_neutral(self) -> bool:
+        """Indica se a entidade pertence à categoria Neutra / Feitiço / Invocação / Objeto."""
+        return self.__entity_type == EntityType.NEUTRAL
+
+    @property
+    def token_sprite(self) -> Optional[str]:
+        """Caminho opcional do arquivo de textura de token personalizado."""
+        return self.__token_sprite
 
     @property
     def ability_scores(self) -> Dict[str, int]:
@@ -227,6 +282,23 @@ class Entity(ABC):
         if name and name.strip():
             self.__name = name.strip()
 
+    def set_entity_type(self, entity_type: Union[EntityType, str]) -> None:
+        """Define a categoria tática da entidade com validação defensiva."""
+        if isinstance(entity_type, EntityType):
+            self.__entity_type = entity_type
+        elif isinstance(entity_type, str):
+            val = entity_type.strip().lower()
+            if val in ("player", "pj", "pc"):
+                self.__entity_type = EntityType.PLAYER
+            elif val in ("monster", "npc", "mon"):
+                self.__entity_type = EntityType.MONSTER
+            else:
+                self.__entity_type = EntityType.NEUTRAL
+
+    def set_token_sprite(self, token_sprite: Optional[str]) -> None:
+        """Define o asset de textura do token."""
+        self.__token_sprite = str(token_sprite).strip() if token_sprite and str(token_sprite).strip() else None
+
     def set_current_hp(self, hp: int) -> None:
         self.__current_hp = max(0, min(self.__max_hp, hp))
         self.__is_alive = self.__current_hp > 0
@@ -332,6 +404,38 @@ class Entity(ABC):
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} name='{self.__name}' "
+            f"type='{self.__entity_type.value}' "
             f"hp={self.__current_hp}/{self.__max_hp} ac={self.__armor_class} "
             f"init={self.__initiative_score} alive={self.__is_alive}>"
+        )
+
+
+class DynamicToken(Entity):
+    """
+    Entidade leve / Token dinâmico criado em tempo de execução
+    (ex: feitiços duradouros, invocações mágicas, reforços de monstros ou plebeus).
+    """
+
+    def __init__(
+        self,
+        name: str,
+        max_hp: int = 1,
+        armor_class: int = 10,
+        entity_type: Union[EntityType, str] = EntityType.NEUTRAL,
+        token_sprite: Optional[str] = None,
+        uid: Optional[str] = None,
+        speed: int = 30,
+        position: Optional[Dict[str, int]] = None,
+        is_hidden: bool = False,
+    ) -> None:
+        super().__init__(
+            name=name,
+            max_hp=max_hp,
+            armor_class=armor_class,
+            uid=uid,
+            speed=speed,
+            position=position,
+            is_hidden=is_hidden,
+            entity_type=entity_type,
+            token_sprite=token_sprite,
         )

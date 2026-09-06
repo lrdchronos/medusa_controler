@@ -3,21 +3,23 @@ from typing import Optional, List, Dict, Any, Callable, Tuple
 import arcade
 from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
-from ...domain.models.entity import Entity
+from ...domain.models.entity import Entity, EntityType, DynamicToken
 from .spell_aoe_panel import SpellAoEPanel
 from .fog_control_panel import FogControlPanel
+from .add_token_modal import AddTokenModal
 
 logger = logging.getLogger(__name__)
 
 class CombatTabView:
     """
-    Componente da Aba de Combate Ativo (Barra de Ações de Turno, Painel de Feitiços AoE,
-    Painel de Névoa de Guerra, Roster de Combatentes, Despachante de Dano/Cura e Save State).
+    Componente da Aba de Combate Ativo (Barra de Ações de Turno, Inserção Dinâmica de Tokens,
+    Painel de Feitiços AoE, Painel de Névoa de Guerra, Roster de Combatentes, Despachante de Dano/Cura e Save State).
     """
 
-    def __init__(self, session_manager: SessionManager) -> None:
+    def __init__(self, session_manager: SessionManager, dm_window: Optional[Any] = None) -> None:
         self.session_manager = session_manager
         self.combat_manager = session_manager.combat_manager
+        self.dm_window = dm_window
         self.selected_combatant_uid: Optional[str] = None
         self.custom_hp_value: int = 8
         self.text_cache: Dict[str, arcade.Text] = {}
@@ -27,6 +29,7 @@ class CombatTabView:
             dimensions_provider=self._get_grid_dimensions,
             save_callback=self.combat_manager.save_fog_to_encounter_file,
         )
+        self.add_token_modal = AddTokenModal(on_confirm=self._handle_add_token_confirm)
 
         # Notificação Toast de Confirmação de Salvamento
         self.toast_message: Optional[str] = None
@@ -34,6 +37,34 @@ class CombatTabView:
 
         # Modal de Confirmação ao Finalizar Combate (Limpar ou Manter Save)
         self.pending_end_combat_modal: bool = False
+
+    def _handle_add_token_confirm(self, token_data: Dict[str, Any]) -> None:
+        """Aciona o modo PLACING_TOKEN no TacticalMiniMap após confirmação do modal."""
+        if self.dm_window is not None and hasattr(self.dm_window, "mini_map"):
+            self.dm_window.mini_map.start_placing_token(
+                token_data=token_data,
+                on_spawn=self._on_token_spawned,
+            )
+            logger.info(f"Modo de posicionamento ativado no TacticalMiniMap para '{token_data.get('name')}'.")
+        else:
+            # Fallback direto caso mini_map não esteja acessível
+            etype = token_data.get("entity_type", EntityType.NEUTRAL)
+            token_entity = DynamicToken(
+                name=token_data.get("name", "Token"),
+                max_hp=int(token_data.get("max_hp", 1)),
+                armor_class=int(token_data.get("armor_class", 10)),
+                entity_type=etype,
+                token_sprite=token_data.get("token_sprite"),
+            )
+            slot = token_data.get("initiative_slot", "next")
+            self.combat_manager.spawn_combatant(token_entity, (0, 0), initiative_slot=slot)
+            self.ensure_valid_selection()
+
+    def _on_token_spawned(self, entity: Entity, position: Tuple[int, int], slot: str) -> None:
+        """Callback invocado após inserção do token no mini-mapa."""
+        self.selected_combatant_uid = entity.uid
+        self.ensure_valid_selection()
+        logger.info(f"Token '{entity.name}' inserido e selecionado com sucesso em {position}.")
 
     def _get_grid_dimensions(self) -> Tuple[int, int]:
         """Retorna dimensões (colunas, linhas) da grade tática ativa."""
@@ -104,40 +135,46 @@ class CombatTabView:
         if self.toast_timer > 0:
             self.toast_timer -= 1/60 # Simplificação: assumindo 60fps
 
-        # 1. Barra de Ações Rápidas de Combate (5 Botões OOD)
+        # 1. Barra de Ações Rápidas de Combate (6 Botões OOD)
         bar_y = top_y - 20
-        btn_w = (panel_w - 40) / 5
+        btn_w = (panel_w - 44) / 6
         btn_h = 28
 
         # Botão 1: Rolar Iniciativas (Abre Modal de Staging)
         b1_x = 12 + 0 * (btn_w + 4) + btn_w / 2
         arcade.draw_rect_filled(arcade.XYWH(b1_x, bar_y, btn_w, btn_h), (142, 68, 173, 255))
         arcade.draw_rect_outline(arcade.XYWH(b1_x, bar_y, btn_w, btn_h), (155, 89, 182, 255), 1)
-        self._get_text("cm_b_init", "🎲 Inic", b1_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        self._get_text("cm_b_init", "🎲 Inic", b1_x, bar_y, (255, 255, 255, 255), 7.5, bold=True, anchor_x="center").draw()
 
-        # Botão 2: Turno Anterior
+        # Botão 2: Adicionar Token Dinâmico (Mid-Combat Spawn)
         b2_x = 12 + 1 * (btn_w + 4) + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b2_x, bar_y, btn_w, btn_h), (41, 128, 185, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b2_x, bar_y, btn_w, btn_h), (52, 152, 219, 255), 1)
-        self._get_text("cm_b_prev", "◀ Turno", b2_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b2_x, bar_y, btn_w, btn_h), (243, 156, 18, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b2_x, bar_y, btn_w, btn_h), (241, 196, 15, 255), 1)
+        self._get_text("cm_b_add_tkn", "➕ Token", b2_x, bar_y, (255, 255, 255, 255), 7.5, bold=True, anchor_x="center").draw()
 
-        # Botão 3: Próximo Turno
+        # Botão 3: Turno Anterior
         b3_x = 12 + 2 * (btn_w + 4) + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b3_x, bar_y, btn_w, btn_h), (39, 174, 96, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b3_x, bar_y, btn_w, btn_h), (46, 204, 113, 255), 1)
-        self._get_text("cm_b_next", "▶ Turno", b3_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b3_x, bar_y, btn_w, btn_h), (41, 128, 185, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b3_x, bar_y, btn_w, btn_h), (52, 152, 219, 255), 1)
+        self._get_text("cm_b_prev", "◀ Turno", b3_x, bar_y, (255, 255, 255, 255), 7.5, bold=True, anchor_x="center").draw()
 
-        # Botão 4: Pausar e Salvar Combate
+        # Botão 4: Próximo Turno
         b4_x = 12 + 3 * (btn_w + 4) + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b4_x, bar_y, btn_w, btn_h), (211, 84, 0, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b4_x, bar_y, btn_w, btn_h), (230, 126, 34, 255), 1)
-        self._get_text("cm_b_save", "💾 Salvar", b4_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b4_x, bar_y, btn_w, btn_h), (39, 174, 96, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b4_x, bar_y, btn_w, btn_h), (46, 204, 113, 255), 1)
+        self._get_text("cm_b_next", "▶ Turno", b4_x, bar_y, (255, 255, 255, 255), 7.5, bold=True, anchor_x="center").draw()
 
-        # Botão 5: Finalizar Combate
+        # Botão 5: Pausar e Salvar Combate
         b5_x = 12 + 4 * (btn_w + 4) + btn_w / 2
-        arcade.draw_rect_filled(arcade.XYWH(b5_x, bar_y, btn_w, btn_h), (192, 57, 43, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b5_x, bar_y, btn_w, btn_h), (231, 76, 60, 255), 1)
-        self._get_text("cm_b_end", "🏁 Sair", b5_x, bar_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b5_x, bar_y, btn_w, btn_h), (211, 84, 0, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b5_x, bar_y, btn_w, btn_h), (230, 126, 34, 255), 1)
+        self._get_text("cm_b_save", "💾 Salvar", b5_x, bar_y, (255, 255, 255, 255), 7.5, bold=True, anchor_x="center").draw()
+
+        # Botão 6: Finalizar Combate
+        b6_x = 12 + 5 * (btn_w + 4) + btn_w / 2
+        arcade.draw_rect_filled(arcade.XYWH(b6_x, bar_y, btn_w, btn_h), (192, 57, 43, 255))
+        arcade.draw_rect_outline(arcade.XYWH(b6_x, bar_y, btn_w, btn_h), (231, 76, 60, 255), 1)
+        self._get_text("cm_b_end", "🏁 Sair", b6_x, bar_y, (255, 255, 255, 255), 7.5, bold=True, anchor_x="center").draw()
 
         # 2. Informação de Rodada e Turno Ativo
         info_y = bar_y - 24
@@ -209,13 +246,26 @@ class CombatTabView:
             turn_color = (46, 204, 113, 255) if is_active else (140, 155, 175, 255)
             self._get_text(f"r_turn_{idx}", turn_mark, 28, cy, turn_color, 8, bold=True, anchor_x="center").draw()
 
-            # Name
-            name_color = (100, 200, 255, 255) if isinstance(combatant, PlayableCharacter) else (255, 138, 128, 255)
-            self._get_text(f"r_name_{idx}", combatant.name[:18], 55, cy, name_color, 8, bold=True).draw()
+            # Name & Type Logic (Player / Monster / Neutral)
+            etype = getattr(combatant, "entity_type", EntityType.PLAYER if isinstance(combatant, PlayableCharacter) else EntityType.MONSTER)
+            is_neu = getattr(combatant, "is_neutral", False) or etype == EntityType.NEUTRAL or str(etype).lower() == "neutral"
+            is_ply = getattr(combatant, "is_player", False) or isinstance(combatant, PlayableCharacter) or etype == EntityType.PLAYER or str(etype).lower() == "player"
 
-            # Type
-            type_str = "PJ" if isinstance(combatant, PlayableCharacter) else "NPC"
-            self._get_text(f"r_type_{idx}", type_str, 240, cy, (160, 175, 195, 255), 8, bold=False, anchor_x="center").draw()
+            if is_neu:
+                name_color = (241, 196, 15, 255)
+                type_str = "NEUTRO"
+                type_color = (241, 196, 15, 255)
+            elif is_ply:
+                name_color = (100, 200, 255, 255)
+                type_str = "PJ"
+                type_color = (100, 200, 255, 255)
+            else:
+                name_color = (255, 138, 128, 255)
+                type_str = "NPC"
+                type_color = (255, 138, 128, 255)
+
+            self._get_text(f"r_name_{idx}", combatant.name[:18], 55, cy, name_color, 8, bold=True).draw()
+            self._get_text(f"r_type_{idx}", type_str, 240, cy, type_color, 7.5, bold=False, anchor_x="center").draw()
 
             # HP
             hp_str = f"{combatant.current_hp}/{combatant.max_hp}"
@@ -378,6 +428,12 @@ class CombatTabView:
         open_initiative_modal_callback: Callable[[], None],
     ) -> bool:
         """Processa cliques na aba de combate ativo."""
+        # 0. Interceptação Modal de Criação e Inserção de Token (AddTokenModal)
+        if self.add_token_modal.is_open:
+            win_w = self.dm_window.width if self.dm_window is not None else panel_w
+            win_h = self.dm_window.height if self.dm_window is not None else top_y
+            return self.add_token_modal.handle_click(x, y, win_w, win_h)
+
         # Interceptação Modal de Encerramento com Save
         if self.pending_end_combat_modal:
             modal_w = min(panel_w - 24, 460.0)
@@ -419,9 +475,9 @@ class CombatTabView:
 
             return True
 
-        # 1. Barra de Ações Rápidas de Combate (5 Botões OOD)
+        # 1. Barra de Ações Rápidas de Combate (6 Botões OOD)
         bar_y = top_y - 20
-        btn_w = (panel_w - 40) / 5
+        btn_w = (panel_w - 44) / 6
         btn_h = 28
 
         if abs(y - bar_y) <= btn_h / 2:
@@ -431,27 +487,33 @@ class CombatTabView:
                 open_initiative_modal_callback()
                 return True
 
-            # Botão 2: Turno Anterior
+            # Botão 2: Adicionar Token Dinâmico
             b2_x = 12 + 1 * (btn_w + 4) + btn_w / 2
             if abs(x - b2_x) <= btn_w / 2:
+                self.add_token_modal.open()
+                return True
+
+            # Botão 3: Turno Anterior
+            b3_x = 12 + 2 * (btn_w + 4) + btn_w / 2
+            if abs(x - b3_x) <= btn_w / 2:
                 self.combat_manager.previous_turn()
                 return True
 
-            # Botão 3: Próximo Turno
-            b3_x = 12 + 2 * (btn_w + 4) + btn_w / 2
-            if abs(x - b3_x) <= btn_w / 2:
+            # Botão 4: Próximo Turno
+            b4_x = 12 + 3 * (btn_w + 4) + btn_w / 2
+            if abs(x - b4_x) <= btn_w / 2:
                 self.combat_manager.next_turn()
                 return True
 
-            # Botão 4: Pausar e Salvar Combate
-            b4_x = 12 + 3 * (btn_w + 4) + btn_w / 2
-            if abs(x - b4_x) <= btn_w / 2:
+            # Botão 5: Pausar e Salvar Combate
+            b5_x = 12 + 4 * (btn_w + 4) + btn_w / 2
+            if abs(x - b5_x) <= btn_w / 2:
                 self.trigger_save_combat()
                 return True
 
-            # Botão 5: Finalizar Combate
-            b5_x = 12 + 4 * (btn_w + 4) + btn_w / 2
-            if abs(x - b5_x) <= btn_w / 2:
+            # Botão 6: Finalizar Combate
+            b6_x = 12 + 5 * (btn_w + 4) + btn_w / 2
+            if abs(x - b6_x) <= btn_w / 2:
                 if self.combat_manager.has_save_state():
                     self.pending_end_combat_modal = True
                     logger.info("Save detectado ao finalizar combate. Abrindo modal de confirmação.")
@@ -560,19 +622,27 @@ class CombatTabView:
         self.spell_aoe_panel.handle_mouse_release(x, y, button, modifiers)
 
     def handle_key_press(self, symbol: int, modifiers: int = 0) -> bool:
-        """Repassa teclas para os inputs do painel de magias."""
+        """Repassa teclas para os inputs do modal de token ou painel de magias."""
+        if self.add_token_modal.is_open:
+            if self.add_token_modal.handle_key_press(symbol, modifiers):
+                return True
         return self.spell_aoe_panel.handle_key_press(symbol, modifiers)
 
     def handle_key_release(self, symbol: int, modifiers: int = 0) -> None:
-        """Repassa liberação de teclas para o painel de magias."""
+        """Repassa liberação de teclas para o modal de token ou painel de magias."""
+        if self.add_token_modal.is_open:
+            self.add_token_modal.handle_key_release(symbol, modifiers)
         self.spell_aoe_panel.handle_key_release(symbol, modifiers)
 
     def handle_text_input(self, text: str) -> bool:
-        """Repassa texto digitado para os inputs do painel de magias."""
+        """Repassa texto digitado para os inputs do modal de token ou painel de magias."""
+        if self.add_token_modal.is_open:
+            if self.add_token_modal.handle_text_input(text):
+                return True
         return self.spell_aoe_panel.handle_text_input(text)
 
     def on_update(self, dt: float) -> None:
-        """Atualiza animações e inputs do painel de feitiços, névoa e toast de salvamento."""
+        """Atualiza animações e inputs do painel de feitiços, névoa, modal de token e toast de salvamento."""
         if self.toast_timer > 0:
             self.toast_timer = max(0.0, self.toast_timer - dt)
             if self.toast_timer == 0:
@@ -581,4 +651,5 @@ class CombatTabView:
         self.spell_aoe_panel.on_update(dt)
         self.fog_panel.fog_manager = self.combat_manager.fog_manager
         self.fog_panel.on_update(dt)
+        self.add_token_modal.on_update(dt)
 

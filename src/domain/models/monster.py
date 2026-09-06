@@ -1,8 +1,8 @@
 from typing import Dict, Any, List, Optional, Union
 try:
-    from .entity import Entity
+    from .entity import Entity, EntityType
 except ImportError:
-    from entity import Entity
+    from entity import Entity, EntityType
 
 
 class Monster(Entity):
@@ -30,6 +30,8 @@ class Monster(Entity):
         sub_type: str = "Any",
         alignment: str = "neutral",
         preset_id: Optional[str] = None,
+        entity_type: Union[EntityType, str] = EntityType.MONSTER,
+        token_sprite: Optional[str] = None,
     ) -> None:
         super().__init__(
             name=name,
@@ -39,6 +41,8 @@ class Monster(Entity):
             uid=uid,
             speed=speed,
             position=position,
+            entity_type=entity_type,
+            token_sprite=token_sprite,
         )
 
         self.__challenge_rating: float = float(challenge_rating)

@@ -1,10 +1,11 @@
+import os
 import logging
 import json
 import random
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Callable, Tuple
-from ..domain.models.entity import Entity
+from ..domain.models.entity import Entity, EntityType, DynamicToken
 from ..domain.models.tile_map import TileMap
 from ..domain.models.spell_template import SpellTemplate, SpellShape
 from ..domain.models.fog_manager import FogManager
@@ -403,6 +404,49 @@ class CombatManager:
                 self.__turn_order.append(combatant)
             self.notify_listeners()
 
+    def spawn_combatant(
+        self,
+        entity: Entity,
+        position: Tuple[int, int],
+        initiative_slot: str = "next",
+    ) -> None:
+        """
+        Registra um novo combatente em tempo de execução, define sua posição
+        no grid e insere seu UID na ordem de iniciativa corrente.
+        Suporta inserção dinâmica no slot 'next' (logo após o turno ativo) ou 'end' (final da rodada).
+        """
+        entity.set_position(position[0], position[1])
+        if entity not in self.__combatants:
+            self.__combatants.append(entity)
+
+        if self.has_combat_started and self.__turn_order:
+            if entity in self.__turn_order:
+                old_idx = self.__turn_order.index(entity)
+                self.__turn_order.pop(old_idx)
+                if old_idx < self.__current_turn_index:
+                    self.__current_turn_index -= 1
+
+            if initiative_slot == "next":
+                target_idx = self.__current_turn_index + 1
+                if target_idx > len(self.__turn_order):
+                    target_idx = len(self.__turn_order)
+                self.__turn_order.insert(target_idx, entity)
+            else:  # "end"
+                self.__turn_order.append(entity)
+        else:
+            if entity not in self.__turn_order:
+                if initiative_slot == "next" and self.__turn_order:
+                    self.__turn_order.insert(0, entity)
+                else:
+                    self.__turn_order.append(entity)
+
+        etype_val = entity.entity_type.value if hasattr(entity, "entity_type") else "unknown"
+        logger.info(
+            f"Novo combatente spawnado no combate: '{entity.name}' (Tipo: {etype_val}) "
+            f"na posição ({position[0]}, {position[1]}), slot de iniciativa: '{initiative_slot}'."
+        )
+        self.notify_listeners()
+
     def get_combatant(self, uid_or_name: str) -> Optional[Entity]:
         """Busca um combatente por UID ou Nome."""
         for c in self.__combatants:
@@ -690,11 +734,16 @@ class CombatManager:
             turn_order_uids = [c.uid for c in self.__turn_order]
             combatants_state = []
             for c in self.__combatants:
+                etype_str = c.entity_type.value if hasattr(c, "entity_type") else ("player" if getattr(c, "is_player", False) else "monster")
                 combatants_state.append({
                     "uid": c.uid,
                     "name": c.name,
                     "is_alive": c.is_alive,
                     "current_hp": c.current_hp,
+                    "max_hp": c.max_hp,
+                    "armor_class": c.armor_class,
+                    "entity_type": etype_str,
+                    "token_sprite": getattr(c, "token_sprite", None),
                     "conditions": c.conditions,
                     "position": c.position,
                     "hidden": c.is_hidden,
@@ -723,19 +772,28 @@ class CombatManager:
             logger.error(f"Erro ao salvar estado de combate do encontro '{target_uid}': {e}")
             return False
 
-    def load_combat_state(self, encounter_uid: str) -> bool:
+    def load_combat_state(self, encounter_uid: Optional[str] = None) -> bool:
         """
         Restaura uma sessão de combate salva a partir de creations/encounters/saves/{encounter_uid}_save.json:
         - Reconstrói a rodada, o combatente ativo e a fita de turnos na ordem exata salva.
         - Atualiza as instâncias de entidades com o current_hp, condições, posições (x, y) e visibilidade gravadas.
+        - Recria dinamicamente tokens inseridos no meio do combate (Mid-Combat Token Spawning).
         - Sincroniza o FogManager com o array 'fog_of_war' do save.
         - Notifica a PlayerWindow e a DMWindow via Padrão Observer para renderização imediata.
         """
-        if not encounter_uid:
-            logger.warning("UID do encontro não fornecido para carregar estado de combate.")
-            return False
+        target_uid = encounter_uid or self.__encounter_uid
+        if not target_uid:
+            # Se não houver UID definido, tenta encontrar o save mais recente na pasta de saves
+            saves_dir = Path("creations/encounters/saves")
+            if saves_dir.is_dir():
+                save_files = sorted(saves_dir.glob("*_save.json"), key=os.path.getmtime, reverse=True)
+                if save_files:
+                    target_uid = save_files[0].stem.replace("_save", "")
+            if not target_uid:
+                logger.warning("UID do encontro não fornecido e nenhum save encontrado para carregar estado de combate.")
+                return False
 
-        save_path = self.get_save_path(encounter_uid)
+        save_path = self.get_save_path(target_uid)
         if not save_path.is_file():
             logger.error(f"Arquivo de save de combate '{save_path}' não foi encontrado.")
             return False
@@ -768,11 +826,30 @@ class CombatManager:
                     c = existing_by_name[name.lower()]
                     if uid:
                         c.set_uid(uid)
+                else:
+                    # Entidade dinâmica spawnada no meio do combate (Mid-Combat Token Spawn)
+                    etype_val = c_state.get("entity_type", "neutral")
+                    max_hp_val = int(c_state.get("max_hp", 1))
+                    ac_val = int(c_state.get("armor_class", 10))
+                    token_sprite_val = c_state.get("token_sprite")
+                    c = DynamicToken(
+                        name=name or "Token",
+                        max_hp=max_hp_val,
+                        armor_class=ac_val,
+                        uid=uid,
+                        entity_type=etype_val,
+                        token_sprite=token_sprite_val,
+                    )
+                    self.__combatants.append(c)
+                    if uid:
+                        existing_by_uid[uid] = c
 
                 if c is not None:
                     combatants_by_uid[c.uid] = c
 
                     # HP e Vitalidade
+                    if "max_hp" in c_state:
+                        c.set_max_hp(int(c_state["max_hp"]))
                     if "current_hp" in c_state:
                         hp = int(c_state["current_hp"])
                         c.set_current_hp(hp)

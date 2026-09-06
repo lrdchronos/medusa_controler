@@ -143,13 +143,18 @@ class InitiativeHUD:
             is_active = (combatant == active_combatant)
 
             # 2. Definição do Tipo e Paleta de Cores
-            is_player = isinstance(combatant, PlayableCharacter)
+            is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
+            is_neutral = getattr(combatant, "is_neutral", False)
             is_alive = combatant.is_alive
 
             if not is_alive:
                 fill_color = (55, 60, 68, 230)
                 border_color = (120, 120, 130, 255)
                 text_color = (180, 180, 180, 255)
+            elif is_neutral:
+                fill_color = (212, 143, 16, 230)   # Âmbar / Dourado Místico
+                border_color = (241, 196, 15, 255) # Dourado Brilhante
+                text_color = (255, 255, 255, 255)
             elif is_player:
                 fill_color = (25, 118, 210, 240)  # Azul Vibrante
                 border_color = (100, 200, 255, 255)
@@ -196,11 +201,11 @@ class InitiativeHUD:
             arcade.draw_circle_outline(cx, cy, radius, border_color, border_width)
 
             # Contorno de Vitalidade Semântica para Monstros
-            if not is_player and is_alive:
+            if not is_player and not is_neutral and is_alive:
                 vit_col = combatant.vitality_color
                 arcade.draw_circle_outline(cx, cy, radius - 3, vit_col, 1.5)
 
-            # 5. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, CULT)
+            # 5. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, ARMA)
             short_name = combatant.name.strip()[:4].upper()
             txt_obj = self._get_text(
                 f"token_txt_{combatant.uid}_{actual_idx}",
@@ -214,7 +219,7 @@ class InitiativeHUD:
             txt_obj.draw()
 
             # 6. Indicador Semântico de Vida (Health Pip / Badge) no canto inferior direito para Monstros
-            if not is_player:
+            if not is_player and not is_neutral:
                 pip_x = cx + radius * 0.68
                 pip_y = cy - radius * 0.68
                 pip_r = 6.5
