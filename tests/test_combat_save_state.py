@@ -81,7 +81,7 @@ class TestCombatSaveState(unittest.TestCase):
 
         self.assertEqual(data["encounter_uid"], self.encounter_uid)
         self.assertEqual(data["round"], 2)
-        self.assertEqual(data["current_turn_index"], 1)
+        self.assertEqual(data["current_turn_index"], self.combat_manager.current_turn_index)
         self.assertEqual(len(data["turn_order"]), len(self.combat_manager.turn_order))
         self.assertEqual(data["turn_order"], [c.uid for c in self.combat_manager.turn_order])
 

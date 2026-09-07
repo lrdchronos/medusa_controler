@@ -415,19 +415,44 @@ class CombatManager:
 
     def next_turn(self) -> Optional[Entity]:
         """
-        Avança para o próximo participante na fila de iniciativa de forma circular.
-        Ao completar uma volta completa, incrementa o número da rodada.
+        Avança para o próximo participante válido (vivo com HP > 0) na fila de iniciativa de forma circular.
+        Ao completar uma volta completa (índice 0), incrementa o número da rodada.
+        Pula automaticamente combatentes mortos/incapacitados sem travamentos.
         """
         if not self.__turn_order:
             return None
 
+        has_alive = any(c.is_alive and c.current_hp > 0 for c in self.__turn_order)
+        if not has_alive:
+            logger.info("Todos os combatentes estão mortos/incapacitados. Não há participantes válidos para avançar o turno.")
+            self.notify_listeners()
+            return None
+
+        num_combatants = len(self.__turn_order)
+
         if self.__current_turn_index < 0:
-            self.__current_turn_index = 0
+            found_idx = -1
+            for i, c in enumerate(self.__turn_order):
+                if c.is_alive and c.current_hp > 0:
+                    found_idx = i
+                    break
+            self.__current_turn_index = found_idx if found_idx >= 0 else 0
             self.__round_number = 1
         else:
-            self.__current_turn_index = (self.__current_turn_index + 1) % len(self.__turn_order)
-            if self.__current_turn_index == 0:
-                self.__round_number += 1
+            count = 0
+            while count < num_combatants:
+                self.__current_turn_index = (self.__current_turn_index + 1) % num_combatants
+                if self.__current_turn_index == 0:
+                    self.__round_number += 1
+                candidate = self.__turn_order[self.__current_turn_index]
+                if candidate.is_alive and candidate.current_hp > 0:
+                    break
+                count += 1
+
+            if count >= num_combatants:
+                logger.info("Todos os combatentes estão mortos/incapacitados. Turno não avançado.")
+                self.notify_listeners()
+                return None
 
         active_name = self.active_character.name if self.active_character else "Nenhum"
         logger.info(f"Passar Turno: combatente ativo '{active_name}' (Rodada {self.__round_number}).")
@@ -435,16 +460,29 @@ class CombatManager:
         return self.active_character
 
     def previous_turn(self) -> Optional[Entity]:
-        """Retrocede para o participante anterior na fila de iniciativas."""
+        """Retrocede para o participante anterior válido (vivo com HP > 0) na fila de iniciativas."""
         if not self.__turn_order:
             return None
 
-        if self.__current_turn_index <= 0:
-            self.__current_turn_index = len(self.__turn_order) - 1
-            if self.__round_number > 1:
-                self.__round_number -= 1
-        else:
-            self.__current_turn_index -= 1
+        has_alive = any(c.is_alive and c.current_hp > 0 for c in self.__turn_order)
+        if not has_alive:
+            logger.info("Todos os combatentes estão mortos/incapacitados. Turno não retrocedido.")
+            self.notify_listeners()
+            return None
+
+        num_combatants = len(self.__turn_order)
+        count = 0
+        while count < num_combatants:
+            if self.__current_turn_index <= 0:
+                self.__current_turn_index = num_combatants - 1
+                if self.__round_number > 1:
+                    self.__round_number -= 1
+            else:
+                self.__current_turn_index -= 1
+            candidate = self.__turn_order[self.__current_turn_index]
+            if candidate.is_alive and candidate.current_hp > 0:
+                break
+            count += 1
 
         active_name = self.active_character.name if self.active_character else "Nenhum"
         logger.info(f"Retroceder Turno: combatente ativo '{active_name}' (Rodada {self.__round_number}).")

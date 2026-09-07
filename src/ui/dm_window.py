@@ -419,6 +419,9 @@ class DMWindow(arcade.Window):
         if self.active_tab == 0 and x < split_x:
             if self.encounters_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y):
                 return
+        elif self.active_tab == 2 and x < split_x:
+            if self.combat_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y):
+                return
         elif self.active_tab == 3:
             self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)
         elif x >= split_x and self.session_manager.is_combat_active:

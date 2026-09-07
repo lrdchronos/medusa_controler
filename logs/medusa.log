@@ -3874,3 +3874,553 @@
 [2026-09-06 13:01:41,426] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
 [2026-09-06 13:01:41,427] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
 [2026-09-06 13:01:41,524] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-06 13:34:32,942] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-06 13:34:32,943] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-06 13:34:33,422] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-06 13:34:33,513] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-06 13:34:33,515] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-06 13:34:33,515] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-06 13:34:33,515] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-06 13:34:33,517] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-06 13:34:35,199] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 13:34:35,203] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 13:34:35,206] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 13:34:35,208] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 13:34:35,209] [INFO] [src.ui.player_window]: PlayerWindow colocada em tela cheia.
+[2026-09-06 13:56:59,346] [INFO] [src.manager.session_manager]: Projetando imagem: 'map_mounains.png' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\map_mounains.png)
+[2026-09-06 13:57:03,972] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 13:57:03,972] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Encontro' ().
+[2026-09-06 13:57:03,973] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 13:59:39,667] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_01
+[2026-09-06 13:59:39,670] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 13:59:39,671] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada em Túnel (Encontro 01)' (encounter_01) [tipo=image] com 5 combatentes (0 ocultos) e 0 células de névoa.
+[2026-09-06 13:59:46,287] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 13:59:47,719] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-06 13:59:54,518] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=1.0ft width=5.0ft active=True rot=322.0°.
+[2026-09-06 13:59:54,655] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=10.0ft width=5.0ft active=True rot=322.0°.
+[2026-09-06 13:59:58,059] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=10.0ft width=5.0ft active=True rot=322.0°.
+[2026-09-06 13:59:59,456] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=1.0ft width=5.0ft active=True rot=322.0°.
+[2026-09-06 13:59:59,888] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=12.0ft width=5.0ft active=True rot=322.0°.
+[2026-09-06 14:00:00,039] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=322.0°.
+[2026-09-06 14:00:07,360] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=False rot=1.0°.
+[2026-09-06 14:00:34,548] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 14:00:34,548] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada em Túnel (Encontro 01)' (encounter_01).
+[2026-09-06 14:00:34,548] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 14:12:24,444] [INFO] [src.manager.session_manager]: Projetando imagem: 'greenest.webp' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\greenest.webp)
+[2026-09-06 14:32:01,622] [INFO] [src.manager.session_manager]: Projetando imagem: 'greenest keep.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\greenest keep.jpg)
+[2026-09-06 14:36:18,263] [INFO] [src.manager.session_manager]: Projetando imagem: 'greenest.webp' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\greenest.webp)
+[2026-09-06 14:49:22,488] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 14:49:22,488] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Encontro' ().
+[2026-09-06 14:49:22,490] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 14:49:57,191] [INFO] [src.manager.session_manager]: Projetando imagem: 'The Sword Coast.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\The Sword Coast.jpg)
+[2026-09-06 14:50:34,483] [INFO] [src.manager.session_manager]: Projetando imagem: 'The Sword Coast.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\The Sword Coast.jpg)
+[2026-09-06 14:58:15,061] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-06 14:58:15,068] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 14:58:15,070] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 14:58:15,071] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes (0 ocultos) e 0 células de névoa.
+[2026-09-06 14:58:15,096] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-06 14:58:15,107] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 14:58:15,300] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 15:03:59,742] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=6.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 15:03:59,829] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 15:04:01,126] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-06 15:04:21,437] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:05:22,223] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 1).
+[2026-09-06 15:05:23,247] [INFO] [src.manager.combat_manager]: Retroceder Turno: combatente ativo 'Kobold 8' (Rodada 1).
+[2026-09-06 15:05:24,461] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 2).
+[2026-09-06 15:05:27,207] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 2).
+[2026-09-06 15:05:29,698] [INFO] [src.manager.combat_manager]: Retroceder Turno: combatente ativo 'Kaz' (Rodada 2).
+[2026-09-06 15:06:16,503] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (20, 5) para (5, 10).
+[2026-09-06 15:06:18,839] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (5, 10) para (5, 9).
+[2026-09-06 15:06:25,375] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (20, 3) para (7, 9).
+[2026-09-06 15:06:26,435] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (5, 9) para (6, 9).
+[2026-09-06 15:06:33,208] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (20, 6) para (7, 2).
+[2026-09-06 15:06:37,116] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (20, 4) para (6, 0).
+[2026-09-06 15:10:48,807] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 2' movido de (1, 2) para (1, 2).
+[2026-09-06 15:11:08,881] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Kobold 2 (HP: 0/5)
+[2026-09-06 15:11:39,713] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 1' movido de (0, 2) para (0, 2).
+[2026-09-06 15:11:42,438] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Kobold 1 (HP: 0/5)
+[2026-09-06 15:11:54,339] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 3' movido de (2, 2) para (2, 2).
+[2026-09-06 15:11:56,600] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Kobold 3 (HP: 0/5)
+[2026-09-06 15:11:58,307] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 8' movido de (1, 1) para (1, 1).
+[2026-09-06 15:11:59,131] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Kobold 8 (HP: 0/5)
+[2026-09-06 15:13:46,559] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 7' movido de (2, 1) para (2, 1).
+[2026-09-06 15:13:47,693] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Kobold 7 (HP: 4/5)
+[2026-09-06 15:13:47,816] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Kobold 7 (HP: 3/5)
+[2026-09-06 15:16:09,440] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=60.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:16:11,296] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=6.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:16:11,409] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=6.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:16:12,335] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=1.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:16:12,394] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:16:15,613] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=True rot=181.0°.
+[2026-09-06 15:16:38,534] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=False rot=241.0°.
+[2026-09-06 15:16:40,196] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (6, 9) para (6, 8).
+[2026-09-06 15:16:41,808] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=True rot=241.0°.
+[2026-09-06 15:16:48,078] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=False rot=241.0°.
+[2026-09-06 15:18:40,012] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (4, 6) para (4, 6).
+[2026-09-06 15:19:00,005] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Cultista 1 (HP: 0/9)
+[2026-09-06 15:19:01,645] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (5, 6) para (5, 6).
+[2026-09-06 15:19:03,565] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Cultista 2 (HP: 0/9)
+[2026-09-06 15:21:14,802] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (7, 9) para (7, 7).
+[2026-09-06 15:23:36,412] [INFO] [src.manager.combat_manager]: Iniciativas consolidadas e aplicadas para 16 combatentes ativos (0 ocultos). Turno ativo: 'Kobold 6' (Rodada 1).
+[2026-09-06 15:30:37,420] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (2, 3) para (2, 7).
+[2026-09-06 15:31:00,172] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 2' (Rodada 1).
+[2026-09-06 15:31:03,223] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 8' (Rodada 1).
+[2026-09-06 15:31:04,348] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 7' (Rodada 1).
+[2026-09-06 15:31:08,149] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 7' movido de (2, 1) para (2, 6).
+[2026-09-06 15:31:14,017] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 1).
+[2026-09-06 15:32:41,740] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (6, 7) para (6, 7).
+[2026-09-06 15:34:12,728] [INFO] [src.manager.combat_manager]: Dano aplicado: 7 em Cultista 4 (HP: 2/9)
+[2026-09-06 15:34:46,354] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 1).
+[2026-09-06 15:34:49,100] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 1).
+[2026-09-06 15:35:33,737] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=True rot=241.0°.
+[2026-09-06 15:35:39,240] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=False rot=256.0°.
+[2026-09-06 15:36:07,602] [INFO] [src.manager.combat_manager]: Dano aplicado: 4 em Cultista 4 (HP: 0/9)
+[2026-09-06 15:36:09,180] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (6, 6) para (6, 6).
+[2026-09-06 15:36:10,549] [INFO] [src.manager.combat_manager]: Dano aplicado: 4 em Cultista 3 (HP: 5/9)
+[2026-09-06 15:38:40,347] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (6, 7) para (5, 8).
+[2026-09-06 15:38:42,199] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (6, 8) para (6, 7).
+[2026-09-06 15:38:50,709] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 1).
+[2026-09-06 15:38:52,327] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 5' (Rodada 1).
+[2026-09-06 15:38:56,653] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 5' movido de (1, 3) para (2, 8).
+[2026-09-06 15:39:01,663] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 5' movido de (2, 8) para (3, 7).
+[2026-09-06 15:39:05,811] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 1).
+[2026-09-06 15:39:45,476] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (6, 0) para (6, 4).
+[2026-09-06 15:40:16,214] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (6, 6) para (6, 6).
+[2026-09-06 15:40:36,882] [INFO] [src.manager.combat_manager]: Dano aplicado: 4 em Cultista 3 (HP: 1/9)
+[2026-09-06 15:41:29,446] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 1).
+[2026-09-06 15:41:41,969] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (6, 6) para (4, 7).
+[2026-09-06 15:41:52,298] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 1).
+[2026-09-06 15:41:55,866] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 4' (Rodada 1).
+[2026-09-06 15:42:00,895] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 4' movido de (0, 3) para (2, 5).
+[2026-09-06 15:42:04,908] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 3' (Rodada 1).
+[2026-09-06 15:42:05,363] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 1' (Rodada 1).
+[2026-09-06 15:42:05,732] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 1).
+[2026-09-06 15:44:15,308] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 6' (Rodada 2).
+[2026-09-06 15:45:06,688] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (2, 7) para (3, 9).
+[2026-09-06 15:45:15,454] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 2' (Rodada 2).
+[2026-09-06 15:45:16,377] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 8' (Rodada 2).
+[2026-09-06 15:45:16,702] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 7' (Rodada 2).
+[2026-09-06 15:46:08,045] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 2).
+[2026-09-06 15:46:36,014] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (4, 6) para (3, 6).
+[2026-09-06 15:46:37,805] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (7, 7) para (4, 6).
+[2026-09-06 15:48:17,311] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (4, 7) para (4, 7).
+[2026-09-06 15:48:20,475] [INFO] [src.manager.combat_manager]: Dano aplicado: 7 em Cultista 3 (HP: 0/9)
+[2026-09-06 15:49:39,920] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 2).
+[2026-09-06 15:49:40,966] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 2).
+[2026-09-06 15:50:46,516] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=15.0ft width=5.0ft active=False rot=256.0°.
+[2026-09-06 15:50:48,586] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=1.0ft width=5.0ft active=False rot=256.0°.
+[2026-09-06 15:50:48,684] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=12.0ft width=5.0ft active=False rot=256.0°.
+[2026-09-06 15:50:48,800] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=False rot=256.0°.
+[2026-09-06 15:50:51,066] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=True rot=256.0°.
+[2026-09-06 15:50:59,457] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=120.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:51:40,570] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (3, 9) para (3, 9).
+[2026-09-06 15:51:54,575] [INFO] [src.manager.combat_manager]: Dano aplicado: 2 em Kobold 6 (HP: 3/5)
+[2026-09-06 15:52:28,242] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 2).
+[2026-09-06 15:52:28,819] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 5' (Rodada 2).
+[2026-09-06 15:53:01,727] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 2).
+[2026-09-06 15:53:49,637] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 7' movido de (2, 6) para (2, 6).
+[2026-09-06 15:54:08,414] [INFO] [src.manager.combat_manager]: Dano aplicado: 7 em Kobold 7 (HP: 0/5)
+[2026-09-06 15:54:26,617] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 2).
+[2026-09-06 15:54:27,855] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 2).
+[2026-09-06 15:54:29,958] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 4' (Rodada 2).
+[2026-09-06 15:54:38,361] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 4' movido de (2, 5) para (3, 8).
+[2026-09-06 15:55:11,774] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 3' (Rodada 2).
+[2026-09-06 15:55:12,262] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 1' (Rodada 2).
+[2026-09-06 15:55:12,447] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 2).
+[2026-09-06 15:55:38,279] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=6.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:55:38,311] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=False rot=181.0°.
+[2026-09-06 15:55:44,962] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=True rot=181.0°.
+[2026-09-06 15:55:50,645] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=False rot=121.0°.
+[2026-09-06 15:56:23,396] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 5' movido de (3, 7) para (3, 7).
+[2026-09-06 15:56:27,247] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Kobold 5 (HP: 0/5)
+[2026-09-06 15:56:28,230] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 4' movido de (3, 8) para (3, 8).
+[2026-09-06 15:56:29,887] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Kobold 4 (HP: 0/5)
+[2026-09-06 15:56:39,620] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (3, 9) para (3, 9).
+[2026-09-06 15:56:46,771] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 6' (Rodada 3).
+[2026-09-06 15:57:00,436] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (3, 9) para (1, 3).
+[2026-09-06 15:57:12,015] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 2' (Rodada 3).
+[2026-09-06 15:57:12,449] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 8' (Rodada 3).
+[2026-09-06 15:57:12,872] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 7' (Rodada 3).
+[2026-09-06 15:57:13,647] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 3).
+[2026-09-06 15:57:14,603] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 3).
+[2026-09-06 15:57:15,777] [INFO] [src.manager.combat_manager]: Retroceder Turno: combatente ativo 'Bolo de Morango' (Rodada 3).
+[2026-09-06 15:57:32,065] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (4, 6) para (2, 3).
+[2026-09-06 15:58:09,952] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (1, 3) para (1, 3).
+[2026-09-06 16:00:37,110] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 4' movido de (3, 8) para (3, 8).
+[2026-09-06 16:00:58,865] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (6, 7) para (3, 5).
+[2026-09-06 16:01:00,842] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (3, 5) para (4, 5).
+[2026-09-06 16:01:03,387] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (6, 4) para (5, 4).
+[2026-09-06 16:01:05,757] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (7, 2) para (5, 3).
+[2026-09-06 16:01:10,832] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (2, 3) para (3, 4).
+[2026-09-06 16:01:14,102] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (1, 3) para (4, 3).
+[2026-09-06 16:11:17,050] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 16:11:17,051] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Retardatarios no caminho' (encounter_04092026132531).
+[2026-09-06 16:11:17,051] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 16:32:21,815] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-06 16:32:21,821] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 16:32:21,823] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 16:32:21,824] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 0 células de névoa.
+[2026-09-06 16:32:21,835] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-06 16:32:21,854] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 16:32:21,921] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 16:34:37,661] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 3': célula (8, 10) possui blocks_movement=True. Revertendo para (2, 11).
+[2026-09-06 16:34:41,469] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 3': célula (8, 10) possui blocks_movement=True. Revertendo para (2, 11).
+[2026-09-06 16:36:47,646] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (0, 5) para (1, 8).
+[2026-09-06 16:36:49,159] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (0, 6) para (1, 7).
+[2026-09-06 16:37:15,028] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (1, 8) para (0, 6).
+[2026-09-06 16:37:15,831] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (0, 7) para (1, 8).
+[2026-09-06 16:37:17,055] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (0, 6) para (0, 7).
+[2026-09-06 16:41:33,474] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (2, 11) para (2, 11).
+[2026-09-06 16:41:34,456] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 3' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:35,387] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (6, 11) para (6, 11).
+[2026-09-06 16:41:36,105] [INFO] [src.manager.combat_manager]: Combatente 'Acólito 2' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:36,965] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 1) para (6, 1).
+[2026-09-06 16:41:37,610] [INFO] [src.manager.combat_manager]: Combatente 'Acólito 1' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:38,750] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Veterano': célula (9, 9) possui blocks_movement=True. Revertendo para (9, 9).
+[2026-09-06 16:41:39,388] [INFO] [src.manager.combat_manager]: Combatente 'Veterano' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:40,353] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (11, 4) para (11, 4).
+[2026-09-06 16:41:40,934] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 1' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:42,101] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (10, 2) para (10, 2).
+[2026-09-06 16:41:42,862] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 2' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:43,923] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 6': célula (15, 5) possui blocks_movement=True. Revertendo para (15, 5).
+[2026-09-06 16:41:44,698] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 6' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:45,575] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 5': célula (13, 10) possui blocks_movement=True. Revertendo para (13, 10).
+[2026-09-06 16:41:46,284] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 5' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:41:47,160] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (17, 11) para (17, 11).
+[2026-09-06 16:41:48,502] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 4' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 16:42:04,190] [INFO] [src.manager.combat_manager]: Iniciativas consolidadas e aplicadas para 13 combatentes ativos (0 ocultos). Turno ativo: 'Cultista 3' (Rodada 1).
+[2026-09-06 16:42:24,442] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Acólito 2': célula (6, 10) possui blocks_movement=True. Revertendo para (6, 11).
+[2026-09-06 16:42:25,973] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Acólito 2': célula (6, 10) possui blocks_movement=True. Revertendo para (6, 11).
+[2026-09-06 16:42:26,847] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Acólito 2': célula (6, 10) possui blocks_movement=True. Revertendo para (6, 11).
+[2026-09-06 16:42:30,684] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (6, 11) para (6, 11).
+[2026-09-06 16:42:31,774] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Acólito 2': célula (6, 10) possui blocks_movement=True. Revertendo para (6, 11).
+[2026-09-06 16:42:33,112] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 3': célula (3, 10) possui blocks_movement=True. Revertendo para (2, 11).
+[2026-09-06 16:42:33,996] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 3': célula (3, 10) possui blocks_movement=True. Revertendo para (2, 11).
+[2026-09-06 16:42:35,336] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Veterano': célula (7, 9) possui blocks_movement=True. Revertendo para (9, 9).
+[2026-09-06 16:42:36,362] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (9, 9) para (8, 8).
+[2026-09-06 16:42:37,762] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Veterano': célula (9, 9) possui blocks_movement=True. Revertendo para (8, 8).
+[2026-09-06 16:42:39,156] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Veterano': célula (9, 9) possui blocks_movement=True. Revertendo para (8, 8).
+[2026-09-06 16:42:42,035] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (6, 11) para (7, 11).
+[2026-09-06 16:42:43,409] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (7, 11) para (6, 11).
+[2026-09-06 16:42:44,840] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (8, 8) para (9, 8).
+[2026-09-06 16:43:24,916] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 1).
+[2026-09-06 16:43:29,388] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 1).
+[2026-09-06 16:44:41,766] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (0, 7) para (3, 7).
+[2026-09-06 16:45:11,421] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 1).
+[2026-09-06 16:47:55,429] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 1).
+[2026-09-06 16:51:52,648] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 1).
+[2026-09-06 16:55:14,354] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (6, 11) para (6, 11).
+[2026-09-06 16:55:34,990] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 8/9)
+[2026-09-06 16:55:35,128] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 7/9)
+[2026-09-06 16:55:35,271] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 6/9)
+[2026-09-06 16:55:44,425] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 5/9)
+[2026-09-06 16:55:45,712] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 4/9)
+[2026-09-06 16:55:45,854] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 3/9)
+[2026-09-06 16:55:45,990] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 2 (HP: 2/9)
+[2026-09-06 16:55:55,665] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 1) para (6, 1).
+[2026-09-06 16:56:01,298] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Acólito 1 (HP: 4/9)
+[2026-09-06 16:56:39,251] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 1' (Rodada 1).
+[2026-09-06 16:57:00,991] [INFO] [src.manager.combat_manager]: Cura aplicada: 5 em Acólito 1 (HP: 9/9)
+[2026-09-06 16:57:13,642] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Veterano' (Rodada 1).
+[2026-09-06 16:57:29,384] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 1).
+[2026-09-06 16:58:03,858] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (1, 7) para (5, 8).
+[2026-09-06 16:58:05,436] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (5, 8) para (6, 8).
+[2026-09-06 16:58:21,066] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Grunt Kahl' movido de (6, 8) para (7, 11).
+[2026-09-06 16:59:51,789] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (6, 11) para (6, 11).
+[2026-09-06 16:59:54,081] [INFO] [src.manager.combat_manager]: Dano aplicado: 20 em Acólito 2 (HP: 0/9)
+[2026-09-06 17:00:17,147] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (6, 11) para (8, 8).
+[2026-09-06 17:01:18,804] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 6' (Rodada 1).
+[2026-09-06 17:01:33,134] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 1).
+[2026-09-06 17:02:01,445] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (11, 4) para (11, 7).
+[2026-09-06 17:02:10,314] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 5' (Rodada 1).
+[2026-09-06 17:02:15,834] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 5' movido de (13, 10) para (13, 8).
+[2026-09-06 17:02:21,521] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 1).
+[2026-09-06 17:02:28,881] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (10, 2) para (11, 4).
+[2026-09-06 17:02:37,699] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 2).
+[2026-09-06 17:02:46,880] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (2, 11) para (6, 11).
+[2026-09-06 17:03:34,491] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 2).
+[2026-09-06 17:03:42,822] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (17, 11) para (8, 11).
+[2026-09-06 17:03:48,645] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 2).
+[2026-09-06 17:05:34,706] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (9, 8) para (9, 8).
+[2026-09-06 17:07:38,382] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Veterano (HP: 48/58)
+[2026-09-06 17:09:16,726] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 2).
+[2026-09-06 17:09:23,748] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 2).
+[2026-09-06 17:09:33,482] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Veterano (HP: 47/58)
+[2026-09-06 17:10:32,452] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (0, 8) para (3, 8).
+[2026-09-06 17:10:43,652] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (3, 7) para (8, 7).
+[2026-09-06 17:11:02,363] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 2).
+[2026-09-06 17:11:14,325] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-06 17:11:33,880] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (1, 8) para (4, 8).
+[2026-09-06 17:11:35,834] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (4, 8) para (5, 8).
+[2026-09-06 17:11:47,086] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=60.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 17:12:23,398] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal aberto.
+[2026-09-06 17:12:32,134] [INFO] [src.ui.dm.add_token_modal]: AddTokenModal confirmado: {'name': 'hid', 'entity_type': <EntityType.NEUTRAL: 'neutral'>, 'max_hp': 1, 'current_hp': 1, 'armor_class': 10, 'initiative_slot': 'next', 'token_sprite': None}
+[2026-09-06 17:12:32,135] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal fechado.
+[2026-09-06 17:12:32,135] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN iniciado para 'hid'.
+[2026-09-06 17:12:32,137] [INFO] [src.ui.dm.combat_tab]: Modo de posicionamento ativado no TacticalMiniMap para 'hid'.
+[2026-09-06 17:12:36,480] [INFO] [src.manager.combat_manager]: Novo combatente spawnado no combate: 'hid' (Tipo: neutral) na posição (14, 8), slot de iniciativa: 'next' (hidden=False).
+[2026-09-06 17:12:36,480] [INFO] [src.ui.dm.combat_tab]: Token 'hid' inserido e selecionado com sucesso em (14, 8).
+[2026-09-06 17:12:36,480] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN cancelado.
+[2026-09-06 17:12:43,845] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'hid' movido de (14, 8) para (14, 7).
+[2026-09-06 17:14:23,055] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'hid' (Rodada 2).
+[2026-09-06 17:14:25,185] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 1' (Rodada 2).
+[2026-09-06 17:15:28,121] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 1) para (6, 3).
+[2026-09-06 17:16:16,005] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 3) para (6, 1).
+[2026-09-06 17:16:17,804] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Veterano' (Rodada 2).
+[2026-09-06 17:17:52,135] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 2).
+[2026-09-06 17:19:13,008] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 6' (Rodada 2).
+[2026-09-06 17:19:31,512] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 2).
+[2026-09-06 17:19:35,888] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (11, 7) para (9, 7).
+[2026-09-06 17:20:17,562] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 5' (Rodada 2).
+[2026-09-06 17:20:33,840] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 2).
+[2026-09-06 17:20:49,697] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (11, 4) para (7, 3).
+[2026-09-06 17:20:51,348] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (7, 3) para (8, 3).
+[2026-09-06 17:21:00,434] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 3).
+[2026-09-06 17:21:15,576] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 3).
+[2026-09-06 17:22:26,570] [INFO] [src.manager.combat_manager]: Dano aplicado: 20 em Cultista 2 (HP: 0/9)
+[2026-09-06 17:22:29,029] [INFO] [src.manager.combat_manager]: Cura aplicada: 20 em Cultista 2 (HP: 9/9)
+[2026-09-06 17:22:30,833] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (8, 11) para (8, 11).
+[2026-09-06 17:22:32,582] [INFO] [src.manager.combat_manager]: Dano aplicado: 20 em Cultista 4 (HP: 0/9)
+[2026-09-06 17:22:46,310] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (8, 11) para (8, 8).
+[2026-09-06 17:22:48,425] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (8, 8) para (8, 8).
+[2026-09-06 17:23:19,477] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 3).
+[2026-09-06 17:25:25,822] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 3).
+[2026-09-06 17:25:28,713] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 3).
+[2026-09-06 17:25:55,321] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'hid' movido de (14, 7) para (14, 7).
+[2026-09-06 17:26:35,327] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 4' movido de (8, 8) para (7, 7).
+[2026-09-06 17:26:36,279] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 2' movido de (8, 8) para (6, 7).
+[2026-09-06 17:26:39,170] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (5, 8) para (6, 8).
+[2026-09-06 17:26:40,954] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (6, 8) para (5, 8).
+[2026-09-06 17:26:42,259] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (3, 8) para (8, 8).
+[2026-09-06 17:27:21,258] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (9, 8) para (9, 8).
+[2026-09-06 17:28:03,246] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Veterano (HP: 39/58)
+[2026-09-06 17:28:54,972] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 3).
+[2026-09-06 17:30:28,296] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (5, 8) para (5, 7).
+[2026-09-06 17:30:44,247] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (5, 7) para (5, 3).
+[2026-09-06 17:30:49,682] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Ornella': célula (5, 4) possui blocks_movement=True. Revertendo para (5, 3).
+[2026-09-06 17:30:51,102] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Ornella': célula (5, 4) possui blocks_movement=True. Revertendo para (5, 3).
+[2026-09-06 17:31:04,232] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=1.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 17:31:04,347] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=15.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 17:31:05,464] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 17:31:06,594] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=15.0ft width=5.0ft active=True rot=0.0°.
+[2026-09-06 17:31:47,079] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=15.0ft width=5.0ft active=True rot=252.0°.
+[2026-09-06 17:32:03,766] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=8.0ft width=5.0ft active=True rot=252.0°.
+[2026-09-06 17:32:10,931] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (5, 3) para (7, 2).
+[2026-09-06 17:32:33,955] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=8.0ft width=5.0ft active=False rot=252.0°.
+[2026-09-06 17:32:45,006] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (8, 3) para (8, 3).
+[2026-09-06 17:32:49,279] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Cultista 2 (HP: 1/9)
+[2026-09-06 17:32:51,138] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 1) para (6, 1).
+[2026-09-06 17:32:52,950] [INFO] [src.manager.combat_manager]: Dano aplicado: 8 em Acólito 1 (HP: 1/9)
+[2026-09-06 17:32:55,451] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em Acólito 1 (HP: 2/9)
+[2026-09-06 17:32:55,587] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em Acólito 1 (HP: 3/9)
+[2026-09-06 17:32:55,721] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em Acólito 1 (HP: 4/9)
+[2026-09-06 17:32:56,987] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em Acólito 1 (HP: 5/9)
+[2026-09-06 17:33:34,791] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'hid' (Rodada 3).
+[2026-09-06 17:33:35,901] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 1' (Rodada 3).
+[2026-09-06 17:34:52,848] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Veterano' (Rodada 3).
+[2026-09-06 17:36:15,468] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 3).
+[2026-09-06 17:37:39,210] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 6' (Rodada 3).
+[2026-09-06 17:37:49,535] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 6' movido de (15, 5) para (15, 7).
+[2026-09-06 17:38:27,759] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 3).
+[2026-09-06 17:38:51,889] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 5' (Rodada 3).
+[2026-09-06 17:38:59,636] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 5' movido de (13, 8) para (10, 8).
+[2026-09-06 17:39:20,807] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 3).
+[2026-09-06 17:40:00,551] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 4).
+[2026-09-06 17:40:26,956] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 4).
+[2026-09-06 17:40:31,292] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 4).
+[2026-09-06 17:41:48,932] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (9, 8) para (9, 8).
+[2026-09-06 17:41:50,643] [INFO] [src.manager.combat_manager]: Dano aplicado: 16 em Veterano (HP: 23/58)
+[2026-09-06 17:42:10,442] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (9, 7) para (9, 7).
+[2026-09-06 17:42:11,422] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Cultista 1 (HP: 0/9)
+[2026-09-06 17:43:02,428] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 4).
+[2026-09-06 17:43:05,940] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 4).
+[2026-09-06 17:44:00,501] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (9, 8) para (9, 8).
+[2026-09-06 17:44:01,756] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Veterano (HP: 22/58)
+[2026-09-06 17:44:01,870] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Veterano (HP: 21/58)
+[2026-09-06 17:44:01,982] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Veterano (HP: 20/58)
+[2026-09-06 17:44:02,113] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Veterano (HP: 19/58)
+[2026-09-06 17:44:05,671] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 4).
+[2026-09-06 17:45:15,878] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (8, 3) para (8, 3).
+[2026-09-06 17:45:18,989] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Cultista 2 (HP: 0/9)
+[2026-09-06 17:45:20,777] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 1) para (6, 1).
+[2026-09-06 17:45:21,813] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Acólito 1 (HP: 4/9)
+[2026-09-06 17:46:33,118] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (8, 3) para (7, 8).
+[2026-09-06 17:47:19,591] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'hid' (Rodada 4).
+[2026-09-06 17:47:21,555] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 1' (Rodada 4).
+[2026-09-06 17:48:01,366] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Veterano' (Rodada 4).
+[2026-09-06 17:48:52,424] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 4).
+[2026-09-06 17:49:27,102] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 6' (Rodada 4).
+[2026-09-06 17:49:33,362] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 6' movido de (15, 7) para (11, 7).
+[2026-09-06 17:49:38,647] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 4).
+[2026-09-06 17:49:39,995] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 5' (Rodada 4).
+[2026-09-06 17:49:41,340] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 1' movido de (9, 7) para (10, 7).
+[2026-09-06 17:49:42,114] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 5' movido de (10, 8) para (9, 7).
+[2026-09-06 17:50:08,172] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 4).
+[2026-09-06 17:50:10,171] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 5).
+[2026-09-06 17:50:27,628] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 5).
+[2026-09-06 17:50:29,616] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 5).
+[2026-09-06 17:51:10,867] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (8, 7) para (8, 7).
+[2026-09-06 17:51:12,603] [INFO] [src.manager.combat_manager]: Dano aplicado: 20 em Bolo de Morango (HP: 18/38)
+[2026-09-06 17:51:14,428] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Bolo de Morango (HP: 13/38)
+[2026-09-06 17:51:46,789] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 5' movido de (9, 7) para (9, 7).
+[2026-09-06 17:52:19,317] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Cultista 5 (HP: 0/9)
+[2026-09-06 17:52:25,128] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 5).
+[2026-09-06 17:52:27,181] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 5).
+[2026-09-06 17:52:41,855] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (7, 8) para (7, 8).
+[2026-09-06 17:52:46,385] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (6, 11) para (6, 11).
+[2026-09-06 17:53:36,009] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 5).
+[2026-09-06 17:54:41,203] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (7, 2) para (6, 5).
+[2026-09-06 17:56:27,530] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'hid' (Rodada 5).
+[2026-09-06 17:56:29,682] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 1' (Rodada 5).
+[2026-09-06 17:57:43,854] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Veterano' (Rodada 5).
+[2026-09-06 17:58:34,373] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 5).
+[2026-09-06 17:58:59,304] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 6' (Rodada 5).
+[2026-09-06 17:59:01,474] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 5' movido de (9, 7) para (10, 8).
+[2026-09-06 17:59:02,440] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 6' movido de (11, 7) para (9, 7).
+[2026-09-06 17:59:26,341] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Bolo de Morango' movido de (8, 7) para (8, 7).
+[2026-09-06 17:59:27,418] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Bolo de Morango (HP: 12/38)
+[2026-09-06 17:59:27,581] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Bolo de Morango (HP: 11/38)
+[2026-09-06 17:59:27,716] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Bolo de Morango (HP: 10/38)
+[2026-09-06 17:59:31,189] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 5).
+[2026-09-06 17:59:32,011] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 5' (Rodada 5).
+[2026-09-06 17:59:32,549] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 5).
+[2026-09-06 17:59:33,160] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 6).
+[2026-09-06 17:59:40,822] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 6).
+[2026-09-06 18:00:13,147] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Veterano' movido de (9, 8) para (9, 8).
+[2026-09-06 18:01:44,841] [INFO] [src.manager.combat_manager]: Dano aplicado: 20 em Veterano (HP: 0/58)
+[2026-09-06 18:02:37,093] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 6).
+[2026-09-06 18:02:43,927] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 6).
+[2026-09-06 18:02:46,388] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 6).
+[2026-09-06 18:03:53,722] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 6' movido de (9, 7) para (9, 7).
+[2026-09-06 18:03:55,201] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Cultista 6 (HP: 8/9)
+[2026-09-06 18:03:55,324] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Cultista 6 (HP: 7/9)
+[2026-09-06 18:03:55,438] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Cultista 6 (HP: 6/9)
+[2026-09-06 18:04:06,470] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 6).
+[2026-09-06 18:05:00,569] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (8, 8) para (4, 8).
+[2026-09-06 18:05:04,595] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (4, 8) para (4, 8).
+[2026-09-06 18:05:54,420] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Acólito 1' movido de (6, 1) para (6, 1).
+[2026-09-06 18:06:13,997] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Acólito 1 (HP: 0/9)
+[2026-09-06 18:06:39,478] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'hid' (Rodada 6).
+[2026-09-06 18:06:40,830] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 1' (Rodada 6).
+[2026-09-06 18:06:41,829] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Veterano' (Rodada 6).
+[2026-09-06 18:06:41,991] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Grunt Kahl' (Rodada 6).
+[2026-09-06 18:07:09,211] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (6, 11) para (6, 11).
+[2026-09-06 18:07:11,791] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Cultista 3 (HP: 4/9)
+[2026-09-06 18:07:19,699] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 6' (Rodada 6).
+[2026-09-06 18:07:41,572] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 6' movido de (9, 7) para (13, 7).
+[2026-09-06 18:07:54,419] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 6).
+[2026-09-06 18:07:55,039] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 5' (Rodada 6).
+[2026-09-06 18:07:55,402] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 2' (Rodada 6).
+[2026-09-06 18:07:55,790] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 3' (Rodada 7).
+[2026-09-06 18:08:04,830] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (6, 11) para (12, 11).
+[2026-09-06 18:08:24,155] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 4' (Rodada 7).
+[2026-09-06 18:08:26,299] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Bolo de Morango' (Rodada 7).
+[2026-09-06 18:08:51,016] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 6' movido de (13, 7) para (13, 7).
+[2026-09-06 18:09:59,854] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Cultista 6 (HP: 1/9)
+[2026-09-06 18:10:00,481] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Cultista 6 (HP: 0/9)
+[2026-09-06 18:10:07,189] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em Cultista 6 (HP: 1/9)
+[2026-09-06 18:10:11,784] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Acólito 2' (Rodada 7).
+[2026-09-06 18:10:12,340] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 7).
+[2026-09-06 18:12:02,975] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (4, 8) para (13, 11).
+[2026-09-06 18:12:05,010] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Ornella' (Rodada 7).
+[2026-09-06 18:12:47,107] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (12, 11) para (12, 11).
+[2026-09-06 18:13:15,429] [INFO] [src.manager.combat_manager]: Dano aplicado: 10 em Cultista 3 (HP: 0/9)
+[2026-09-06 18:14:12,464] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (12, 11) para (12, 8).
+[2026-09-06 18:14:25,908] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-06 18:14:25,909] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada no Vale' (encounter_05092026210157).
+[2026-09-06 18:14:25,909] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-06 18:15:09,599] [INFO] [src.ui.player_window]: Listeners da PlayerWindow pausados graciosamente (soft close).
+[2026-09-06 18:15:09,599] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-06 18:15:09,600] [INFO] [src.ui.dm_window]: PlayerWindow ocultada e desconectada da DMWindow.
+[2026-09-06 18:15:12,984] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-06 18:15:12,988] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-06 18:15:13,139] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-06 18:22:48,426] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-06 18:22:48,427] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-06 18:22:49,343] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-06 18:22:49,524] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-06 18:22:49,524] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-06 18:22:49,525] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-06 18:22:49,525] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-06 18:22:49,526] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-06 18:23:02,367] [INFO] [src.ui.dm.creator.config_form]: Modo de mapa alterado para 'tilemap'.
+[2026-09-06 18:23:02,368] [INFO] [src.ui.dm.creator.config_form]: CreatorConfigForm carregado para edição com 4 PJs e 9 monstros.
+[2026-09-06 18:23:02,369] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 18:23:02,370] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 18:23:02,393] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-06 18:23:02,421] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 18:23:02,422] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 13 combatentes para o mapa 'Estrada Vale' (Tipo: tilemap, Edição: True).
+[2026-09-06 18:23:02,422] [INFO] [src.ui.dm.encounter_creator_tab]: EncounterCreatorTabView transicionado para edição do encontro 'encounter_05092026210157' (13 combatentes restaurados).
+[2026-09-06 18:23:02,422] [INFO] [src.ui.dm_window]: DMWindow: transicionado para Encounter Builder para edição de 'Emboscada no Vale'.
+[2026-09-06 18:23:02,623] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 18:23:02,637] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 18:23:13,278] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-06 18:23:13,279] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 18:23:13,294] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 18:23:13,294] [INFO] [src.ui.dm.creator.tactical_stage]: CreatorTacticalStage inicializado com 13 combatentes para o mapa 'Estrada Vale' (Tipo: tilemap, Edição: True).
+[2026-09-06 18:23:25,894] [INFO] [src.domain.models.fog_manager]: Névoa de guerra aplicada a todas as 252 células (21x12).
+[2026-09-06 18:23:36,946] [INFO] [src.domain.builders.encounter_builder]: Encontro salvo com sucesso em: 'creations\encounters\encounter_05092026210157.json' (UID: encounter_05092026210157, 13 combatentes).
+[2026-09-06 18:23:36,947] [INFO] [src.ui.dm.creator.tactical_stage]: Encontro gravado com sucesso em 'creations\encounters\encounter_05092026210157.json' (UID: encounter_05092026210157).
+[2026-09-06 18:23:36,965] [INFO] [src.ui.dm.creator.config_form]: Fontes do Criador atualizadas: 6 imagens de mapa, 4 tilemaps, 4 PJs, 10 monstros.
+[2026-09-06 18:23:43,495] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-06 18:23:43,501] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-06 18:23:43,502] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-06 18:23:43,502] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 237 células de névoa.
+[2026-09-06 18:23:43,678] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 18:23:43,734] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-06 18:23:50,794] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1009 (fullscreen=False). Viewport recalculada.
+[2026-09-06 18:24:02,253] [WARNING] [src.ui.dm.tactical_minimap]: Movimento bloqueado para 'Cultista 6': célula (15, 5) possui blocks_movement=True. Revertendo para (15, 5).
+[2026-09-06 18:24:08,553] [INFO] [src.manager.combat_manager]: Iniciativas consolidadas e aplicadas para 4 combatentes ativos (9 ocultos). Turno ativo: 'Bolo de Morango' (Rodada 1).
+[2026-09-06 18:24:28,227] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 18:24:28,893] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.0ft width=5.0ft active=False rot=0.0°.
+[2026-09-06 18:24:31,420] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 3' movido de (2, 11) para (2, 11).
+[2026-09-06 18:24:33,060] [INFO] [src.manager.combat_manager]: Combatente 'Cultista 3' revelado com sucesso e posicionado como próximo a agir na fila de turnos.
+[2026-09-06 18:24:45,766] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 18:24:45,771] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 18:24:45,774] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 18:24:45,776] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1080 (fullscreen=True). Viewport recalculada.
+[2026-09-06 18:24:45,777] [INFO] [src.ui.player_window]: PlayerWindow colocada em tela cheia.
+[2026-09-06 18:25:38,998] [INFO] [src.manager.session_manager]: Projetando imagem: 'open_field_grass_trees.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\open_field_grass_trees.jpg)
+[2026-09-06 18:25:41,951] [INFO] [src.manager.session_manager]: Projetando imagem: 'map_mounains.png' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\map_mounains.png)
+[2026-09-06 18:25:46,560] [INFO] [src.manager.session_manager]: Projetando imagem: 'The Sword Coast.jpg' (C:\Users\aguia\OneDrive\Documentos\Medusa\medusa_controler\assets\images\maps\The Sword Coast.jpg)
+[2026-09-06 18:25:53,493] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'Sprite-0007_map.json'.
+[2026-09-06 18:25:53,515] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-06 18:25:53,529] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 18:25:54,044] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'test_map_1.json'.
+[2026-09-06 18:25:54,058] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'test_map_1' inicializado: 63 tiles fatiados a partir de 'test_map_1.png'.
+[2026-09-06 18:25:54,061] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 16 ground sprites e 0 prop sprites para mapa 'test_map_1' (4x4).
+[2026-09-06 18:25:54,760] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-06 18:25:54,773] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-06 18:26:14,708] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-06 18:26:14,712] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-06 18:26:14,828] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-07 18:40:54,235] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-07 18:40:54,237] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-07 18:40:54,662] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-07 18:40:54,750] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-07 18:40:54,752] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-07 18:40:54,752] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-07 18:40:54,752] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-07 18:40:54,752] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-07 18:40:58,710] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-07 18:40:58,716] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-07 18:40:58,717] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-07 18:40:58,718] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 237 células de névoa.
+[2026-09-07 18:40:58,942] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-07 18:40:58,963] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-07 18:40:59,144] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-07 18:41:07,529] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-07 18:41:07,534] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-07 18:41:07,535] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-07 18:41:07,536] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes (0 ocultos) e 0 células de névoa.
+[2026-09-07 18:41:07,559] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-07 18:41:07,568] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-07 18:41:07,639] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-07 18:41:13,197] [INFO] [src.manager.combat_manager]: Iniciativas consolidadas e aplicadas para 16 combatentes ativos (0 ocultos). Turno ativo: 'Kobold 4' (Rodada 1).
+[2026-09-07 18:41:14,823] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Cultista 1' (Rodada 1).
+[2026-09-07 18:41:22,397] [INFO] [src.manager.combat_manager]: Dano aplicado: 20 em Kobold 6 (HP: 0/5)
+[2026-09-07 18:41:24,763] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kaz' (Rodada 1).
+[2026-09-07 18:41:35,563] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-07 18:41:35,565] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-07 18:41:35,672] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.

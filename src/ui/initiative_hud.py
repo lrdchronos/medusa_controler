@@ -7,6 +7,7 @@ from ..manager.combat_manager import CombatManager
 from ..domain.models.playablechar import PlayableCharacter
 from ..domain.models.monster import Monster
 from ..domain.models.entity import Entity
+from .utils.sprite_utils import SpriteFactory
 
 logger = logging.getLogger(__name__)
 
@@ -205,15 +206,15 @@ class InitiativeHUD:
                 vit_col = combatant.vitality_color
                 arcade.draw_circle_outline(cx, cy, radius - 3, vit_col, 1.5)
 
-            # 5. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, ARMA)
-            short_name = combatant.name.strip()[:4].upper()
+            # 5. Texto com identificador/iniciais inteligentes do badge (ex: BOLO, K1, K2, E-B, Z-4, BM)
+            short_name = SpriteFactory.extract_badge_text(combatant.name)
             txt_obj = self._get_text(
                 f"token_txt_{combatant.uid}_{actual_idx}",
                 short_name,
                 cx,
                 cy + 1,
                 text_color,
-                11 if len(short_name) <= 4 else 9,
+                11 if len(short_name) <= 3 else 9,
                 bold=True,
             )
             txt_obj.draw()

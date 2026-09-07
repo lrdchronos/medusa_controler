@@ -4,6 +4,7 @@ import arcade
 from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
 from ...domain.models.entity import Entity, EntityType, DynamicToken
+from ..components.discrete_scroll_list import DiscreteScrollList
 from .spell_aoe_panel import SpellAoEPanel
 from .fog_control_panel import FogControlPanel
 from .add_token_modal import AddTokenModal
@@ -13,7 +14,8 @@ logger = logging.getLogger(__name__)
 class CombatTabView:
     """
     Componente da Aba de Combate Ativo (Barra de Ações de Turno, Inserção Dinâmica de Tokens,
-    Painel de Feitiços AoE, Painel de Névoa de Guerra, Roster de Combatentes, Despachante de Dano/Cura e Save State).
+    Painel de Feitiços AoE, Painel de Névoa de Guerra, Roster de Combatentes com DiscreteScrollList,
+    Despachante de Dano/Cura e Save State).
     """
 
     def __init__(self, session_manager: SessionManager, dm_window: Optional[Any] = None) -> None:
@@ -31,12 +33,26 @@ class CombatTabView:
         )
         self.add_token_modal = AddTokenModal(on_confirm=self._handle_add_token_confirm)
 
+        # Componente OOD reutilizável para Paginação e Rolagem Discreta de Combatentes
+        self.__item_height: int = 24
+        self.__spacing: int = 2
+        self.__scroll_list = DiscreteScrollList(
+            item_height=self.__item_height,
+            spacing=self.__spacing,
+            visible_item_count=4,
+        )
+
         # Notificação Toast de Confirmação de Salvamento
         self.toast_message: Optional[str] = None
         self.toast_timer: float = 0.0
 
         # Modal de Confirmação ao Finalizar Combate (Limpar ou Manter Save)
         self.pending_end_combat_modal: bool = False
+
+    @property
+    def scroll_list(self) -> DiscreteScrollList:
+        """Referência ao componente OOD de rolagem discreta de combatentes."""
+        return self.__scroll_list
 
     def _handle_add_token_confirm(self, token_data: Dict[str, Any]) -> None:
         """Aciona o modo PLACING_TOKEN no TacticalMiniMap após confirmação do modal."""
@@ -198,7 +214,7 @@ class CombatTabView:
         # 4. Painel de Névoa de Guerra (Fog of War Control Panel)
         fog_next_y = self.fog_panel.draw(panel_w, spell_next_y)
 
-        # 5. Tabela de Combatentes (Roster)
+        # 5. Tabela de Combatentes (Roster) com DiscreteScrollList
         table_top = fog_next_y
         table_h = 22
         table_y = table_top - table_h / 2
@@ -217,14 +233,23 @@ class CombatTabView:
         self._get_text("th_status", "STATUS", 500, table_y, (180, 190, 205, 255), 8, bold=True, anchor_x="center").draw()
         self._get_text("th_vis", "VIS", panel_w - 40, table_y, (180, 190, 205, 255), 8, bold=True, anchor_x="center").draw()
 
-        # Linhas de Combatentes (Turn Order ou Lista Geral)
+        # Linhas de Combatentes (Turn Order ou Lista Geral) com Paginação Discreta
         combatants = self.combat_manager.turn_order if self.combat_manager.has_combat_started else self.combat_manager.combatants
-        row_h = 24
         panels_collapsed = (1 if self.spell_aoe_panel.is_collapsed else 0) + (1 if self.fog_panel.is_collapsed else 0)
         max_rows = 4 + panels_collapsed * 2
 
-        for idx, combatant in enumerate(combatants[:max_rows]):
-            cy = table_top - table_h - idx * (row_h + 2) - row_h / 2
+        self.__scroll_list.items = combatants
+        self.__scroll_list.visible_item_count = max_rows
+        list_w = panel_w - 24
+        list_h = max_rows * (self.__item_height + self.__spacing)
+        list_x = 12
+        list_top_y = table_top - table_h
+        self.__scroll_list.set_bounds(list_x, list_top_y, list_w, list_h)
+        self.__scroll_list.set_style(draw_frame=False)
+
+        visible_list = self.__scroll_list.visible_items
+        for slot_idx, (actual_idx, combatant) in enumerate(visible_list):
+            slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
             is_active = (combatant == active_char)
             is_selected = (combatant.uid == self.selected_combatant_uid)
 
@@ -235,16 +260,16 @@ class CombatTabView:
                 row_bg = (24, 50, 40, 255)
                 row_border = (46, 204, 113, 200)
             else:
-                row_bg = (18, 24, 34, 255) if idx % 2 == 0 else (22, 28, 40, 255)
+                row_bg = (18, 24, 34, 255) if actual_idx % 2 == 0 else (22, 28, 40, 255)
                 row_border = (50, 65, 90, 150)
 
-            arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, cy, panel_w - 24, row_h), row_bg)
-            arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, cy, panel_w - 24, row_h), row_border, 1.2 if (is_selected or is_active) else 0.8)
+            arcade.draw_rect_filled(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), row_bg)
+            arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), row_border, 1.2 if (is_selected or is_active) else 0.8)
 
             # Turn Indicator
-            turn_mark = "▶" if is_active else str(idx + 1)
+            turn_mark = "▶" if is_active else str(actual_idx + 1)
             turn_color = (46, 204, 113, 255) if is_active else (140, 155, 175, 255)
-            self._get_text(f"r_turn_{idx}", turn_mark, 28, cy, turn_color, 8, bold=True, anchor_x="center").draw()
+            self._get_text(f"r_turn_{actual_idx}", turn_mark, 28, slot_cy, turn_color, 8, bold=True, anchor_x="center").draw()
 
             # Name & Type Logic (Player / Monster / Neutral)
             etype = getattr(combatant, "entity_type", EntityType.PLAYER if isinstance(combatant, PlayableCharacter) else EntityType.MONSTER)
@@ -264,35 +289,40 @@ class CombatTabView:
                 type_str = "NPC"
                 type_color = (255, 138, 128, 255)
 
-            self._get_text(f"r_name_{idx}", combatant.name[:18], 55, cy, name_color, 8, bold=True).draw()
-            self._get_text(f"r_type_{idx}", type_str, 240, cy, type_color, 7.5, bold=False, anchor_x="center").draw()
+            self._get_text(f"r_name_{actual_idx}", combatant.name[:18], 55, slot_cy, name_color, 8, bold=True).draw()
+            self._get_text(f"r_type_{actual_idx}", type_str, 240, slot_cy, type_color, 7.5, bold=False, anchor_x="center").draw()
 
             # HP
             hp_str = f"{combatant.current_hp}/{combatant.max_hp}"
             hp_c = (46, 204, 113, 255) if combatant.current_hp > (combatant.max_hp / 2) else (231, 76, 60, 255)
-            self._get_text(f"r_hp_{idx}", hp_str, 305, cy, hp_c, 8, bold=True, anchor_x="center").draw()
+            self._get_text(f"r_hp_{actual_idx}", hp_str, 305, slot_cy, hp_c, 8, bold=True, anchor_x="center").draw()
 
             # CA
-            self._get_text(f"r_ca_{idx}", str(combatant.armor_class), 365, cy, (241, 196, 15, 255), 8, bold=True, anchor_x="center").draw()
+            self._get_text(f"r_ca_{actual_idx}", str(combatant.armor_class), 365, slot_cy, (241, 196, 15, 255), 8, bold=True, anchor_x="center").draw()
 
             # Mod
             mod_str = f"{combatant.initiative_mod:+d}"
-            self._get_text(f"r_mod_{idx}", mod_str, 405, cy, (180, 190, 205, 255), 8, bold=False, anchor_x="center").draw()
+            self._get_text(f"r_mod_{actual_idx}", mod_str, 405, slot_cy, (180, 190, 205, 255), 8, bold=False, anchor_x="center").draw()
 
             # Init
-            self._get_text(f"r_init_{idx}", str(combatant.initiative_score), 445, cy, (230, 235, 245, 255), 8, bold=True, anchor_x="center").draw()
+            self._get_text(f"r_init_{actual_idx}", str(combatant.initiative_score), 445, slot_cy, (230, 235, 245, 255), 8, bold=True, anchor_x="center").draw()
 
             # Status
             status_str = "Vivo" if combatant.is_alive else "Incapacitado"
             status_c = (46, 204, 113, 255) if combatant.is_alive else (192, 57, 43, 255)
-            self._get_text(f"r_stat_{idx}", status_str, 500, cy, status_c, 7, bold=False, anchor_x="center").draw()
+            self._get_text(f"r_stat_{actual_idx}", status_str, 500, slot_cy, status_c, 7, bold=False, anchor_x="center").draw()
 
             # Visibility Toggle Icon
             vis_icon = "👁️❌" if combatant.is_hidden else "👁️"
-            self._get_text(f"r_vis_{idx}", vis_icon, panel_w - 40, cy, (255, 255, 255, 255), 9, bold=False, anchor_x="center").draw()
+            self._get_text(f"r_vis_{actual_idx}", vis_icon, panel_w - 40, slot_cy, (255, 255, 255, 255), 9, bold=False, anchor_x="center").draw()
+
+        # Indicador visual de rolagem / Barra de rolagem
+        if len(combatants) > self.__scroll_list.visible_item_count:
+            self.__scroll_list._draw_scroll_indicator(self.text_cache)
 
         # 5. Painel Inferior: Despachante de Dano / Cura do Alvo Selecionado
-        disp_top = table_top - table_h - min(len(combatants), max_rows) * (row_h + 2) - 8
+        rendered_rows = min(len(combatants), max_rows)
+        disp_top = table_top - table_h - rendered_rows * (self.__item_height + self.__spacing) - 8
         disp_h = 130
         arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, disp_top - disp_h / 2, panel_w - 24, disp_h), (18, 24, 34, 255))
         arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, disp_top - disp_h / 2, panel_w - 24, disp_h), (50, 65, 90, 200), 1)
@@ -536,31 +566,37 @@ class CombatTabView:
         fog_body_h = 68 if not self.fog_panel.is_collapsed else 0
         fog_next_y = spell_next_y - (26 + fog_body_h) - 8
 
-        # 4. Cliques nas Linhas da Tabela de Combatentes
+        # 4. Cliques nas Linhas da Tabela de Combatentes (via DiscreteScrollList)
         table_top = fog_next_y
         table_h = 22
-        row_h = 24
         panels_collapsed = (1 if self.spell_aoe_panel.is_collapsed else 0) + (1 if self.fog_panel.is_collapsed else 0)
         max_rows = 4 + panels_collapsed * 2
 
         combatants = self.combat_manager.turn_order if self.combat_manager.has_combat_started else self.combat_manager.combatants
+        self.__scroll_list.items = combatants
+        self.__scroll_list.visible_item_count = max_rows
+        list_w = panel_w - 24
+        list_h = max_rows * (self.__item_height + self.__spacing)
+        list_x = 12
+        list_top_y = table_top - table_h
+        self.__scroll_list.set_bounds(list_x, list_top_y, list_w, list_h)
 
-        for idx, combatant in enumerate(combatants[:max_rows]):
-            cy = table_top - table_h - idx * (row_h + 2) - row_h / 2
-            if abs(y - cy) <= row_h / 2:
+        for slot_idx, (actual_idx, combatant) in enumerate(self.__scroll_list.visible_items):
+            slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
+            if abs(y - slot_cy) <= slot_h / 2:
                 # Clique no ícone de visibilidade (lado direito)
                 if abs(x - (panel_w - 40)) <= 20:
                     self.combat_manager.toggle_combatant_visibility(combatant.uid)
                     return True
 
                 # Clique para selecionar o combatente
-                if abs(x - panel_w / 2) <= (panel_w - 24) / 2:
+                if abs(x - slot_cx) <= slot_w / 2:
                     self.selected_combatant_uid = combatant.uid
                     return True
 
         # 5. Cliques no Despachante de Dano e Cura
         rendered_rows = min(len(combatants), max_rows)
-        disp_top = table_top - table_h - rendered_rows * (row_h + 2) - 8
+        disp_top = table_top - table_h - rendered_rows * (self.__item_height + self.__spacing) - 8
 
         sel_combatant = self.combat_manager.get_combatant(self.selected_combatant_uid or "")
         if sel_combatant:
@@ -612,6 +648,12 @@ class CombatTabView:
                     return True
 
         return False
+
+    def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
+        """Processa a rolagem discreta com a roda do mouse na lista de combatentes."""
+        if self.pending_end_combat_modal or self.add_token_modal.is_open:
+            return False
+        return self.__scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y)
 
     def handle_mouse_drag(self, x: float, y: float, dx: float = 0.0, dy: float = 0.0, buttons: int = 1, modifiers: int = 0) -> bool:
         """Repassa evento de arraste do mouse para o painel de magias."""

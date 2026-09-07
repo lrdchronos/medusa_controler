@@ -236,6 +236,80 @@ class SpriteFactory:
         )
         return prop_sprite
 
+    @staticmethod
+    def extract_badge_text(name: str) -> str:
+        """
+        Extrai o texto/iniciais inteligentes para badges e tokens circulares:
+        - Sufixo com número arábico (ex: "Kobold 1", "Kobold 2", "Orc #3"): Radical + Sufixo -> "K1", "K2", "O3".
+        - Sufixo com letra única (ex: "Cultista A", "Esqueleto B"): Radical + "-" + Letra -> "C-A", "E-B".
+        - Sufixo com numeral romano (ex: "Zumbi IV", "Esqueleto II"): Radical + "-" + Arábico -> "Z-4", "E-2".
+        - Nomes compostos (ex: "Bruenor Martelo", "Mago Negro"): Iniciais das palavras principais -> "BM", "MN".
+        - Nomes simples sem sufixo (ex: "Kobold", "Orc"): Primeiras letras em maiúsculo (até 4 chars) -> "KOBO", "ORC".
+        """
+        if not name:
+            return ""
+
+        cleaned = str(name).strip()
+        if not cleaned:
+            return ""
+
+        import re
+
+        roman_map = {
+            "I": 1, "II": 2, "III": 3, "IV": 4, "V": 5,
+            "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
+            "XI": 11, "XII": 12, "XIII": 13, "XIV": 14, "XV": 15,
+            "XVI": 16, "XVII": 17, "XVIII": 18, "XIX": 19, "XX": 20
+        }
+        stop_words = {"de", "da", "do", "dos", "das", "e", "of", "the", "and", "del", "di"}
+
+        def get_base_radical(base_str: str) -> str:
+            b_words = [w for w in re.split(r"[\s_#-]+", base_str.strip()) if w and w.lower() not in stop_words]
+            if not b_words:
+                b_words = [w for w in re.split(r"[\s_#-]+", base_str.strip()) if w]
+            if len(b_words) >= 2:
+                return "".join(w[0].upper() for w in b_words[:3])
+            elif len(b_words) == 1:
+                return b_words[0][0].upper()
+            return base_str[:1].upper()
+
+        # 1. Padrão: Sufixo numérico arábico (ex: "Kobold 1", "Kobold #2", "Orc_3", "Goblin-4")
+        m_num = re.search(r"^(?P<base>.+?)(?:[\s_#-]+|\s*#\s*)(?P<suffix>\d+)$", cleaned)
+        if m_num:
+            base_part = m_num.group("base").strip()
+            suffix_num = int(m_num.group("suffix"))
+            radical = get_base_radical(base_part)
+            return f"{radical}{suffix_num}"
+
+        # 2. Padrão: Sufixo com numeral romano (ex: "Zumbi IV", "Esqueleto II", "Cultista I")
+        m_rom = re.search(r"^(?P<base>.+?)[\s_#-]+(?P<suffix>[IVXLCDMivxlcdm]+)$", cleaned)
+        if m_rom:
+            suf_upper = m_rom.group("suffix").upper()
+            if suf_upper in roman_map:
+                base_part = m_rom.group("base").strip()
+                radical = get_base_radical(base_part)
+                arabic_val = roman_map[suf_upper]
+                return f"{radical}-{arabic_val}"
+
+        # 3. Padrão: Sufixo com letra única isolada (ex: "Cultista A", "Esqueleto B", "Bandido - C")
+        m_letter = re.search(r"^(?P<base>.+?)[\s_#-]+(?P<suffix>[A-Za-z])$", cleaned)
+        if m_letter:
+            base_part = m_letter.group("base").strip()
+            suf_char = m_letter.group("suffix").upper()
+            radical = get_base_radical(base_part)
+            return f"{radical}-{suf_char}"
+
+        # 4. Padrão: Nomes compostos comuns (ex: "Bruenor Martelo", "Mago Cinzento da Colina")
+        words = [w for w in re.split(r"[\s_#-]+", cleaned) if w]
+        meaningful_words = [w for w in words if w.lower() not in stop_words]
+        if len(meaningful_words) >= 2:
+            return "".join(w[0].upper() for w in meaningful_words[:3])
+        elif len(words) >= 2:
+            return "".join(w[0].upper() for w in words[:3])
+
+        # 5. Padrão: Nome simples sem sufixo (ex: "Kobold", "Orc", "Bolo")
+        return cleaned[:4].upper()
+
     @classmethod
     def get_procedural_token_texture(
         cls,
@@ -245,7 +319,7 @@ class SpriteFactory:
         base_size: int = 64,
     ) -> arcade.Texture:
         """Gera ou recupera do cache uma textura procedural de token tático circular Dark Fantasy."""
-        short_name = name.strip()[:4].upper()
+        short_name = cls.extract_badge_text(name)
         if entity_type is not None:
             etype_str = str(entity_type.value if hasattr(entity_type, "value") else entity_type).lower()
         else:
@@ -417,9 +491,9 @@ class SpriteFactory:
         border_width = 3 if (is_selected or is_active) else 2
         arcade.draw_circle_outline(x, y, radius, border_color, border_width)
 
-        # 6. Texto com as 4 primeiras letras do nome (ex: BOLO, KOB1, ARMA)
-        short_name = name.strip()[:4].upper()
-        font_size = max(7, int(radius * 0.44))
+        # 6. Texto com o identificador/iniciais inteligentes do badge (ex: BOLO, K1, K2, E-B, Z-4, BM)
+        short_name = cls.extract_badge_text(name)
+        font_size = max(7, int(radius * (0.44 if len(short_name) <= 3 else 0.38)))
 
         cache = text_cache if text_cache is not None else cls._text_cache
         cache_key = f"tkn_txt_{token_key or short_name}_{font_size}"
