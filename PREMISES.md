@@ -74,3 +74,6 @@ Este arquivo define as leis universais e padrões técnicos do projeto Medusa. T
 ## 4. Testabilidade e Qualidade
 - Todo novo loader, manager ou componente matemático DEVE conter testes unitários em `tests/`.
 - Antes de concluir qualquer tarefa, a suíte de testes (`unittest`) precisa rodar e passar 100%.
+
+## 5. Documentação
+- Todos os arquivos de documentação dentro de docs/ devem estar atualizados refletindo as alterações feitas no código.

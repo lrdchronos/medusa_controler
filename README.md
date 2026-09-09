@@ -10,6 +10,7 @@ O sistema opera com uma arquitetura de **dupla janela simultânea** sincronizada
 
 ## 📑 Sumário
 
+- [📚 Documentação Técnica](#-documentação-técnica)
 - [Destaques e Funcionalidades](#-destaques-e-funcionalidades)
 - [Arquitetura & Padrões de Projeto](#-arquitetura--padrões-de-projeto)
 - [Estrutura Completa de Diretórios](#-estrutura-completa-de-diretórios)
@@ -19,6 +20,29 @@ O sistema opera com uma arquitetura de **dupla janela simultânea** sincronizada
 - [Guia de Instalação e Execução](#-guia-de-instalação-e-execução)
 - [Suíte de Testes Automatizados](#-suíte-de-testes-automatizados)
 - [Premissas e Regras de Código](#-premissas-e-regras-de-código)
+
+---
+
+## 📚 Documentação Técnica
+
+O Medusa VTT possui documentação técnica centralizada no padrão **Docs-as-Code** dentro do diretório [`docs/`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/), contendo especificações detalhadas de arquitetura, contratos de dados, modelagem matemática e guias operacionais:
+
+- **Índice Geral & Mapa de Navegação:** [`docs/README.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/README.md)
+
+### 🏛️ Arquitetura do Sistema
+- **Máquina de Estados & Sincronização Observer:** [`docs/architecture/state_machine.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/state_machine.md)
+- **Matemática de Grid, Aspect-Fit & Coordenadas:** [`docs/architecture/grid_and_coords.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/grid_and_coords.md)
+- **Schemas JSON & Normalização de Dados (`presets/` vs `creations/`):** [`docs/architecture/data_schemas.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/data_schemas.md)
+
+### ⚙️ Subsistemas & Motores de Regras
+- **Motor de Combate, Iniciativas & Ciclo de Turnos:** [`docs/subsystems/combat_engine.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/combat_engine.md)
+- **Projeção Tática de Magias & Áreas de Efeito (AoE 2D/3D):** [`docs/subsystems/spell_projections.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/spell_projections.md)
+- **Névoa de Guerra & Oclusão Tática:** [`docs/subsystems/fog_of_war.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/fog_of_war.md)
+- **Tokens Táticos, Badges Orbitais & Portes de Criaturas:** [`docs/subsystems/token_badges.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/token_badges.md)
+
+### 📖 Guias Práticos
+- **Guia do Mestre: Ciclo de Vida do Encontro:** [`docs/guides/encounter_workflow.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/guides/encounter_workflow.md)
+- **Guia de Inclusão de Assets Visuais & Mapas:** [`docs/guides/adding_assets.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/guides/adding_assets.md)
 
 ---
 
@@ -111,6 +135,12 @@ medusa_controler/
 │   ├── classes/                     # Definições JSON de classes (dados de vida, magias)
 │   ├── monsters/                    # Bestiário JSON de monstros e NPCs (atributos, CA, ações)
 │   └── species/                     # Traços, bônus raciais e deslocamento
+│
+├── docs/                            # Documentação técnica centralizada (Docs-as-Code)
+│   ├── README.md                    # Índice geral e taxonomia de arquitetura
+│   ├── architecture/                # Máquina de estados, grid e schemas JSON
+│   ├── subsystems/                  # Motores de combate, magias, névoa e tokens
+│   └── guides/                      # Guias de ciclo de encontros e inclusão de assets
 │
 ├── logs/                            # Histórico e auditoria de execução
 │   └── medusa.log                   # Log rotativo contínuo formatado em UTF-8
@@ -297,7 +327,7 @@ python main.py
 
 ## 🧪 Suíte de Testes Automatizados
 
-O sistema conta com **112 testes unitários e de integração**, cobrindo 100% dos subsistemas críticos:
+O sistema conta com **246 testes unitários e de integração**, cobrindo 100% dos subsistemas críticos:
 
 ```powershell
 # Execução de todos os testes unitários
@@ -305,7 +335,10 @@ python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
 ### Cobertura da Suíte de Testes:
-- **Combate & Iniciativa:** Rolagens, desempates D&D 5E, turnos, rodadas, dano e cura.
+- **Combate & Iniciativa:** Rolagens, desempates D&D 5E, turnos circulares com pulo de mortos, rodadas, dano, cura e saves.
+- **Projeções de Magias (AoE):** As 6 formas canônicas (2D/3D), analítica vetorial com elevação e `GridCellHighlighter`.
+- **Névoa de Guerra & Visibilidade:** Pincel contínuo, persistência e visual DM vs Player.
+- **Badges Orbitais & Portes:** Algoritmo de relógio 12h, atlas 16x16px, espaçamento angular 40° a 30° e tamanhos $1\times1$ a $4\times4$.
 - **Modelos de Domínio:** Encapsulamento de `Entity`, `PlayableCharacter`, `Monster` e cópias defensivas.
 - **Tilemap Engine & Colisão:** Validação de `TileProperties`, `TileMap`, `TilesetManager` e `TileMapRenderer`.
 - **Encounter Wizard & Builders:** Criação, edição e serialização de encontros com múltiplos tipos de mapa.
