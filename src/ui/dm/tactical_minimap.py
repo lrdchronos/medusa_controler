@@ -10,6 +10,7 @@ from ...domain.models.playablechar import PlayableCharacter
 from ..utils.sprite_utils import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
 from ..utils.aoe_renderer import AoERenderer
+from ..renderers.token_status_renderer import TokenStatusRenderer
 from .fog_control_panel import FogControlPanel, FogTool, BrushMode
 
 
@@ -251,18 +252,19 @@ class TacticalMiniMap:
             pos = combatant.position
             px = pos.get("x", 0)
             py = pos.get("y", 0)
+            num_squares = getattr(combatant, "size_in_squares", 1)
 
             if combatant.uid == self._dragged_combatant_uid:
                 cx, cy = self._drag_world_pos
             else:
-                cx = draw_x + (px + 0.5) * cell_w
-                cy = draw_y + (py + 0.5) * cell_h
+                cx = draw_x + (float(px) + num_squares / 2.0) * cell_w
+                cy = draw_y + (float(py) + num_squares / 2.0) * cell_h
 
             is_selected = (combatant.uid == selected_combatant_uid)
             is_active = (combatant == active_combatant)
             is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
             etype = getattr(combatant, "entity_type", "player" if is_player else "monster")
-            token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
+            token_radius = (min(cell_w, cell_h) * num_squares * 0.88) / 2.0
 
             SpriteFactory.draw_tactical_token(
                 name=combatant.name,
@@ -278,29 +280,43 @@ class TacticalMiniMap:
                 entity_type=etype,
             )
 
+            # Renderização dos Badges Orbitais de Vida e Condições Táticas (Relógio 12h)
+            TokenStatusRenderer.draw(
+                entity=combatant,
+                center_x=cx,
+                center_y=cy,
+                token_radius=token_radius,
+                scale_factor=scale,
+            )
+
         # 3.5. Prévia Translúcida de Posicionamento de Token (PLACING_TOKEN)
         if self._is_placing_token and self._placing_token_data:
-            token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
+            p_size = self._placing_token_data.get("size", "Medium")
+            p_squares = grid_mgr.get_size_in_squares(p_size)
+            token_radius = (min(cell_w, cell_h) * p_squares * 0.88) / 2.0
             t_name = self._placing_token_data.get("name", "TOKEN")
             t_type = self._placing_token_data.get("entity_type", EntityType.NEUTRAL)
             is_p = (t_type == EntityType.PLAYER or str(t_type).lower() == "player")
 
             if self._hover_grid_cell is not None:
                 h_col, h_row = self._hover_grid_cell
-                if 0 <= h_col < grid_mgr.columns and 0 <= h_row < grid_mgr.rows:
-                    hcx = draw_x + (h_col + 0.5) * cell_w
-                    hcy = draw_y + (h_row + 0.5) * cell_h
-                    is_walk = self.combat_manager.is_walkable(h_col, h_row)
+                if grid_mgr.is_area_valid(h_col, h_row, p_squares):
+                    hcx = draw_x + (float(h_col) + p_squares / 2.0) * cell_w
+                    hcy = draw_y + (float(h_row) + p_squares / 2.0) * cell_h
+                    is_walk = self.combat_manager.is_walkable_for_size(h_col, h_row, p_size)
 
-                    # Realce da célula hover
+                    area_w = cell_w * p_squares
+                    area_h = cell_h * p_squares
+
+                    # Realce da área hover
                     if is_walk:
-                        arcade.draw_rect_filled(arcade.XYWH(hcx, hcy, cell_w, cell_h), (46, 204, 113, 70))
-                        arcade.draw_rect_outline(arcade.XYWH(hcx, hcy, cell_w, cell_h), (46, 204, 113, 220), 2.0)
+                        arcade.draw_rect_filled(arcade.XYWH(hcx, hcy, area_w, area_h), (46, 204, 113, 70))
+                        arcade.draw_rect_outline(arcade.XYWH(hcx, hcy, area_w, area_h), (46, 204, 113, 220), 2.0)
                     else:
-                        arcade.draw_rect_filled(arcade.XYWH(hcx, hcy, cell_w, cell_h), (231, 76, 60, 90))
-                        arcade.draw_rect_outline(arcade.XYWH(hcx, hcy, cell_w, cell_h), (231, 76, 60, 220), 2.0)
+                        arcade.draw_rect_filled(arcade.XYWH(hcx, hcy, area_w, area_h), (231, 76, 60, 90))
+                        arcade.draw_rect_outline(arcade.XYWH(hcx, hcy, area_w, area_h), (231, 76, 60, 220), 2.0)
 
-                    # Token translúcido posicionado no centro do quadrado
+                    # Token translúcido posicionado no centro da criatura
                     SpriteFactory.draw_tactical_token(
                         name=t_name,
                         is_player=is_p,
@@ -384,15 +400,32 @@ class TacticalMiniMap:
         grid_mgr = self.combat_manager.grid_manager
         draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
 
-        # 1. Modo de Posicionamento de Token
+        # 1. Modo de Posicionamento de Token (PLACING_TOKEN)
         if self._is_placing_token:
             if grid_mgr is not None and draw_w > 0 and draw_h > 0:
                 if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
                     cell_w = draw_w / grid_mgr.columns
                     cell_h = draw_h / grid_mgr.rows
-                    col = int(math.floor((float(x) - draw_x) / cell_w))
-                    row = int(math.floor((float(y) - draw_y) / cell_h))
-                    if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
+                    p_size = (self._placing_token_data or {}).get("size", "Medium")
+                    p_squares = grid_mgr.get_size_in_squares(p_size)
+
+                    lx = float(x) - draw_x
+                    ly = float(y) - draw_y
+
+                    # Snapping:
+                    # Para 1x1 e 3x3 (ímpares): centro da célula
+                    # Para 2x2 e 4x4 (pares): interseção de linhas da grade
+                    if p_squares % 2 == 1:
+                        col = int(math.floor(lx / cell_w)) - (p_squares // 2)
+                        row = int(math.floor(ly / cell_h)) - (p_squares // 2)
+                    else:
+                        col = int(round(lx / cell_w)) - (p_squares // 2)
+                        row = int(round(ly / cell_h)) - (p_squares // 2)
+
+                    col = max(0, min(grid_mgr.columns - p_squares, col))
+                    row = max(0, min(grid_mgr.rows - p_squares, row))
+
+                    if grid_mgr.is_area_valid(col, row, p_squares):
                         self._hover_grid_cell = (col, row)
                         return True
             self._hover_grid_cell = None
@@ -481,12 +514,22 @@ class TacticalMiniMap:
             if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
                 local_x = float(x) - draw_x
                 local_y = float(y) - draw_y
-                col = int(math.floor(local_x / cell_w))
-                row = int(math.floor(local_y / cell_h))
+                t_data = self._placing_token_data or {}
+                p_size = t_data.get("size", "Medium")
+                p_squares = grid_mgr.get_size_in_squares(p_size)
 
-                if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
-                    if self.combat_manager.is_walkable(col, row):
-                        t_data = self._placing_token_data or {}
+                if p_squares % 2 == 1:
+                    col = int(math.floor(local_x / cell_w)) - (p_squares // 2)
+                    row = int(math.floor(local_y / cell_h)) - (p_squares // 2)
+                else:
+                    col = int(round(local_x / cell_w)) - (p_squares // 2)
+                    row = int(round(local_y / cell_h)) - (p_squares // 2)
+
+                col = max(0, min(grid_mgr.columns - p_squares, col))
+                row = max(0, min(grid_mgr.rows - p_squares, row))
+
+                if grid_mgr.is_area_valid(col, row, p_squares):
+                    if self.combat_manager.is_walkable_for_size(col, row, p_size):
                         etype = t_data.get("entity_type", EntityType.NEUTRAL)
                         token_entity = DynamicToken(
                             name=t_data.get("name", "Token"),
@@ -494,6 +537,7 @@ class TacticalMiniMap:
                             armor_class=int(t_data.get("armor_class", 10)),
                             entity_type=etype,
                             token_sprite=t_data.get("token_sprite"),
+                            size=p_size,
                         )
                         slot = t_data.get("initiative_slot", "next")
                         self.combat_manager.spawn_combatant(token_entity, (col, row), initiative_slot=slot)
@@ -502,7 +546,7 @@ class TacticalMiniMap:
                         self.cancel_placing_token()
                         return True
                     else:
-                        logger.warning(f"Célula ({col}, {row}) está bloqueada para posicionamento de token.")
+                        logger.warning(f"Área sob ({col}, {row}) ({p_size}) possui células bloqueadas para posicionamento.")
                         return True
             return True
 
@@ -597,13 +641,14 @@ class TacticalMiniMap:
                 clamped_col = max(0, min(grid_mgr.columns - 1, col))
                 clamped_row = max(0, min(grid_mgr.rows - 1, row))
 
-                # Validação tática de movimentação via TileMap / CombatManager
-                if not self.combat_manager.is_walkable(clamped_col, clamped_row):
+                # Validação tática de movimentação via TileMap / CombatManager com suporte a tamanho
+                c_size = getattr(combatant, "size", "Medium")
+                if not self.combat_manager.is_walkable_for_size(clamped_col, clamped_row, c_size):
                     prev_pos = combatant.position
                     prev_x = prev_pos.get("x", 0)
                     prev_y = prev_pos.get("y", 0)
                     logger.warning(
-                        f"Movimento bloqueado para '{combatant.name}': célula ({clamped_col}, {clamped_row}) "
+                        f"Movimento bloqueado para '{combatant.name}' ({c_size}): célula ou área sob ({clamped_col}, {clamped_row}) "
                         f"possui blocks_movement=True. Revertendo para ({prev_x}, {prev_y})."
                     )
                 else:

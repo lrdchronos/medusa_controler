@@ -4424,3 +4424,216 @@
 [2026-09-07 18:41:35,563] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
 [2026-09-07 18:41:35,565] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
 [2026-09-07 18:41:35,672] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-09 08:09:46,519] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-09 08:09:46,521] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-09 08:09:46,963] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-09 08:09:47,055] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-09 08:09:47,057] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-09 08:09:47,057] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-09 08:09:47,057] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-09 08:09:47,058] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-09 08:09:50,627] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-09 08:09:50,634] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-09 08:09:50,636] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-09 08:09:50,636] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 237 células de névoa.
+[2026-09-09 08:09:50,646] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-09 08:09:50,664] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 08:09:50,675] [INFO] [src.ui.utils.status_icon_atlas]: Atlas de ícones de status carregado com sucesso: 14 ícones recortados de 'assets/sprites/status_icons.png' (176x32px).
+[2026-09-09 08:09:51,011] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 08:10:05,387] [INFO] [src.manager.combat_manager]: Condição 'frightened' adicionada para combatente 'Kaz' (Condições ativas: ['frightened']).
+[2026-09-09 08:10:06,546] [INFO] [src.manager.combat_manager]: Condição 'charmed' adicionada para combatente 'Kaz' (Condições ativas: ['charmed', 'frightened']).
+[2026-09-09 08:10:07,762] [INFO] [src.manager.combat_manager]: Condição 'restrained' adicionada para combatente 'Kaz' (Condições ativas: ['restrained', 'charmed', 'frightened']).
+[2026-09-09 08:10:09,903] [INFO] [src.manager.combat_manager]: Condição 'deafened' adicionada para combatente 'Kaz' (Condições ativas: ['restrained', 'deafened', 'charmed', 'frightened']).
+[2026-09-09 08:10:10,327] [INFO] [src.manager.combat_manager]: Condição 'petrified' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'restrained', 'frightened', 'charmed', 'petrified']).
+[2026-09-09 08:10:11,932] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'restrained', 'paralyzed', 'frightened', 'charmed', 'petrified']).
+[2026-09-09 08:10:12,313] [INFO] [src.manager.combat_manager]: Condição 'invisible' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'restrained', 'paralyzed', 'invisible', 'frightened', 'charmed', 'petrified']).
+[2026-09-09 08:10:13,368] [INFO] [src.manager.combat_manager]: Condição 'stunned' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'frightened', 'stunned', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:14,005] [INFO] [src.manager.combat_manager]: Condição 'prone' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'frightened', 'stunned', 'prone', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:14,933] [INFO] [src.manager.combat_manager]: Condição 'blinded' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'frightened', 'stunned', 'blinded', 'prone', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:15,344] [INFO] [src.manager.combat_manager]: Condição 'poisoned' adicionada para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'frightened', 'stunned', 'blinded', 'poisoned', 'prone', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:19,868] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kaz' movido de (0, 8) para (2, 7).
+[2026-09-09 08:10:26,773] [INFO] [src.manager.combat_manager]: Condição 'poisoned' removida para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'frightened', 'stunned', 'blinded', 'prone', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:28,190] [INFO] [src.manager.combat_manager]: Condição 'blinded' removida para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'frightened', 'stunned', 'prone', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:28,772] [INFO] [src.manager.combat_manager]: Condição 'frightened' removida para combatente 'Kaz' (Condições ativas: ['deafened', 'paralyzed', 'stunned', 'prone', 'petrified', 'restrained', 'invisible', 'charmed']).
+[2026-09-09 08:10:29,584] [INFO] [src.manager.combat_manager]: Condição 'charmed' removida para combatente 'Kaz' (Condições ativas: ['deafened', 'restrained', 'paralyzed', 'invisible', 'stunned', 'prone', 'petrified']).
+[2026-09-09 08:10:29,876] [INFO] [src.manager.combat_manager]: Condição 'deafened' removida para combatente 'Kaz' (Condições ativas: ['restrained', 'paralyzed', 'invisible', 'stunned', 'prone', 'petrified']).
+[2026-09-09 08:10:30,920] [INFO] [src.manager.combat_manager]: Condição 'restrained' removida para combatente 'Kaz' (Condições ativas: ['paralyzed', 'invisible', 'stunned', 'prone', 'petrified']).
+[2026-09-09 08:10:31,694] [INFO] [src.manager.combat_manager]: Condição 'invisible' removida para combatente 'Kaz' (Condições ativas: ['prone', 'paralyzed', 'stunned', 'petrified']).
+[2026-09-09 08:10:32,094] [INFO] [src.manager.combat_manager]: Condição 'stunned' removida para combatente 'Kaz' (Condições ativas: ['paralyzed', 'prone', 'petrified']).
+[2026-09-09 08:10:32,843] [INFO] [src.manager.combat_manager]: Condição 'prone' removida para combatente 'Kaz' (Condições ativas: ['paralyzed', 'petrified']).
+[2026-09-09 08:10:33,794] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' removida para combatente 'Kaz' (Condições ativas: ['petrified']).
+[2026-09-09 08:10:34,091] [INFO] [src.manager.combat_manager]: Condição 'petrified' removida para combatente 'Kaz' (Condições ativas: []).
+[2026-09-09 08:10:54,904] [INFO] [src.manager.session_manager]: Encerrando combate e retornando exibição para: IDLE
+[2026-09-09 08:10:54,904] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada no Vale' (encounter_05092026210157).
+[2026-09-09 08:10:54,905] [INFO] [src.domain.models.fog_manager]: Névoa de guerra completamente removida do mapa.
+[2026-09-09 08:10:54,905] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-09 08:10:56,676] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-09 08:10:56,681] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-09 08:10:56,683] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-09 08:10:56,683] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes (0 ocultos) e 0 células de névoa.
+[2026-09-09 08:10:56,725] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-09 08:10:56,735] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-09 08:10:56,765] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-09 08:11:05,659] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Cultista 2' movido de (5, 6) para (5, 6).
+[2026-09-09 08:11:08,022] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em Cultista 2 (HP: 4/9)
+[2026-09-09 08:11:10,955] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Cultista 2 (HP: 3/9)
+[2026-09-09 08:11:11,910] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Cultista 2 (HP: 2/9)
+[2026-09-09 08:11:22,669] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1009 (fullscreen=False). Viewport recalculada.
+[2026-09-09 08:11:56,373] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal aberto.
+[2026-09-09 08:12:12,774] [INFO] [src.ui.dm.add_token_modal]: AddTokenModal confirmado: {'name': 'teds', 'entity_type': <EntityType.NEUTRAL: 'neutral'>, 'max_hp': 1, 'current_hp': 1, 'armor_class': 10, 'initiative_slot': 'next', 'token_sprite': None}
+[2026-09-09 08:12:12,774] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal fechado.
+[2026-09-09 08:12:12,775] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN iniciado para 'teds'.
+[2026-09-09 08:12:12,775] [INFO] [src.ui.dm.combat_tab]: Modo de posicionamento ativado no TacticalMiniMap para 'teds'.
+[2026-09-09 08:12:14,146] [INFO] [src.manager.combat_manager]: Novo combatente spawnado no combate: 'teds' (Tipo: neutral) na posição (12, 6), slot de iniciativa: 'next' (hidden=False).
+[2026-09-09 08:12:14,147] [INFO] [src.ui.dm.combat_tab]: Token 'teds' inserido e selecionado com sucesso em (12, 6).
+[2026-09-09 08:12:14,147] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN cancelado.
+[2026-09-09 08:12:25,530] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-09 08:12:25,531] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Retardatarios no caminho' (encounter_04092026132531).
+[2026-09-09 08:12:25,531] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-09 08:12:26,811] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-09 08:12:26,814] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-09 08:12:26,920] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-09 08:14:24,392] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-09 08:14:24,393] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-09 08:14:24,834] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-09 08:14:24,960] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-09 08:14:24,961] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-09 08:14:24,962] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-09 08:14:24,963] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-09 08:14:24,963] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-09 08:14:29,305] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-09 08:14:29,312] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-09 08:14:29,314] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-09 08:14:29,315] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 237 células de névoa.
+[2026-09-09 08:14:29,325] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-09 08:14:29,344] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 08:14:29,354] [INFO] [src.ui.utils.status_icon_atlas]: Atlas de ícones de status carregado com sucesso: 14 ícones recortados de 'assets/sprites/status_icons.png' (176x32px).
+[2026-09-09 08:14:29,689] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 08:14:32,103] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (0, 7) para (1, 7).
+[2026-09-09 08:14:32,860] [INFO] [src.manager.combat_manager]: Condição 'petrified' adicionada para combatente 'Ornella' (Condições ativas: ['petrified']).
+[2026-09-09 08:14:36,252] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1009 (fullscreen=False). Viewport recalculada.
+[2026-09-09 08:14:38,678] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' adicionada para combatente 'Ornella' (Condições ativas: ['paralyzed', 'petrified']).
+[2026-09-09 08:14:39,683] [INFO] [src.manager.combat_manager]: Condição 'invisible' adicionada para combatente 'Ornella' (Condições ativas: ['paralyzed', 'petrified', 'invisible']).
+[2026-09-09 08:14:45,750] [INFO] [src.manager.combat_manager]: Condição 'prone' adicionada para combatente 'Ornella' (Condições ativas: ['paralyzed', 'prone', 'petrified', 'invisible']).
+[2026-09-09 08:14:46,038] [INFO] [src.manager.combat_manager]: Condição 'stunned' adicionada para combatente 'Ornella' (Condições ativas: ['paralyzed', 'prone', 'stunned', 'petrified', 'invisible']).
+[2026-09-09 08:14:47,065] [INFO] [src.manager.combat_manager]: Condição 'deafened' adicionada para combatente 'Ornella' (Condições ativas: ['deafened', 'paralyzed', 'prone', 'stunned', 'petrified', 'invisible']).
+[2026-09-09 08:14:47,414] [INFO] [src.manager.combat_manager]: Condição 'restrained' adicionada para combatente 'Ornella' (Condições ativas: ['deafened', 'paralyzed', 'prone', 'stunned', 'petrified', 'restrained', 'invisible']).
+[2026-09-09 08:14:48,229] [INFO] [src.manager.combat_manager]: Condição 'charmed' adicionada para combatente 'Ornella' (Condições ativas: ['deafened', 'stunned', 'charmed', 'paralyzed', 'prone', 'petrified', 'restrained', 'invisible']).
+[2026-09-09 08:14:49,238] [INFO] [src.manager.combat_manager]: Condição 'blinded' adicionada para combatente 'Ornella' (Condições ativas: ['deafened', 'stunned', 'charmed', 'blinded', 'paralyzed', 'prone', 'petrified', 'restrained', 'invisible']).
+[2026-09-09 08:14:49,674] [INFO] [src.manager.combat_manager]: Condição 'frightened' adicionada para combatente 'Ornella' (Condições ativas: ['deafened', 'frightened', 'stunned', 'charmed', 'blinded', 'paralyzed', 'prone', 'petrified', 'restrained', 'invisible']).
+[2026-09-09 08:14:50,494] [INFO] [src.manager.combat_manager]: Condição 'poisoned' adicionada para combatente 'Ornella' (Condições ativas: ['deafened', 'frightened', 'stunned', 'charmed', 'blinded', 'poisoned', 'paralyzed', 'prone', 'petrified', 'restrained', 'invisible']).
+[2026-09-09 08:15:05,451] [INFO] [src.manager.combat_manager]: Estado de combate salvo com sucesso em 'creations\encounters\saves\encounter_05092026210157_save.json' (Rodada 1, Turno -1, 13 combatentes, 9 ocultos, 237 células de névoa).
+[2026-09-09 08:15:05,452] [INFO] [src.ui.dm.combat_tab]: Progresso do combate salvo com sucesso pelo usuário.
+[2026-09-09 08:15:09,367] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_06092026112311
+[2026-09-09 08:15:09,372] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 1512 células ativas.
+[2026-09-09 08:15:09,373] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Encubadora de ovos' (encounter_06092026112311) [tipo=image] com 4 combatentes (0 ocultos) e 1512 células de névoa.
+[2026-09-09 08:15:12,852] [INFO] [src.ui.dm.encounters_tab]: Save detectado para 'encounter_05092026210157'. Abrindo modal de decisão.
+[2026-09-09 08:15:14,009] [INFO] [src.ui.dm.encounters_tab]: Retomando save state do encontro 'encounter_05092026210157'.
+[2026-09-09 08:15:14,010] [INFO] [src.manager.session_manager]: Retomando sessão de combate salva: encounter_05092026210157
+[2026-09-09 08:15:14,015] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-09 08:15:14,018] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-09 08:15:14,019] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 237 células de névoa.
+[2026-09-09 08:15:14,019] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-09 08:15:14,019] [INFO] [src.manager.combat_manager]: Estado de combate restaurado com sucesso de 'encounter_05092026210157_save.json': Rodada 1, Turno Ativo: 'Nenhum' (índice -1), 13 combatentes, 237 células de névoa.
+[2026-09-09 08:15:14,037] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 08:15:14,091] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 08:15:16,669] [INFO] [src.ui.dm.combat_tab]: Save detectado ao finalizar combate. Abrindo modal de confirmação.
+[2026-09-09 08:15:18,266] [INFO] [src.ui.dm.combat_tab]: Encerrando combate e limpando save do disco.
+[2026-09-09 08:15:18,268] [INFO] [src.manager.combat_manager]: Arquivo de save de combate excluído com sucesso: 'creations\encounters\saves\encounter_05092026210157_save.json'.
+[2026-09-09 08:15:18,268] [INFO] [src.manager.session_manager]: Encerrando combate e retornando exibição para: IDLE
+[2026-09-09 08:15:18,269] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Emboscada no Vale' (encounter_05092026210157).
+[2026-09-09 08:15:18,269] [INFO] [src.domain.models.fog_manager]: Névoa de guerra completamente removida do mapa.
+[2026-09-09 08:15:18,270] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-09 08:15:20,864] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-09 08:15:20,866] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-09 08:15:20,966] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-09 13:34:35,995] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-09 13:34:35,995] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-09 13:34:36,455] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-09 13:34:36,556] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-09 13:34:36,556] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-09 13:34:36,556] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-09 13:34:36,558] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-09 13:34:36,558] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-09 13:34:39,260] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1920x1009 (fullscreen=False). Viewport recalculada.
+[2026-09-09 13:34:41,573] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_05092026210157
+[2026-09-09 13:34:41,579] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'estrada_vale.json'.
+[2026-09-09 13:34:41,580] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 237 células ativas.
+[2026-09-09 13:34:41,581] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Emboscada no Vale' (encounter_05092026210157) [tipo=tilemap] com 13 combatentes (9 ocultos) e 237 células de névoa.
+[2026-09-09 13:34:41,590] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-0007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-09 13:34:41,608] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 13:34:41,637] [INFO] [src.ui.utils.status_icon_atlas]: Atlas de ícones de status carregado com sucesso: 14 ícones recortados de 'assets/sprites/status_icons.png' (176x32px).
+[2026-09-09 13:34:42,016] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 15 prop sprites para mapa 'Sprite-0007' (21x12).
+[2026-09-09 13:34:44,649] [INFO] [src.domain.models.fog_manager]: Névoa de guerra completamente removida do mapa.
+[2026-09-09 13:34:51,627] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (0, 7) para (2, 7).
+[2026-09-09 13:34:53,454] [INFO] [src.manager.combat_manager]: Condição 'poisoned' adicionada para combatente 'Ornella' (Condições ativas: ['poisoned']).
+[2026-09-09 13:34:54,311] [INFO] [src.manager.combat_manager]: Condição 'poisoned' removida para combatente 'Ornella' (Condições ativas: []).
+[2026-09-09 13:34:55,024] [INFO] [src.manager.combat_manager]: Condição 'poisoned' adicionada para combatente 'Ornella' (Condições ativas: ['poisoned']).
+[2026-09-09 13:34:55,584] [INFO] [src.manager.combat_manager]: Condição 'blinded' adicionada para combatente 'Ornella' (Condições ativas: ['poisoned', 'blinded']).
+[2026-09-09 13:34:56,842] [INFO] [src.manager.combat_manager]: Condição 'frightened' adicionada para combatente 'Ornella' (Condições ativas: ['poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:34:58,139] [INFO] [src.manager.combat_manager]: Condição 'charmed' adicionada para combatente 'Ornella' (Condições ativas: ['charmed', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:34:59,403] [INFO] [src.manager.combat_manager]: Condição 'restrained' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:00,654] [INFO] [src.manager.combat_manager]: Condição 'deafened' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:01,717] [INFO] [src.manager.combat_manager]: Condição 'petrified' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:03,396] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:04,751] [INFO] [src.manager.combat_manager]: Condição 'invisible' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'invisible', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:05,897] [INFO] [src.manager.combat_manager]: Condição 'stunned' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'stunned', 'invisible', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:06,949] [INFO] [src.manager.combat_manager]: Condição 'prone' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'charmed', 'deafened', 'petrified', 'stunned', 'invisible', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:09,335] [INFO] [src.manager.combat_manager]: Condição 'prone' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'stunned', 'invisible', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:10,182] [INFO] [src.manager.combat_manager]: Condição 'stunned' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'invisible', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:10,612] [INFO] [src.manager.combat_manager]: Condição 'invisible' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'paralyzed', 'blinded']).
+[2026-09-09 13:35:11,089] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:11,558] [INFO] [src.manager.combat_manager]: Condição 'petrified' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:12,363] [INFO] [src.manager.combat_manager]: Condição 'deafened' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:12,750] [INFO] [src.manager.combat_manager]: Condição 'restrained' removida para combatente 'Ornella' (Condições ativas: ['charmed', 'frightened', 'poisoned', 'blinded']).
+[2026-09-09 13:35:13,347] [INFO] [src.manager.combat_manager]: Condição 'charmed' removida para combatente 'Ornella' (Condições ativas: ['poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:14,231] [INFO] [src.manager.combat_manager]: Condição 'frightened' removida para combatente 'Ornella' (Condições ativas: ['poisoned', 'blinded']).
+[2026-09-09 13:35:15,113] [INFO] [src.manager.combat_manager]: Condição 'blinded' removida para combatente 'Ornella' (Condições ativas: ['poisoned']).
+[2026-09-09 13:35:15,484] [INFO] [src.manager.combat_manager]: Condição 'poisoned' removida para combatente 'Ornella' (Condições ativas: []).
+[2026-09-09 13:35:36,530] [INFO] [src.manager.combat_manager]: Condição 'frightened' adicionada para combatente 'Ornella' (Condições ativas: ['frightened']).
+[2026-09-09 13:35:37,659] [INFO] [src.manager.combat_manager]: Condição 'charmed' adicionada para combatente 'Ornella' (Condições ativas: ['charmed', 'frightened']).
+[2026-09-09 13:35:38,634] [INFO] [src.manager.combat_manager]: Condição 'restrained' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'frightened']).
+[2026-09-09 13:35:40,363] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'frightened', 'paralyzed']).
+[2026-09-09 13:35:43,232] [INFO] [src.manager.combat_manager]: Condição 'invisible' adicionada para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'paralyzed', 'frightened', 'invisible']).
+[2026-09-09 13:35:44,743] [INFO] [src.manager.combat_manager]: Condição 'prone' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'charmed', 'paralyzed', 'frightened', 'invisible']).
+[2026-09-09 13:35:45,933] [INFO] [src.manager.combat_manager]: Condição 'stunned' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'paralyzed', 'frightened', 'invisible']).
+[2026-09-09 13:35:47,996] [INFO] [src.manager.combat_manager]: Condição 'blinded' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'invisible', 'paralyzed', 'frightened', 'blinded']).
+[2026-09-09 13:35:49,723] [INFO] [src.manager.combat_manager]: Condição 'poisoned' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'invisible', 'poisoned', 'paralyzed', 'frightened', 'blinded']).
+[2026-09-09 13:35:50,451] [INFO] [src.manager.combat_manager]: Condição 'deafened' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'deafened', 'invisible', 'poisoned', 'paralyzed', 'frightened', 'blinded']).
+[2026-09-09 13:35:51,109] [INFO] [src.manager.combat_manager]: Condição 'petrified' adicionada para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'deafened', 'petrified', 'invisible', 'poisoned', 'paralyzed', 'frightened', 'blinded']).
+[2026-09-09 13:35:52,110] [INFO] [src.manager.combat_manager]: Condição 'paralyzed' removida para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'deafened', 'petrified', 'invisible', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:53,027] [INFO] [src.manager.combat_manager]: Condição 'invisible' removida para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'stunned', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:53,317] [INFO] [src.manager.combat_manager]: Condição 'stunned' removida para combatente 'Ornella' (Condições ativas: ['prone', 'restrained', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:53,577] [INFO] [src.manager.combat_manager]: Condição 'prone' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'petrified', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:54,313] [INFO] [src.manager.combat_manager]: Condição 'petrified' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'deafened', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:54,597] [INFO] [src.manager.combat_manager]: Condição 'deafened' removida para combatente 'Ornella' (Condições ativas: ['restrained', 'charmed', 'poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:54,903] [INFO] [src.manager.combat_manager]: Condição 'restrained' removida para combatente 'Ornella' (Condições ativas: ['charmed', 'frightened', 'poisoned', 'blinded']).
+[2026-09-09 13:35:55,253] [INFO] [src.manager.combat_manager]: Condição 'charmed' removida para combatente 'Ornella' (Condições ativas: ['poisoned', 'frightened', 'blinded']).
+[2026-09-09 13:35:55,547] [INFO] [src.manager.combat_manager]: Condição 'frightened' removida para combatente 'Ornella' (Condições ativas: ['poisoned', 'blinded']).
+[2026-09-09 13:35:55,819] [INFO] [src.manager.combat_manager]: Condição 'blinded' removida para combatente 'Ornella' (Condições ativas: ['poisoned']).
+[2026-09-09 13:35:56,255] [INFO] [src.manager.combat_manager]: Condição 'poisoned' removida para combatente 'Ornella' (Condições ativas: []).
+[2026-09-09 13:36:11,091] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal aberto.
+[2026-09-09 13:36:20,019] [INFO] [src.ui.dm.add_token_modal]: Porte selecionado no modal: 'Large'.
+[2026-09-09 13:36:22,495] [INFO] [src.ui.dm.add_token_modal]: AddTokenModal confirmado: {'name': 'hidra', 'entity_type': <EntityType.NEUTRAL: 'neutral'>, 'size': 'Large', 'max_hp': 1, 'current_hp': 1, 'armor_class': 10, 'initiative_slot': 'next', 'token_sprite': None}
+[2026-09-09 13:36:22,495] [INFO] [src.ui.dm.add_token_modal]: Modal AddTokenModal fechado.
+[2026-09-09 13:36:22,496] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN iniciado para 'hidra'.
+[2026-09-09 13:36:22,497] [INFO] [src.ui.dm.combat_tab]: Modo de posicionamento ativado no TacticalMiniMap para 'hidra'.
+[2026-09-09 13:36:24,960] [INFO] [src.manager.combat_manager]: Novo combatente spawnado no combate: 'hidra' (Tipo: neutral) na posição (8, 7), slot de iniciativa: 'next' (hidden=False).
+[2026-09-09 13:36:24,961] [INFO] [src.ui.dm.combat_tab]: Token 'hidra' inserido e selecionado com sucesso em (8, 7).
+[2026-09-09 13:36:24,962] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: modo PLACING_TOKEN cancelado.
+[2026-09-09 13:37:03,677] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Ornella' movido de (2, 7) para (2, 7).
+[2026-09-09 13:37:04,332] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'hidra' movido de (8, 7) para (8, 7).
+[2026-09-09 13:37:29,734] [INFO] [src.manager.combat_manager]: Condição 'charmed' adicionada para combatente 'hidra' (Condições ativas: ['charmed']).
+[2026-09-09 13:37:30,602] [INFO] [src.manager.combat_manager]: Condição 'charmed' removida para combatente 'hidra' (Condições ativas: []).
+[2026-09-09 13:37:32,381] [INFO] [src.manager.combat_manager]: Dano aplicado: 5 em hidra (HP: 0/1)
+[2026-09-09 13:37:34,450] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em hidra (HP: 1/1)
+[2026-09-09 13:37:34,852] [INFO] [src.manager.combat_manager]: Cura aplicada: 1 em hidra (HP: 1/1)
+[2026-09-09 13:37:41,149] [INFO] [src.manager.combat_manager]: Condição 'deafened' adicionada para combatente 'hidra' (Condições ativas: ['deafened']).
+[2026-09-09 13:37:42,191] [INFO] [src.manager.combat_manager]: Condição 'stunned' adicionada para combatente 'hidra' (Condições ativas: ['stunned', 'deafened']).
+[2026-09-09 13:37:43,363] [INFO] [src.manager.combat_manager]: Condição 'prone' adicionada para combatente 'hidra' (Condições ativas: ['prone', 'stunned', 'deafened']).
+[2026-09-09 13:37:44,334] [INFO] [src.manager.combat_manager]: Condição 'prone' removida para combatente 'hidra' (Condições ativas: ['stunned', 'deafened']).
+[2026-09-09 13:37:44,788] [INFO] [src.manager.combat_manager]: Condição 'stunned' removida para combatente 'hidra' (Condições ativas: ['deafened']).
+[2026-09-09 13:37:45,508] [INFO] [src.manager.combat_manager]: Condição 'deafened' removida para combatente 'hidra' (Condições ativas: []).
+[2026-09-09 13:37:52,247] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-09 13:37:52,248] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-09 13:37:52,379] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.

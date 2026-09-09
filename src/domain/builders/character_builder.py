@@ -38,6 +38,11 @@ class CharacterBuilder:
         self._coins: Dict[str, int] = {"cp": 0, "sp": 0, "ep": 0, "gp": 0, "pp": 0}
         self._active_features: List[str] = []
         self._equipment: List[Dict[str, Any]] = []
+        self._size: str = "Medium"
+        return self
+
+    def with_size(self, size: str) -> "CharacterBuilder":
+        self._size = size
         return self
 
     def with_uid(self, uid: str) -> "CharacterBuilder":
@@ -155,6 +160,8 @@ class CharacterBuilder:
             self.with_active_features(data["active_features"])
         if "equipment" in data:
             self.with_equipment(data["equipment"])
+        if "size" in data:
+            self.with_size(data["size"])
         if "position" in data:
             pos = data["position"]
             self.with_position(pos.get("x", 0), pos.get("y", 0))
@@ -181,6 +188,7 @@ class CharacterBuilder:
             coins=self._coins,
             active_features=self._active_features,
             equipment=self._equipment,
+            size=self._size,
         )
 
         if self._current_hp is not None:

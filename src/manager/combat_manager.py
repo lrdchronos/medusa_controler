@@ -4,7 +4,7 @@ import json
 import random
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from ..domain.models.entity import Entity, EntityType, DynamicToken
 from ..domain.models.tile_map import TileMap
 from ..domain.models.spell_template import SpellTemplate, SpellShape
@@ -210,6 +210,24 @@ class CombatManager:
         if self.__tile_map is not None:
             return self.__tile_map.is_walkable(x, y)
         return True
+
+    def is_walkable_for_size(self, col: int, row: int, size: Union[str, int, float] = 1) -> bool:
+        """
+        Verifica se todas as células sob o perímetro/footprint de uma criatura
+        de tamanho especificado (1x1, 2x2, 3x3, 4x4) permitem passagem livre (is_walkable == True).
+        """
+        if self.__grid_manager is not None:
+            cells = self.__grid_manager.get_creature_grid_cells(col, row, size)
+            for c, r in cells:
+                if not self.is_walkable(c, r):
+                    return False
+            return True
+        return self.is_walkable(col, row)
+
+    def is_walkable_for_entity(self, entity: Entity, col: int, row: int) -> bool:
+        """Verifica se o espaço (col, row) é transitável para a entidade com base no seu tamanho."""
+        size = getattr(entity, "size", "Medium")
+        return self.is_walkable_for_size(col, row, size)
 
     def load_encounter(self, encounter_id_or_path: str) -> None:
         """Carrega dados do encontro, popula os combatentes e inicializa o GridManager."""
@@ -687,6 +705,43 @@ class CombatManager:
             return True
         return False
 
+    def toggle_condition(self, uid_or_name: str, condition: str) -> bool:
+        """
+        Alterna uma condição no combatente (adiciona se ausente, remove se presente).
+        Notifica os ouvintes (Observer Pattern) para sincronização instantânea.
+        """
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            is_active = combatant.toggle_condition(condition)
+            status_desc = "adicionada" if is_active else "removida"
+            logger.info(
+                f"Condição '{condition}' {status_desc} para combatente '{combatant.name}' "
+                f"(Condições ativas: {list(combatant.conditions)})."
+            )
+            self.notify_listeners()
+            return is_active
+        return False
+
+    def add_condition(self, uid_or_name: str, condition: str) -> bool:
+        """Adiciona uma condição ao combatente e notifica os ouvintes."""
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            combatant.add_condition(condition)
+            logger.info(f"Condição '{condition}' adicionada a '{combatant.name}'.")
+            self.notify_listeners()
+            return True
+        return False
+
+    def remove_condition(self, uid_or_name: str, condition: str) -> bool:
+        """Remove uma condição do combatente e notifica os ouvintes."""
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            combatant.remove_condition(condition)
+            logger.info(f"Condição '{condition}' removida de '{combatant.name}'.")
+            self.notify_listeners()
+            return True
+        return False
+
     # --- Projeção Tática de Magias (Spell AoE Overlay) ---
 
     def set_spell_template(self, template: Optional[SpellTemplate]) -> None:
@@ -874,7 +929,8 @@ class CombatManager:
                     "armor_class": c.armor_class,
                     "entity_type": etype_str,
                     "token_sprite": getattr(c, "token_sprite", None),
-                    "conditions": c.conditions,
+                    "size": getattr(c, "size", "Medium"),
+                    "conditions": list(c.conditions),
                     "position": c.position,
                     "hidden": c.is_hidden,
                 })

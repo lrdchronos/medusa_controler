@@ -5,6 +5,7 @@ from ...manager.session_manager import SessionManager, DisplayState
 from ...domain.models.playablechar import PlayableCharacter
 from ...domain.models.entity import Entity, EntityType, DynamicToken
 from ..components.discrete_scroll_list import DiscreteScrollList
+from ..utils.status_icon_atlas import StatusIconAtlas
 from .spell_aoe_panel import SpellAoEPanel
 from .fog_control_panel import FogControlPanel
 from .add_token_modal import AddTokenModal
@@ -71,6 +72,7 @@ class CombatTabView:
                 armor_class=int(token_data.get("armor_class", 10)),
                 entity_type=etype,
                 token_sprite=token_data.get("token_sprite"),
+                size=token_data.get("size", "Medium"),
             )
             slot = token_data.get("initiative_slot", "next")
             self.combat_manager.spawn_combatant(token_entity, (0, 0), initiative_slot=slot)
@@ -323,15 +325,16 @@ class CombatTabView:
         # 5. Painel Inferior: Despachante de Dano / Cura do Alvo Selecionado
         rendered_rows = min(len(combatants), max_rows)
         disp_top = table_top - table_h - rendered_rows * (self.__item_height + self.__spacing) - 8
-        disp_h = 130
+        disp_h = 168
         arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, disp_top - disp_h / 2, panel_w - 24, disp_h), (18, 24, 34, 255))
         arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, disp_top - disp_h / 2, panel_w - 24, disp_h), (50, 65, 90, 200), 1)
 
         sel_combatant = self.combat_manager.get_combatant(self.selected_combatant_uid or "")
         if sel_combatant:
             # Resumo do Alvo
-            self._get_text("disp_title", f"ALVO SELECIONADO: {sel_combatant.name.upper()}", 24, disp_top - 14, (241, 196, 15, 255), 9, bold=True).draw()
-            hp_info = f"HP: {sel_combatant.current_hp}/{sel_combatant.max_hp} • CA: {sel_combatant.armor_class} • Inic: {sel_combatant.initiative_score}"
+            size_str = getattr(sel_combatant, "size", "Medium")
+            self._get_text("disp_title", f"ALVO SELECIONADO: {sel_combatant.name.upper()} ({size_str})", 24, disp_top - 14, (241, 196, 15, 255), 9, bold=True).draw()
+            hp_info = f"HP: {sel_combatant.current_hp}/{sel_combatant.max_hp} • CA: {sel_combatant.armor_class} • Inic: {sel_combatant.initiative_score} • Tam: {size_str}"
             self._get_text("disp_hp_info", hp_info, 24, disp_top - 28, (200, 210, 225, 255), 8, bold=False).draw()
 
             # Barra de Vida Visual
@@ -347,58 +350,93 @@ class CombatTabView:
                 arcade.draw_rect_filled(arcade.XYWH(30 + fill_w / 2, bar_y, fill_w, bar_h), hp_bar_color)
 
             # Botões Rápidos de Dano (-1, -5, -10, -20)
-            btn_dmg_y = disp_top - 66
+            btn_dmg_y = disp_top - 62
             dmg_vals = [-1, -5, -10, -20]
             dmg_btn_w = (panel_w - 70) / 8
 
             for i, val in enumerate(dmg_vals):
                 bx = 30 + i * (dmg_btn_w + 4) + dmg_btn_w / 2
-                arcade.draw_rect_filled(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 22), (192, 57, 43, 255))
-                arcade.draw_rect_outline(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 22), (231, 76, 60, 255), 1)
+                arcade.draw_rect_filled(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 20), (192, 57, 43, 255))
+                arcade.draw_rect_outline(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 20), (231, 76, 60, 255), 1)
                 self._get_text(f"b_dmg_{val}", str(val), bx, btn_dmg_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
             # Botões Rápidos de Cura (+1, +5, +10, +20)
             heal_vals = [1, 5, 10, 20]
             for i, val in enumerate(heal_vals):
                 bx = 30 + (i + 4) * (dmg_btn_w + 4) + dmg_btn_w / 2
-                arcade.draw_rect_filled(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 22), (39, 174, 96, 255))
-                arcade.draw_rect_outline(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 22), (46, 204, 113, 255), 1)
+                arcade.draw_rect_filled(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 20), (39, 174, 96, 255))
+                arcade.draw_rect_outline(arcade.XYWH(bx, btn_dmg_y, dmg_btn_w, 20), (46, 204, 113, 255), 1)
                 self._get_text(f"b_heal_{val}", f"+{val}", bx, btn_dmg_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
             # Linha Customizada de Dano/Cura
-            custom_y = disp_top - 100
+            custom_y = disp_top - 90
 
             # Stepper [-]
-            arcade.draw_rect_filled(arcade.XYWH(45, custom_y, 26, 24), (45, 55, 70, 255))
-            arcade.draw_rect_outline(arcade.XYWH(45, custom_y, 26, 24), (70, 90, 120, 200), 1)
+            arcade.draw_rect_filled(arcade.XYWH(45, custom_y, 26, 22), (45, 55, 70, 255))
+            arcade.draw_rect_outline(arcade.XYWH(45, custom_y, 26, 22), (70, 90, 120, 200), 1)
             self._get_text("b_cust_minus", "[-]", 45, custom_y, (241, 196, 15, 255), 9, bold=True, anchor_x="center").draw()
 
             # Caixa do Valor
-            arcade.draw_rect_filled(arcade.XYWH(90, custom_y, 48, 24), (15, 20, 28, 255))
-            arcade.draw_rect_outline(arcade.XYWH(90, custom_y, 48, 24), (241, 196, 15, 200), 1)
+            arcade.draw_rect_filled(arcade.XYWH(90, custom_y, 48, 22), (15, 20, 28, 255))
+            arcade.draw_rect_outline(arcade.XYWH(90, custom_y, 48, 22), (241, 196, 15, 200), 1)
             self._get_text("cust_val_t", str(self.custom_hp_value), 90, custom_y, (255, 255, 255, 255), 9, bold=True, anchor_x="center").draw()
 
             # Stepper [+]
-            arcade.draw_rect_filled(arcade.XYWH(135, custom_y, 26, 24), (45, 55, 70, 255))
-            arcade.draw_rect_outline(arcade.XYWH(135, custom_y, 26, 24), (70, 90, 120, 200), 1)
+            arcade.draw_rect_filled(arcade.XYWH(135, custom_y, 26, 22), (45, 55, 70, 255))
+            arcade.draw_rect_outline(arcade.XYWH(135, custom_y, 26, 22), (70, 90, 120, 200), 1)
             self._get_text("b_cust_plus", "[+]", 135, custom_y, (241, 196, 15, 255), 9, bold=True, anchor_x="center").draw()
 
             # Botão Aplicar Dano Customizado
-            arcade.draw_rect_filled(arcade.XYWH(215, custom_y, 100, 24), (192, 57, 43, 255))
-            arcade.draw_rect_outline(arcade.XYWH(215, custom_y, 100, 24), (231, 76, 60, 255), 1)
+            arcade.draw_rect_filled(arcade.XYWH(215, custom_y, 100, 22), (192, 57, 43, 255))
+            arcade.draw_rect_outline(arcade.XYWH(215, custom_y, 100, 22), (231, 76, 60, 255), 1)
             self._get_text("b_apply_dmg", f"⚔️ Dano ({self.custom_hp_value})", 215, custom_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
             # Botão Aplicar Cura Customizada
-            arcade.draw_rect_filled(arcade.XYWH(325, custom_y, 100, 24), (39, 174, 96, 255))
-            arcade.draw_rect_outline(arcade.XYWH(325, custom_y, 100, 24), (46, 204, 113, 255), 1)
+            arcade.draw_rect_filled(arcade.XYWH(325, custom_y, 100, 22), (39, 174, 96, 255))
+            arcade.draw_rect_outline(arcade.XYWH(325, custom_y, 100, 22), (46, 204, 113, 255), 1)
             self._get_text("b_apply_heal", f"💚 Cura ({self.custom_hp_value})", 325, custom_y, (255, 255, 255, 255), 8, bold=True, anchor_x="center").draw()
 
             # Botão Ocultar / Revelar no Grid
             vis_str = "👁️ Revelar" if sel_combatant.is_hidden else "👁️ Ocultar"
             vis_bg = (120, 40, 31, 255) if sel_combatant.is_hidden else (52, 73, 94, 255)
-            arcade.draw_rect_filled(arcade.XYWH(panel_w - 75, custom_y, 90, 24), vis_bg)
-            arcade.draw_rect_outline(arcade.XYWH(panel_w - 75, custom_y, 90, 24), (100, 120, 150, 200), 1)
+            arcade.draw_rect_filled(arcade.XYWH(panel_w - 75, custom_y, 90, 22), vis_bg)
+            arcade.draw_rect_outline(arcade.XYWH(panel_w - 75, custom_y, 90, 22), (100, 120, 150, 200), 1)
             self._get_text("b_toggle_vis", vis_str, panel_w - 75, custom_y, (240, 240, 245, 255), 8, bold=True, anchor_x="center").draw()
+
+            # 5.4. Painel de Condições Canônicas D&D 5E (11 Toggles)
+            cond_title_y = disp_top - 114
+            self._get_text("disp_cond_title", "CONDIÇÕES TÁTICAS (D&D 5E):", 24, cond_title_y, (180, 190, 205, 255), 7.5, bold=True).draw()
+
+            cond_names = StatusIconAtlas.get_condition_names()
+            cond_btn_y = disp_top - 140
+            cond_btn_h = 24
+            cond_spacing = 3
+            cond_total_w = panel_w - 48
+            cond_btn_w = (cond_total_w - (len(cond_names) - 1) * cond_spacing) / len(cond_names)
+
+            for idx, cond_name in enumerate(cond_names):
+                bx = 24 + idx * (cond_btn_w + cond_spacing) + cond_btn_w / 2
+                is_active = sel_combatant.has_condition(cond_name)
+                tex = StatusIconAtlas.get_condition_texture(cond_name)
+
+                if is_active:
+                    bg_color = (65, 50, 15, 255)
+                    border_color = (241, 196, 15, 255)
+                    border_w = 2.0
+                else:
+                    bg_color = (24, 30, 42, 255)
+                    border_color = (50, 65, 88, 180)
+                    border_w = 1.0
+
+                arcade.draw_rect_filled(arcade.XYWH(bx, cond_btn_y, cond_btn_w, cond_btn_h), bg_color)
+                arcade.draw_rect_outline(arcade.XYWH(bx, cond_btn_y, cond_btn_w, cond_btn_h), border_color, border_w)
+
+                if tex is not None:
+                    arcade.draw_texture_rect(
+                        tex,
+                        arcade.XYWH(bx, cond_btn_y, 13, 13),
+                        pixelated=True,
+                    )
 
         # 6. Modal de Confirmação ao Finalizar Combate (Limpar ou Manter Save)
         if self.pending_end_combat_modal:
@@ -600,7 +638,7 @@ class CombatTabView:
 
         sel_combatant = self.combat_manager.get_combatant(self.selected_combatant_uid or "")
         if sel_combatant:
-            btn_dmg_y = disp_top - 66
+            btn_dmg_y = disp_top - 62
             dmg_vals = [-1, -5, -10, -20]
             dmg_btn_w = (panel_w - 70) / 8
 
@@ -620,7 +658,7 @@ class CombatTabView:
                         self.combat_manager.apply_heal(sel_combatant.uid, val)
                         return True
 
-            custom_y = disp_top - 100
+            custom_y = disp_top - 90
             if abs(y - custom_y) <= 12:
                 # Stepper [-]
                 if abs(x - 45) <= 13:
@@ -646,6 +684,20 @@ class CombatTabView:
                 if abs(x - (panel_w - 75)) <= 45:
                     self.combat_manager.toggle_combatant_visibility(sel_combatant.uid)
                     return True
+
+            # Cliques nas Condições Táticas D&D 5E (11 Toggles)
+            cond_btn_y = disp_top - 140
+            cond_btn_h = 24
+            if abs(y - cond_btn_y) <= cond_btn_h / 2:
+                cond_names = StatusIconAtlas.get_condition_names()
+                cond_spacing = 3
+                cond_total_w = panel_w - 48
+                cond_btn_w = (cond_total_w - (len(cond_names) - 1) * cond_spacing) / len(cond_names)
+                for idx, cond_name in enumerate(cond_names):
+                    bx = 24 + idx * (cond_btn_w + cond_spacing) + cond_btn_w / 2
+                    if abs(x - bx) <= cond_btn_w / 2:
+                        self.combat_manager.toggle_condition(sel_combatant.uid, cond_name)
+                        return True
 
         return False
 

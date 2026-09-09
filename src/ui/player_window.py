@@ -11,6 +11,7 @@ from .initiative_hud import InitiativeHUD
 from .utils.sprite_utils import SpriteFactory, CombatToken
 from .utils.tilemap_renderer import TileMapRenderer
 from .utils.aoe_renderer import AoERenderer
+from .renderers.token_status_renderer import TokenStatusRenderer
 from ..domain.models.playablechar import PlayableCharacter
 
 logger = logging.getLogger(__name__)
@@ -357,9 +358,10 @@ class PlayerWindow(arcade.Window):
             pos = combatant.position
             px = pos.get("x", 0)
             py = pos.get("y", 0)
+            num_squares = getattr(combatant, "size_in_squares", 1)
 
-            target_x = draw_x + (px + 0.5) * cell_w
-            target_y = draw_y + (py + 0.5) * cell_h
+            target_x = draw_x + (float(px) + num_squares / 2.0) * cell_w
+            target_y = draw_y + (float(py) + num_squares / 2.0) * cell_h
             is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
             etype = getattr(combatant, "entity_type", "player" if is_player else "monster")
 
@@ -469,6 +471,7 @@ class PlayerWindow(arcade.Window):
                 continue
 
             token = self.token_sprites.get(combatant.uid)
+            num_squares = getattr(combatant, "size_in_squares", 1)
             if token is not None:
                 cx = token.center_x
                 cy = token.center_y
@@ -476,13 +479,13 @@ class PlayerWindow(arcade.Window):
                 pos = combatant.position
                 px = pos.get("x", 0)
                 py = pos.get("y", 0)
-                cx = draw_x + (px + 0.5) * cell_w
-                cy = draw_y + (py + 0.5) * cell_h
+                cx = draw_x + (float(px) + num_squares / 2.0) * cell_w
+                cy = draw_y + (float(py) + num_squares / 2.0) * cell_h
 
             is_player = getattr(combatant, "is_player", isinstance(combatant, PlayableCharacter))
             etype = getattr(combatant, "entity_type", "player" if is_player else "monster")
             is_active = (combatant == active_combatant)
-            token_radius = (min(cell_w, cell_h) * 0.88) / 2.0
+            token_radius = (min(cell_w, cell_h) * num_squares * 0.88) / 2.0
 
             SpriteFactory.draw_tactical_token(
                 name=combatant.name,
@@ -497,6 +500,16 @@ class PlayerWindow(arcade.Window):
                 text_cache=self._text_cache,
                 token_key=combatant.uid,
                 entity_type=etype,
+            )
+
+            # Renderização dos Badges Orbitais de Vida e Condições Táticas (Relógio 12h)
+            status_scale = (draw_w / combat_manager.grid_manager.map_width) if (combat_manager.grid_manager and combat_manager.grid_manager.map_width > 0) else 1.0
+            TokenStatusRenderer.draw(
+                entity=combatant,
+                center_x=cx,
+                center_y=cy,
+                token_radius=token_radius,
+                scale_factor=status_scale,
             )
 
         # 4. Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE Overlay)

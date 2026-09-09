@@ -1,6 +1,6 @@
 from abc import ABC
 from enum import Enum
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Set
 import uuid
 
 
@@ -23,6 +23,16 @@ class Entity(ABC):
     acessos via @property com cópias defensivas e métodos de manipulação de estado.
     """
 
+    VALID_SIZES: Set[str] = {"tiny", "small", "medium", "large", "huge", "gargantuan"}
+    SIZE_SQUARES: Dict[str, int] = {
+        "tiny": 1,
+        "small": 1,
+        "medium": 1,
+        "large": 2,
+        "huge": 3,
+        "gargantuan": 4,
+    }
+
     def __init__(
         self,
         name: str,
@@ -35,6 +45,7 @@ class Entity(ABC):
         is_hidden: bool = False,
         entity_type: Union[EntityType, str] = EntityType.NEUTRAL,
         token_sprite: Optional[str] = None,
+        size: str = "Medium",
     ) -> None:
         self.__uid: str = uid if uid is not None else str(uuid.uuid4())
         self.__name: str = name
@@ -48,6 +59,7 @@ class Entity(ABC):
         self.__speed: int = speed
         self.__position: Dict[str, int] = position.copy() if position else {"x": 0, "y": 0}
         self.__token_sprite: Optional[str] = str(token_sprite) if token_sprite else None
+        self.__size: str = self._normalize_size(size)
 
         # Alinhamento tático / Tipo da entidade
         if isinstance(entity_type, EntityType):
@@ -76,7 +88,7 @@ class Entity(ABC):
             default_abilities.update(ability_scores)
         self.__ability_scores: Dict[str, int] = default_abilities
 
-        self.__conditions: List[str] = []
+        self.__conditions: Set[str] = set()
         self.__damage_resistances: List[str] = []
         self.__damage_immunities: List[str] = []
         self.__condition_immunities: List[str] = []
@@ -189,11 +201,21 @@ class Entity(ABC):
         return self.__speed
 
     @property
+    def size(self) -> str:
+        """Categoria canônica de tamanho D&D 5E (Tiny, Small, Medium, Large, Huge, Gargantuan)."""
+        return self.__size
+
+    @property
+    def size_in_squares(self) -> int:
+        """Número de células/quadrados ocupados por lado na grade tática."""
+        return self.SIZE_SQUARES.get(self.__size.lower(), 1)
+
+    @property
     def position(self) -> Dict[str, int]:
         return self.__position.copy()
 
     @property
-    def conditions(self) -> List[str]:
+    def conditions(self) -> Set[str]:
         return self.__conditions.copy()
 
     @property
@@ -409,20 +431,58 @@ class Entity(ABC):
         self.__temp_hp = 0
         self.__is_alive = False
 
+    def set_size(self, size: str) -> None:
+        """Define e valida a categoria de tamanho da entidade."""
+        self.__size = self._normalize_size(size)
+
+    @classmethod
+    def _normalize_size(cls, size: Union[str, Any]) -> str:
+        """Normaliza e valida defensivamente a categoria de tamanho D&D 5E."""
+        if not size:
+            return "Medium"
+        s = str(size).strip().lower()
+        if s in cls.VALID_SIZES:
+            return s.capitalize()
+        return "Medium"
+
     def add_condition(self, condition: str) -> None:
-        cond = condition.strip().lower()
-        if cond and cond not in self.__conditions:
-            self.__conditions.append(cond)
+        """Adiciona uma condição ao conjunto da entidade."""
+        cond = str(condition).strip().lower()
+        if cond:
+            self.__conditions.add(cond)
 
     def remove_condition(self, condition: str) -> None:
-        cond = condition.strip().lower()
+        """Remove uma condição do conjunto da entidade."""
+        cond = str(condition).strip().lower()
+        self.__conditions.discard(cond)
+
+    def has_condition(self, condition: str) -> bool:
+        """Verifica se a entidade possui a condição informada ativa."""
+        return str(condition).strip().lower() in self.__conditions
+
+    def clear_conditions(self) -> None:
+        """Limpa todas as condições ativas na entidade."""
+        self.__conditions.clear()
+
+    def toggle_condition(self, condition: str) -> bool:
+        """
+        Alterna o estado de uma condição (adiciona se ausente, remove se presente).
+        Retorna True se a condição foi ativada, False se foi removida.
+        """
+        cond = str(condition).strip().lower()
+        if not cond:
+            return False
         if cond in self.__conditions:
             self.__conditions.remove(cond)
+            return False
+        else:
+            self.__conditions.add(cond)
+            return True
 
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} name='{self.__name}' "
-            f"type='{self.__entity_type.value}' "
+            f"type='{self.__entity_type.value}' size='{self.__size}' "
             f"hp={self.__current_hp}/{self.__max_hp} ac={self.__armor_class} "
             f"init={self.__initiative_score} alive={self.__is_alive}>"
         )
@@ -445,6 +505,7 @@ class DynamicToken(Entity):
         speed: int = 30,
         position: Optional[Dict[str, int]] = None,
         is_hidden: bool = False,
+        size: str = "Medium",
     ) -> None:
         super().__init__(
             name=name,
@@ -456,4 +517,5 @@ class DynamicToken(Entity):
             is_hidden=is_hidden,
             entity_type=entity_type,
             token_sprite=token_sprite,
+            size=size,
         )

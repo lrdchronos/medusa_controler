@@ -45,11 +45,11 @@ class Monster(Entity):
             is_hidden=is_hidden,
             entity_type=entity_type,
             token_sprite=token_sprite,
+            size=size,
         )
 
         self.__challenge_rating: float = float(challenge_rating)
         self.__xp: int = int(xp) if xp is not None else int(self.__challenge_rating * 100)
-        self.__size: str = size
         self.__monster_type: str = monster_type
         self.__sub_type: str = sub_type
         self.__alignment: str = alignment
@@ -84,7 +84,7 @@ class Monster(Entity):
 
     @property
     def size(self) -> str:
-        return self.__size
+        return super().size
 
     @property
     def monster_type(self) -> str:

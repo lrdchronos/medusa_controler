@@ -37,6 +37,7 @@ class PlayableCharacter(Entity):
         entity_type: Union[EntityType, str] = EntityType.PLAYER,
         token_sprite: Optional[str] = None,
         is_hidden: bool = False,
+        size: str = "Medium",
     ) -> None:
         super().__init__(
             name=name,
@@ -49,6 +50,7 @@ class PlayableCharacter(Entity):
             is_hidden=is_hidden,
             entity_type=entity_type,
             token_sprite=token_sprite,
+            size=size,
         )
 
         self.__level: Optional[int] = None

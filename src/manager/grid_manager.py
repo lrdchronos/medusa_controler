@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Tuple, Dict, Any, Optional, Union
+from typing import Tuple, Dict, Any, Optional, Union, List
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +186,73 @@ class GridManager:
     def is_valid_cell(self, col: int, row: int) -> bool:
         """Verifica se a célula especificada pertence à matriz do mapa."""
         return 0 <= col < self._columns and 0 <= row < self._rows
+
+    @staticmethod
+    def get_size_in_squares(size: Union[str, int, float]) -> int:
+        """
+        Retorna o número de quadrados por lado ocupados pela categoria de tamanho:
+          - 'tiny', 'small', 'medium' -> 1 quadrado
+          - 'large' -> 2 quadrados
+          - 'huge' -> 3 quadrados
+          - 'gargantuan' -> 4 quadrados
+        """
+        if isinstance(size, (int, float)):
+            return max(1, int(size))
+        s = str(size).strip().lower()
+        size_map = {
+            "tiny": 1,
+            "small": 1,
+            "medium": 1,
+            "large": 2,
+            "huge": 3,
+            "gargantuan": 4,
+        }
+        return size_map.get(s, 1)
+
+    def get_creature_grid_cells(
+        self,
+        col: int,
+        row: int,
+        size: Union[str, int, float] = 1,
+    ) -> List[Tuple[int, int]]:
+        """
+        Retorna a lista de todas as coordenadas matriciais (col, row) ocupadas pela criatura.
+        A coordenada (col, row) é o canto de origem inferior-esquerdo da criatura.
+        """
+        n = self.get_size_in_squares(size)
+        cells: List[Tuple[int, int]] = []
+        for c in range(int(col), int(col) + n):
+            for r in range(int(row), int(row) + n):
+                cells.append((c, r))
+        return cells
+
+    def get_creature_center(
+        self,
+        col: int,
+        row: int,
+        size: Union[str, int, float] = 1,
+    ) -> Tuple[float, float]:
+        """
+        Calcula o centro geométrico exato (center_x, center_y) em pixels da criatura no mundo/tela.
+        - Para 1x1: centro da célula (col + 0.5, row + 0.5).
+        - Para 2x2: interseção das linhas do grid (col + 1.0, row + 1.0).
+        - Para 3x3: centro da célula central (col + 1.5, row + 1.5).
+        - Para 4x4: interseção das linhas do grid (col + 2.0, row + 2.0).
+        """
+        n = self.get_size_in_squares(size)
+        center_x = self._offset_x + (float(col) + n / 2.0) * self._cell_size
+        center_y = self._offset_y + (float(row) + n / 2.0) * self._cell_size
+        return float(center_x), float(center_y)
+
+    def is_area_valid(
+        self,
+        col: int,
+        row: int,
+        size: Union[str, int, float] = 1,
+    ) -> bool:
+        """Verifica se todas as células ocupadas pela criatura estão dentro dos limites válidos da grade."""
+        cells = self.get_creature_grid_cells(col, row, size)
+        return all(self.is_valid_cell(c, r) for c, r in cells)
 
     def calculate_distance_feet(self, col1: int, row1: int, col2: int, row2: int) -> float:
         """

@@ -11,6 +11,7 @@ from .sprite_utils import (
 from .text_input import SmartTextInput
 from .tilemap_renderer import TileMapRenderer
 from .aoe_renderer import AoERenderer
+from .status_icon_atlas import StatusIconAtlas
 
 __all__ = [
     "SpriteFactory",
@@ -24,6 +25,7 @@ __all__ = [
     "SmartTextInput",
     "TileMapRenderer",
     "AoERenderer",
+    "StatusIconAtlas",
 ]
 
 
