@@ -1,102 +1,44 @@
 import logging
-import os
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Set, Tuple
 import arcade
-from ...utils.sprite_utils import SpriteFactory
 from .text_input import TextInputWidget, SmartTextInput
 from ....domain.models.tile_map import TileMap
 from ...utils.tilemap_renderer import TileMapRenderer
-from ....manager.grid_manager import GridManager
 from ...components.discrete_scroll_list import DiscreteScrollList
+from ....domain.rules.preset_filters import filter_monster_presets
+from .renderers.preview_renderer import PreviewRenderer
+from .renderers.config_form_renderer import (
+    ConfigFormRenderer,
+    COLOR_BG_PRIMARY,
+    COLOR_ACCENT_GOLD,
+    COLOR_PC_BLUE,
+    COLOR_MONSTER_RED,
+    COLOR_PANEL_BG,
+    COLOR_PANEL_BORDER,
+    COLOR_CARD_BG,
+    COLOR_CARD_BG_SELECTED,
+    COLOR_TEXT_TITLE,
+    COLOR_TEXT_MAIN,
+    COLOR_TEXT_MUTED,
+    COLOR_TEXT_WHITE,
+    COLOR_TEXT_CYAN,
+    COLOR_BTN_BG,
+    COLOR_BTN_BORDER,
+    COLOR_SUCCESS_BG,
+    COLOR_SUCCESS_BORDER,
+    COLOR_ERROR_BG,
+)
+from .handlers.config_form_input_handler import ConfigFormInputHandler
 
 logger = logging.getLogger(__name__)
-
-# --- Paleta de Cores Dark Fantasy (PREMISES.md) ---
-COLOR_BG_PRIMARY = (14, 18, 24, 255)        # #0E1218 (Azul escuro grafite)
-COLOR_ACCENT_GOLD = (241, 196, 15, 255)     # #F1C40F (Dourado místico)
-COLOR_PC_BLUE = (41, 128, 185, 255)         # #2980B9 (Azul Jogador)
-COLOR_MONSTER_RED = (192, 57, 43, 255)      # #C0392B (Carmim / Vermelho Sangue)
-COLOR_PANEL_BG = (20, 26, 36, 255)
-COLOR_PANEL_BORDER = (45, 60, 85, 200)
-COLOR_CARD_BG = (20, 26, 36, 255)
-COLOR_CARD_BG_SELECTED = (30, 42, 58, 255)
-COLOR_TEXT_TITLE = (241, 196, 15, 255)
-COLOR_TEXT_MAIN = (200, 210, 225, 255)
-COLOR_TEXT_MUTED = (140, 155, 175, 255)
-COLOR_TEXT_WHITE = (255, 255, 255, 255)
-COLOR_TEXT_CYAN = (100, 200, 255, 255)
-COLOR_BTN_BG = (35, 45, 60, 255)
-COLOR_BTN_BORDER = (70, 90, 120, 200)
-COLOR_SUCCESS_BG = (39, 174, 96, 255)
-COLOR_SUCCESS_BORDER = (46, 204, 113, 255)
-COLOR_ERROR_BG = (120, 40, 31, 255)
-
-
-def filter_monster_presets(monsters: List[Dict[str, Any]], query: str) -> List[Dict[str, Any]]:
-    """
-    Filtra presets de monstros aplicando correspondência de substring parcial (estilo SQL LIKE '%query%').
-    Verifica se a query sanitizada está contida no 'name', 'uid', 'type', 'sub_type' ou na lista de 'tags'.
-    Se a query for vazia, restaura e retorna a listagem completa.
-    """
-    sanitized = query.strip().lower()
-    if not sanitized:
-        logger.debug(f"Filtro de busca vazio: restaurando listagem completa ({len(monsters)} monstros).")
-        return [m.copy() for m in monsters]
-
-    filtered: List[Dict[str, Any]] = []
-    for mon in monsters:
-        name = str(mon.get("name", "")).lower()
-        uid = str(mon.get("uid", "")).lower()
-        m_type = str(mon.get("type", "")).lower()
-        sub_type = str(mon.get("sub_type", "")).lower()
-
-        # Checa correspondência em tags
-        tags = mon.get("tags", [])
-        tag_match = False
-        if isinstance(tags, (list, tuple, set)):
-            tag_match = any(sanitized in str(t).lower() for t in tags)
-        elif isinstance(tags, str):
-            tag_match = sanitized in tags.lower()
-
-        # Fallback defensivo em raw_data caso exista
-        raw_match = False
-        raw = mon.get("raw_data")
-        if isinstance(raw, dict):
-            raw_type = str(raw.get("type", "")).lower()
-            raw_sub = str(raw.get("sub_type", "")).lower()
-            raw_tags = raw.get("tags", [])
-            if isinstance(raw_tags, (list, tuple, set)):
-                raw_match = any(sanitized in str(t).lower() for t in raw_tags) or sanitized in raw_type or sanitized in raw_sub
-            elif isinstance(raw_tags, str):
-                raw_match = sanitized in raw_tags.lower() or sanitized in raw_type or sanitized in raw_sub
-
-        if (
-            sanitized in name
-            or sanitized in uid
-            or sanitized in m_type
-            or sanitized in sub_type
-            or tag_match
-            or raw_match
-        ):
-            filtered.append(mon.copy())
-
-    logger.info(
-        f"Filtragem de monstros executada | Query: '{sanitized}' | Resultados: {len(filtered)}/{len(monsters)}"
-    )
-    return filtered
 
 
 class CreatorConfigForm:
     """
     Componente especializado para a Etapa 1 do Criador de Encontros (Formulário e Configuração).
-    
-    Premissas Arquiteturais Aplicadas (PREMISES.md):
-      - OOD & Modularização Estrita com decomposição de responsabilidades.
-      - Encapsulamento Poka-Yoke com atributos privados (__) e propriedades com validação.
-      - Retorno de cópias defensivas para coleções mutáveis.
-      - Renderização Dark Fantasy via SpriteFactory (sem instanciação de texturas no loop).
-      - Suporte a texto rico com SmartTextInput.
+    Gerencia estado, validação, filtros de monstros e delega renderização e eventos
+    para submódulos coesos e desacoplados.
     """
 
     def __init__(
@@ -116,10 +58,10 @@ class CreatorConfigForm:
         self.__map_type: str = "image"
         self.__selected_image_index: int = 0
         self.__selected_tilemap_index: int = 0
-        self.__selected_map_index: int = 0  # Alias
+        self.__selected_map_index: int = 0
 
-        self.__tilemap_cache: Dict[str, TileMap] = {}
-        self.__tilemap_renderers: Dict[str, TileMapRenderer] = {}
+        self.tilemap_cache: Dict[str, TileMap] = {}
+        self.tilemap_renderers: Dict[str, TileMapRenderer] = {}
 
         # Widgets de Texto Inteligentes (SmartTextInput)
         self.__title_input = TextInputWidget(
@@ -153,13 +95,13 @@ class CreatorConfigForm:
         self.__error_message: Optional[str] = None
 
         # Estado da Listagem de PJs (DiscreteScrollList - 5 slots visíveis)
-        self.__pc_item_height: float = 24.0
-        self.__pc_item_spacing: float = 2.0
-        self.__pc_visible_count: int = 5
+        self.pc_item_height: float = 24.0
+        self.pc_item_spacing: float = 2.0
+        self.pc_visible_count: int = 5
         self.__pc_scroll_list = DiscreteScrollList(
-            item_height=int(self.__pc_item_height),
-            spacing=int(self.__pc_item_spacing),
-            visible_item_count=self.__pc_visible_count,
+            item_height=int(self.pc_item_height),
+            spacing=int(self.pc_item_spacing),
+            visible_item_count=self.pc_visible_count,
             items=self.__available_characters,
         )
 
@@ -176,10 +118,10 @@ class CreatorConfigForm:
         )
 
         # Estado de Arraste da Barra de Rolagem
-        self.__is_dragging_scrollbar: bool = False
-        self.__scrollbar_drag_start_y: float = 0.0
-        self.__scrollbar_drag_start_offset: int = 0
-        self.__last_list_bounds: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
+        self.is_dragging_scrollbar: bool = False
+        self._scrollbar_drag_start_y: float = 0.0
+        self._scrollbar_drag_start_offset: int = 0
+        self._CreatorConfigForm__last_list_bounds: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)
 
         self._init_defaults()
 
@@ -202,7 +144,6 @@ class CreatorConfigForm:
 
     @property
     def map_type(self) -> str:
-        """Modo ativo de mapa ('image' ou 'tilemap')."""
         return self.__map_type
 
     @map_type.setter
@@ -214,7 +155,6 @@ class CreatorConfigForm:
 
     @property
     def current_map_info(self) -> Dict[str, Any]:
-        """Retorna o dicionário de dados do mapa atualmente selecionado."""
         if self.__map_type == "tilemap":
             if self.__available_tilemaps and 0 <= self.__selected_tilemap_index < len(self.__available_tilemaps):
                 return self.__available_tilemaps[self.__selected_tilemap_index].copy()
@@ -226,7 +166,6 @@ class CreatorConfigForm:
 
     @property
     def available_image_maps(self) -> List[Dict[str, str]]:
-        """Retorna cópia defensiva da lista de mapas por imagem estática."""
         return [m.copy() for m in self.__available_image_maps]
 
     @available_image_maps.setter
@@ -240,7 +179,6 @@ class CreatorConfigForm:
 
     @property
     def available_maps(self) -> List[Dict[str, str]]:
-        """Alias para available_image_maps."""
         return self.available_image_maps
 
     @available_maps.setter
@@ -249,7 +187,6 @@ class CreatorConfigForm:
 
     @property
     def available_tilemaps(self) -> List[Dict[str, Any]]:
-        """Retorna cópia defensiva da lista de mapas por tileset."""
         return [t.copy() for t in self.__available_tilemaps]
 
     @available_tilemaps.setter
@@ -262,7 +199,6 @@ class CreatorConfigForm:
 
     @property
     def available_characters(self) -> List[Dict[str, Any]]:
-        """Retorna uma cópia defensiva da lista de personagens disponíveis."""
         return [c.copy() for c in self.__available_characters]
 
     @available_characters.setter
@@ -274,7 +210,6 @@ class CreatorConfigForm:
 
     @property
     def available_monsters(self) -> List[Dict[str, Any]]:
-        """Retorna uma cópia defensiva da lista de presets de monstros."""
         return [m.copy() for m in self.__available_monsters]
 
     @available_monsters.setter
@@ -404,22 +339,18 @@ class CreatorConfigForm:
 
     @property
     def filtered_monsters(self) -> List[Dict[str, Any]]:
-        """Retorna cópia defensiva da lista filtrada de monstros."""
         return [m.copy() for m in self.__filtered_monsters]
 
     @property
     def pc_scroll_list(self) -> DiscreteScrollList:
-        """Referência ao componente de rolagem discreta para personagens (PJs)."""
         return self.__pc_scroll_list
 
     @property
     def character_scroll_list(self) -> DiscreteScrollList:
-        """Alias para pc_scroll_list."""
         return self.__pc_scroll_list
 
     @property
     def scroll_list(self) -> DiscreteScrollList:
-        """Referência ao componente OOD de rolagem discreta de monstros."""
         return self.__scroll_list
 
     @property
@@ -474,25 +405,17 @@ class CreatorConfigForm:
         self.__scroll_list.spacing = int(self.__item_gap)
 
     @property
-    def is_dragging_scrollbar(self) -> bool:
-        return self.__is_dragging_scrollbar
-
-    @is_dragging_scrollbar.setter
-    def is_dragging_scrollbar(self, value: bool) -> None:
-        self.__is_dragging_scrollbar = bool(value)
-
-    @property
     def last_list_bounds(self) -> Tuple[float, float, float, float]:
         return self.__scroll_list.bounds
 
     @last_list_bounds.setter
     def last_list_bounds(self, bounds: Tuple[float, float, float, float]) -> None:
+        self._CreatorConfigForm__last_list_bounds = bounds
         self.__scroll_list.set_bounds(float(bounds[0]), float(bounds[1]), float(bounds[2]), float(bounds[3]))
 
     # --- Métodos de Conveniência e Manipulação de Estado ---
 
     def toggle_character(self, character_uid: str) -> bool:
-        """Alterna a seleção de um personagem jogador pelo UID."""
         if character_uid in self.__selected_character_uids:
             self.__selected_character_uids.remove(character_uid)
             return False
@@ -525,7 +448,6 @@ class CreatorConfigForm:
         available_monsters: List[Dict[str, Any]],
         available_tilemaps: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
-        """Recarrega arquivos de mapas, personagens e presets de monstros preservando contagens."""
         self.__available_image_maps = [m.copy() for m in available_maps]
         self.__available_maps = self.__available_image_maps
         if available_tilemaps is not None:
@@ -544,7 +466,6 @@ class CreatorConfigForm:
         )
 
     def apply_monster_filter(self, query: str) -> None:
-        """Aplica o filtro de busca por substring e reseta o scroll para o topo."""
         self.__search_query = query.strip()
         self.__filtered_monsters = filter_monster_presets(self.__available_monsters, self.__search_query)
         self.__scroll_list.items = self.__filtered_monsters
@@ -552,7 +473,6 @@ class CreatorConfigForm:
 
     @property
     def max_scroll(self) -> float:
-        """Calcula o limite máximo de deslocamento de rolagem."""
         total_item_h = self.__item_height + self.__item_gap
         return float(self.__scroll_list.max_start_index * total_item_h)
 
@@ -562,7 +482,6 @@ class CreatorConfigForm:
         self.__search_input.update(delta_time)
 
     def validate(self) -> Tuple[bool, Optional[str]]:
-        """Valida o formulário antes de prosseguir para o palco tático."""
         if not self.__title_input.text.strip():
             return False, "O título do encontro é obrigatório!"
 
@@ -584,7 +503,6 @@ class CreatorConfigForm:
         return True, None
 
     def get_config_data(self) -> Dict[str, Any]:
-        """Retorna os dados consolidados do formulário com cópias defensivas para o palco de staging."""
         cur_map = self.current_map_info
         map_path = cur_map.get("path", "assets/images/maps/open_field_grass_trees.jpg")
 
@@ -593,7 +511,7 @@ class CreatorConfigForm:
             "description": self.__description_input.text.strip(),
             "map_type": self.__map_type,
             "map_source": map_path,
-            "map_path": map_path,  # Retrocompatibilidade
+            "map_path": map_path,
             "map_name": cur_map.get("name", "Mapa"),
             "columns": self.__columns,
             "feet_per_square": self.__feet_per_square,
@@ -603,9 +521,6 @@ class CreatorConfigForm:
         }
 
     def load_configuration(self, data: Dict[str, Any]) -> None:
-        """
-        Pré-carrega todos os campos do formulário a partir de um dicionário de encontro (modo de edição).
-        """
         title = data.get("title", "")
         self.__title_input.set_text(title)
 
@@ -619,7 +534,6 @@ class CreatorConfigForm:
             raw_map_type = "tilemap" if str(raw_map_source).lower().endswith(".json") else "image"
         self.map_type = str(raw_map_type).strip().lower()
 
-        # Seleciona o mapa correspondente
         if self.__map_type == "tilemap":
             found_idx = 0
             if raw_map_source:
@@ -654,7 +568,6 @@ class CreatorConfigForm:
         if isinstance(env_data, dict):
             self.is_sunlight = bool(env_data.get("is_sunlight", False))
 
-        # Combatentes: PJs e Monstros
         raw_combatants = data.get("combatants", [])
         selected_pcs: Set[str] = set()
         monster_counts: Dict[str, int] = {m["uid"]: 0 for m in self.__available_monsters}
@@ -671,7 +584,6 @@ class CreatorConfigForm:
                     if mid:
                         monster_counts[str(mid)] = monster_counts.get(str(mid), 0) + 1
             else:
-                # Objeto Entity / Monster / PlayableCharacter
                 if getattr(c, "is_player", False):
                     cid = getattr(c, "character_id", getattr(c, "uid", None))
                     if cid:
@@ -686,373 +598,10 @@ class CreatorConfigForm:
         self.error_message = None
         logger.info(f"CreatorConfigForm carregado para edição com {len(selected_pcs)} PJs e {sum(monster_counts.values())} monstros.")
 
-    # --- Renderização OOD Modular ---
+    # --- Delegações de Renderização ---
 
     def draw_form(self, panel_w: float, top_y: float, text_cache: Dict[str, arcade.Text]) -> None:
-        """Desenha todo o painel esquerdo da Etapa 1 delegando para submétodos especializados."""
-        try:
-            if arcade.get_window() is None:
-                return
-        except Exception:
-            return
-
-        sec_y = top_y - 18
-        self._draw_header(panel_w, sec_y, text_cache)
-        box_d_y = self._draw_text_fields(panel_w, sec_y, text_cache)
-        map_row_y = self._draw_map_selector(panel_w, box_d_y - 24, text_cache)
-        grid_y = self._draw_grid_steppers(panel_w, map_row_y - 28, text_cache)
-        pc_bottom_y = self._draw_character_checkboxes(panel_w, grid_y - 28, text_cache)
-        search_bar_y = self._draw_monster_search_bar(panel_w, pc_bottom_y - 10, text_cache)
-        list_bottom_y = self._draw_monster_list(panel_w, search_bar_y - 18, text_cache)
-        self._draw_error_and_submit(panel_w, list_bottom_y, text_cache)
-
-    def _draw_header(self, panel_w: float, sec_y: float, text_cache: Dict[str, arcade.Text]) -> None:
-        self._render_text(
-            "wiz_sec_t",
-            "🛠️ CRIADOR DE ENCONTROS (ETAPA 1: CONFIGURAÇÃO)",
-            16,
-            sec_y,
-            COLOR_TEXT_TITLE,
-            10,
-            True,
-            text_cache,
-        )
-
-    def _draw_text_fields(self, panel_w: float, sec_y: float, text_cache: Dict[str, arcade.Text]) -> float:
-        # Título
-        lbl_t_y = sec_y - 24
-        self._render_text("lbl_title", "• Título do Encontro:", 16, lbl_t_y, COLOR_TEXT_MAIN, 9, True, text_cache)
-        box_t_y = lbl_t_y - 18
-        self.__title_input.draw(panel_w / 2, box_t_y, panel_w - 32, 26, text_cache)
-
-        # Descrição
-        lbl_d_y = box_t_y - 22
-        self._render_text("lbl_desc", "• Descrição do Encontro:", 16, lbl_d_y, COLOR_TEXT_MAIN, 9, True, text_cache)
-        box_d_y = lbl_d_y - 18
-        self.__description_input.draw(panel_w / 2, box_d_y, panel_w - 32, 26, text_cache)
-        return box_d_y
-
-    def _draw_map_selector(self, panel_w: float, map_sec_y: float, text_cache: Dict[str, arcade.Text]) -> float:
-        self._render_text("lbl_map_sec", "• Mapa & Grade Tática:", 16, map_sec_y, COLOR_TEXT_MAIN, 9, True, text_cache)
-
-        # Abas / Alternador de Modo: [ 🖼️ Mapa por Imagem ] | [ 🧩 Mapa por Tileset ]
-        tab_y = map_sec_y - 20
-        tab_w = (panel_w - 38) / 2.0
-        tab_img_x = 16.0 + tab_w / 2.0
-        tab_tile_x = 16.0 + tab_w + 6.0 + tab_w / 2.0
-
-        is_img = (self.__map_type == "image")
-        is_tile = (self.__map_type == "tilemap")
-
-        # Aba Imagem
-        img_bg = (35, 52, 75, 255) if is_img else (20, 26, 36, 255)
-        img_bd = COLOR_ACCENT_GOLD if is_img else COLOR_PANEL_BORDER
-        img_fg = COLOR_ACCENT_GOLD if is_img else COLOR_TEXT_MUTED
-        arcade.draw_rect_filled(arcade.XYWH(tab_img_x, tab_y, tab_w, 22), img_bg)
-        arcade.draw_rect_outline(arcade.XYWH(tab_img_x, tab_y, tab_w, 22), img_bd, 1.5 if is_img else 1)
-        self._render_text("tab_img_lbl", "🖼️ Mapa por Imagem", tab_img_x, tab_y, img_fg, 8, is_img, text_cache, anchor_x="center")
-
-        # Aba Tileset
-        tile_bg = (35, 52, 75, 255) if is_tile else (20, 26, 36, 255)
-        tile_bd = COLOR_ACCENT_GOLD if is_tile else COLOR_PANEL_BORDER
-        tile_fg = COLOR_ACCENT_GOLD if is_tile else COLOR_TEXT_MUTED
-        arcade.draw_rect_filled(arcade.XYWH(tab_tile_x, tab_y, tab_w, 22), tile_bg)
-        arcade.draw_rect_outline(arcade.XYWH(tab_tile_x, tab_y, tab_w, 22), tile_bd, 1.5 if is_tile else 1)
-        self._render_text("tab_tile_lbl", "🧩 Mapa por Tileset", tab_tile_x, tab_y, tile_fg, 8, is_tile, text_cache, anchor_x="center")
-
-        # Linha do Seletor [◀] [Nome do Mapa] [▶]
-        map_row_y = tab_y - 24
-        cur_map = self.current_map_info
-
-        # [◀]
-        b_prev_m_x = 30
-        arcade.draw_rect_filled(arcade.XYWH(b_prev_m_x, map_row_y, 26, 24), COLOR_BTN_BG)
-        arcade.draw_rect_outline(arcade.XYWH(b_prev_m_x, map_row_y, 26, 24), COLOR_BTN_BORDER, 1)
-        self._render_text("b_map_prev", "◀", b_prev_m_x, map_row_y, COLOR_ACCENT_GOLD, 10, True, text_cache, anchor_x="center")
-
-        # Caixa do Nome do Mapa
-        map_box_w = panel_w - 180
-        map_box_x = 30 + 13 + map_box_w / 2 + 4
-        arcade.draw_rect_filled(arcade.XYWH(map_box_x, map_row_y, map_box_w, 24), COLOR_PANEL_BG)
-        arcade.draw_rect_outline(arcade.XYWH(map_box_x, map_row_y, map_box_w, 24), COLOR_PANEL_BORDER, 1)
-        prefix = "🧩 " if is_tile else "🖼️ "
-        self._render_text("map_name_t", f"{prefix}{cur_map['name'][:22]}", map_box_x, map_row_y, COLOR_TEXT_CYAN, 8, True, text_cache, anchor_x="center")
-
-        # [▶]
-        b_next_m_x = map_box_x + map_box_w / 2 + 17
-        arcade.draw_rect_filled(arcade.XYWH(b_next_m_x, map_row_y, 26, 24), COLOR_BTN_BG)
-        arcade.draw_rect_outline(arcade.XYWH(b_next_m_x, map_row_y, 26, 24), COLOR_BTN_BORDER, 1)
-        self._render_text("b_map_next", "▶", b_next_m_x, map_row_y, COLOR_ACCENT_GOLD, 10, True, text_cache, anchor_x="center")
-        return map_row_y
-
-    def _draw_grid_steppers(self, panel_w: float, grid_y: float, text_cache: Dict[str, arcade.Text]) -> float:
-        self._render_text("lbl_cols", "Cols:", 16, grid_y, COLOR_TEXT_MUTED, 8, True, text_cache)
-
-        b_c_min_x = 65
-        arcade.draw_rect_filled(arcade.XYWH(b_c_min_x, grid_y, 22, 22), COLOR_BTN_BG)
-        self._render_text("b_c_min", "-", b_c_min_x, grid_y, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-        arcade.draw_rect_filled(arcade.XYWH(b_c_min_x + 24, grid_y, 30, 22), (18, 24, 34, 255))
-        self._render_text("val_cols", str(self.__columns), b_c_min_x + 24, grid_y, COLOR_TEXT_WHITE, 9, True, text_cache, anchor_x="center")
-
-        b_c_plus_x = b_c_min_x + 48
-        arcade.draw_rect_filled(arcade.XYWH(b_c_plus_x, grid_y, 22, 22), COLOR_BTN_BG)
-        self._render_text("b_c_plus", "+", b_c_plus_x, grid_y, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-        feet_lbl_x = b_c_plus_x + 30
-        self._render_text("lbl_feet", "Ft/sq:", feet_lbl_x, grid_y, COLOR_TEXT_MUTED, 8, True, text_cache)
-
-        b_f_min_x = feet_lbl_x + 45
-        arcade.draw_rect_filled(arcade.XYWH(b_f_min_x, grid_y, 22, 22), COLOR_BTN_BG)
-        self._render_text("b_f_min", "-", b_f_min_x, grid_y, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-        arcade.draw_rect_filled(arcade.XYWH(b_f_min_x + 24, grid_y, 26, 22), (18, 24, 34, 255))
-        self._render_text("val_feet", str(self.__feet_per_square), b_f_min_x + 24, grid_y, COLOR_TEXT_WHITE, 9, True, text_cache, anchor_x="center")
-
-        b_f_plus_x = b_f_min_x + 48
-        arcade.draw_rect_filled(arcade.XYWH(b_f_plus_x, grid_y, 22, 22), COLOR_BTN_BG)
-        self._render_text("b_f_plus", "+", b_f_plus_x, grid_y, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-        return grid_y
-
-    def _draw_character_checkboxes(self, panel_w: float, pc_sec_y: float, text_cache: Dict[str, arcade.Text]) -> float:
-        self._render_text("lbl_pcs", "• Personagens dos Jogadores (PJs):", 16, pc_sec_y, COLOR_TEXT_MAIN, 9, True, text_cache)
-
-        pc_list_top = pc_sec_y - 16
-        count_shown = min(len(self.__available_characters), 5)
-        pc_list_h = count_shown * (self.__pc_item_height + self.__pc_item_spacing)
-        pc_list_w = panel_w - 32
-        pc_list_left = 16.0
-
-        if not self.__available_characters:
-            return pc_list_top
-
-        self.__pc_scroll_list.set_bounds(pc_list_left, pc_list_top, pc_list_w, pc_list_h)
-        self.__pc_scroll_list.items = self.__available_characters
-
-        visible_items = self.__pc_scroll_list.visible_items
-        for slot_idx, (idx, char) in enumerate(visible_items):
-            slot_cx, slot_cy, slot_w, slot_h = self.__pc_scroll_list.get_slot_rect(slot_idx)
-            is_checked = char["uid"] in self.__selected_character_uids
-
-            # Fundo suave para o slot
-            slot_bg = (24, 32, 44, 255) if is_checked else (16, 21, 30, 200)
-            arcade.draw_rect_filled(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), slot_bg)
-            slot_bd = (60, 80, 110, 180) if is_checked else (35, 45, 60, 120)
-            arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), slot_bd, 1)
-
-            # Checkbox
-            cb_x = slot_cx - slot_w / 2 + 12
-            cb_bg = (30, 42, 58, 255) if is_checked else (18, 24, 34, 255)
-            cb_border = COLOR_ACCENT_GOLD if is_checked else (60, 75, 100, 200)
-            arcade.draw_rect_filled(arcade.XYWH(cb_x, slot_cy, 16, 16), cb_bg)
-            arcade.draw_rect_outline(arcade.XYWH(cb_x, slot_cy, 16, 16), cb_border, 1.5)
-            if is_checked:
-                self._render_text(f"cb_check_{char['uid']}", "✓", cb_x, slot_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-            char_desc = f"{char['name']} (Nv {char.get('level', 1)} {char.get('class_summary', '')})"
-            lbl_color = COLOR_TEXT_CYAN if is_checked else COLOR_TEXT_MUTED
-            self._render_text(f"char_lbl_{char['uid']}", char_desc[:38], cb_x + 16, slot_cy, lbl_color, 8, is_checked, text_cache)
-
-        if len(self.__available_characters) > self.__pc_scroll_list.visible_item_count:
-            self.__pc_scroll_list._draw_scroll_indicator(text_cache)
-
-        return pc_list_top - pc_list_h
-
-    def _draw_monster_search_bar(self, panel_w: float, mon_sec_y: float, text_cache: Dict[str, arcade.Text]) -> float:
-        self._render_text("lbl_mons", "• Presets de Monstros (Inimigos):", 16, mon_sec_y, COLOR_TEXT_MAIN, 9, True, text_cache)
-
-        search_bar_y = mon_sec_y - 20
-        search_input_w = panel_w - 32 - 38
-        search_cx = 16 + search_input_w / 2
-        self.__search_input.draw(search_cx, search_bar_y, search_input_w, 24, text_cache)
-
-        # Botão de Lupa [🔍]
-        btn_search_x = panel_w - 16 - 16
-        arcade.draw_rect_filled(arcade.XYWH(btn_search_x, search_bar_y, 32, 24), (35, 48, 68, 255))
-        arcade.draw_rect_outline(arcade.XYWH(btn_search_x, search_bar_y, 32, 24), COLOR_ACCENT_GOLD, 1)
-        self._render_text("btn_search_ico", "🔍", btn_search_x, search_bar_y, COLOR_ACCENT_GOLD, 10, True, text_cache, anchor_x="center")
-        return search_bar_y
-
-    def _draw_monster_list(self, panel_w: float, list_top_y: float, text_cache: Dict[str, arcade.Text]) -> float:
-        list_w = panel_w - 32
-        list_left = 16.0
-        list_bottom_y = list_top_y - self.__visible_height
-        self.__last_list_bounds = (list_left, list_top_y, list_w, self.__visible_height)
-        self.__scroll_list.set_bounds(list_left, list_top_y, list_w, self.__visible_height)
-        self.__scroll_list.items = self.__filtered_monsters
-
-        # Fundo do Container Rolável
-        arcade.draw_rect_filled(
-            arcade.XYWH(list_left + list_w / 2, list_top_y - self.__visible_height / 2, list_w, self.__visible_height),
-            (15, 20, 28, 255),
-        )
-        arcade.draw_rect_outline(
-            arcade.XYWH(list_left + list_w / 2, list_top_y - self.__visible_height / 2, list_w, self.__visible_height),
-            COLOR_PANEL_BORDER,
-            1,
-        )
-
-        if not self.__filtered_monsters:
-            msg = (
-                f"Nenhum monstro encontrado para '{self.__search_query}'"
-                if self.__search_query
-                else "Nenhum preset de monstro carregado."
-            )
-            self._render_text(
-                "mon_list_empty",
-                msg[:45],
-                list_left + list_w / 2,
-                list_top_y - self.__visible_height / 2,
-                COLOR_TEXT_MUTED,
-                9,
-                False,
-                text_cache,
-                anchor_x="center",
-            )
-        else:
-            visible_items = self.__scroll_list.visible_items
-            for slot_idx, (idx, mon) in enumerate(visible_items):
-                slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
-                self._draw_monster_card(
-                    mon=mon,
-                    idx=idx,
-                    card_cx=slot_cx,
-                    card_cy=slot_cy,
-                    card_w=slot_w,
-                    card_h=slot_h,
-                    text_cache=text_cache,
-                )
-
-        if len(self.__filtered_monsters) > self.__scroll_list.visible_item_count:
-            self.__scroll_list._draw_scroll_indicator(text_cache)
-
-        return list_bottom_y
-
-    def _draw_monster_card(
-        self,
-        mon: Dict[str, Any],
-        idx: int,
-        card_cx: float,
-        card_cy: float,
-        card_w: float,
-        card_h: float,
-        text_cache: Dict[str, arcade.Text],
-    ) -> None:
-        mid = mon["uid"]
-        qty = self.__monster_counts.get(mid, 0)
-
-        # Cartão do Monstro
-        card_bg = COLOR_CARD_BG_SELECTED if qty > 0 else COLOR_CARD_BG
-        card_bd = COLOR_ACCENT_GOLD if qty > 0 else (45, 60, 85, 180)
-        arcade.draw_rect_filled(arcade.XYWH(card_cx, card_cy, card_w, card_h), card_bg)
-        arcade.draw_rect_outline(arcade.XYWH(card_cx, card_cy, card_w, card_h), card_bd, 1.5 if qty > 0 else 1)
-
-        # 1. Miniatura / Token Dark Fantasy via SpriteFactory
-        token_cx = card_cx - card_w / 2 + 18
-        SpriteFactory.draw_tactical_token(
-            name=mon.get("name", mid),
-            is_player=False,
-            x=token_cx,
-            y=card_cy,
-            radius=12.0,
-            is_alive=True,
-            is_hidden=False,
-            is_selected=(qty > 0),
-            text_cache=text_cache,
-            token_key=f"cfg_tok_{mid}",
-        )
-
-        # 2. Informações Textuais (Nome e Estatísticas CR / HP / CA)
-        text_x = token_cx + 18
-        mon_name = mon.get("name", mid.title())
-        name_color = (255, 138, 128, 255) if qty > 0 else (230, 235, 245, 255)
-        self._render_text(
-            f"m_name_{mid}",
-            mon_name[:22],
-            text_x,
-            card_cy + 7,
-            name_color,
-            8,
-            True,
-            text_cache,
-        )
-
-        cr_val = mon.get("cr", 0)
-        hp_val = mon.get("max_hp", 10)
-        ac_val = mon.get("armor_class", 10)
-        mon_stats = f"CR {cr_val} • HP {hp_val} • CA {ac_val}"
-        self._render_text(
-            f"m_stat_{mid}",
-            mon_stats,
-            text_x,
-            card_cy - 7,
-            COLOR_TEXT_MUTED,
-            7,
-            False,
-            text_cache,
-        )
-
-        # 3. Controles de Quantidade [-] [qtd] [+]
-        card_right = card_cx + card_w / 2
-        bm_x = card_right - 62
-        qty_x = card_right - 40
-        bp_x = card_right - 18
-
-        # [-]
-        arcade.draw_rect_filled(arcade.XYWH(bm_x, card_cy, 18, 18), COLOR_BTN_BG)
-        self._render_text(f"b_m_min_{mid}", "-", bm_x, card_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-        # [qtd]
-        arcade.draw_rect_filled(arcade.XYWH(qty_x, card_cy, 22, 18), (18, 24, 34, 255))
-        qty_color = COLOR_ACCENT_GOLD if qty > 0 else COLOR_TEXT_WHITE
-        self._render_text(
-            f"val_mqty_{mid}",
-            str(qty),
-            qty_x,
-            card_cy,
-            qty_color,
-            8,
-            True,
-            text_cache,
-            anchor_x="center",
-        )
-
-        # [+]
-        arcade.draw_rect_filled(arcade.XYWH(bp_x, card_cy, 18, 18), COLOR_BTN_BG)
-        self._render_text(f"b_m_plus_{mid}", "+", bp_x, card_cy, COLOR_ACCENT_GOLD, 9, True, text_cache, anchor_x="center")
-
-    def _draw_error_and_submit(self, panel_w: float, list_bottom_y: float, text_cache: Dict[str, arcade.Text]) -> None:
-        # Mensagem de Erro
-        if self.__error_message:
-            err_y = list_bottom_y - 16
-            arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, err_y, panel_w - 32, 22), COLOR_ERROR_BG)
-            self._render_text(
-                "wiz_err",
-                f"⚠️ {self.__error_message}",
-                panel_w / 2,
-                err_y,
-                (255, 215, 0, 255),
-                8,
-                True,
-                text_cache,
-                anchor_x="center",
-            )
-
-        # Botão "➡️ Posicionar no Mapa"
-        btn_next_y = 32
-        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, btn_next_y, panel_w - 40, 34), COLOR_SUCCESS_BG)
-        arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, btn_next_y, panel_w - 40, 34), COLOR_SUCCESS_BORDER, 2)
-        self._render_text(
-            "b_go_stage2",
-            "➡️ POSICIONAR NO MAPA (ETAPA 2)",
-            panel_w / 2,
-            btn_next_y,
-            COLOR_TEXT_WHITE,
-            10,
-            True,
-            text_cache,
-            anchor_x="center",
-        )
+        ConfigFormRenderer.draw_form(self, panel_w, top_y, text_cache)
 
     def draw_preview(
         self,
@@ -1063,121 +612,7 @@ class CreatorConfigForm:
         text_cache: Dict[str, arcade.Text],
         texture_cache: Dict[str, arcade.Texture],
     ) -> None:
-        """Desenha a área de pré-visualização do lado direito na Etapa 1."""
-        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh / 2, vw, vh), (12, 16, 22, 255))
-
-        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, 36), (18, 24, 34, 255))
-        arcade.draw_line(vx, vy + vh - 36, vx + vw, vy + vh - 36, (50, 65, 90, 200), 1)
-        self._render_text("wiz_prev_hdr", "🗺️ PRÉ-VISUALIZAÇÃO DO MAPA & COMBATENTES", vx + 16, vy + vh - 18, COLOR_TEXT_TITLE, 10, True, text_cache)
-
-        cur_map = self.current_map_info
-        map_path = cur_map.get("path")
-        is_tilemap = (self.__map_type == "tilemap")
-
-        preview_h = vh * 0.46
-        preview_w = vw - 40
-        preview_cx = vx + vw / 2
-        preview_cy = vy + vh - 36 - preview_h / 2 - 16
-
-        # Fundo do Preview
-        arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (18, 24, 34, 255))
-
-        if is_tilemap and map_path:
-            # Renderização de TileMap Dinâmico com Aspect-Fit Proporcional
-            tile_map = None
-            if map_path in self.__tilemap_cache:
-                tile_map = self.__tilemap_cache[map_path]
-            else:
-                try:
-                    tile_map = TileMap.from_file(map_path)
-                    self.__tilemap_cache[map_path] = tile_map
-                except Exception as e:
-                    logger.warning(f"Erro ao carregar preview do TileMap '{map_path}': {e}")
-
-            if tile_map is not None:
-                if map_path not in self.__tilemap_renderers:
-                    try:
-                        self.__tilemap_renderers[map_path] = TileMapRenderer(tile_map=tile_map)
-                    except Exception as e:
-                        logger.warning(f"Erro ao instanciar TileMapRenderer para preview: {e}")
-
-                renderer = self.__tilemap_renderers.get(map_path)
-                if renderer is not None:
-                    native_w = tile_map.width * 32.0
-                    native_h = tile_map.height * 32.0
-                    scale_factor, rend_w, rend_h, off_x, off_y = GridManager.calculate_aspect_fit(
-                        viewport_width=preview_w,
-                        viewport_height=preview_h,
-                        native_width=native_w,
-                        native_height=native_h,
-                    )
-                    draw_x = preview_cx - preview_w / 2 + off_x
-                    draw_y = preview_cy - preview_h / 2 + off_y
-                    cell_w = rend_w / tile_map.width
-                    cell_h = rend_h / tile_map.height
-
-                    renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
-                    renderer.draw(pixelated=True)
-                    arcade.draw_rect_outline(arcade.XYWH(draw_x + rend_w / 2, draw_y + rend_h / 2, rend_w, rend_h), (70, 95, 130, 220), 1.5)
-
-                    # Desenha a grade tática configurada independente sobreposta ao preview
-                    grid_cols = max(1, self.__columns)
-                    grid_rows = max(1, round(grid_cols * (rend_h / rend_w)))
-                    grid_cell_w = rend_w / float(grid_cols)
-                    grid_cell_h = rend_h / float(grid_rows)
-                    grid_color = (130, 205, 255, 75)
-                    for c in range(grid_cols + 1):
-                        lx = draw_x + float(c) * grid_cell_w
-                        arcade.draw_line(lx, draw_y, lx, draw_y + rend_h, grid_color, 1.0)
-                    for r in range(grid_rows + 1):
-                        ly = draw_y + float(r) * grid_cell_h
-                        arcade.draw_line(draw_x, ly, draw_x + rend_w, ly, grid_color, 1.0)
-                else:
-                    self._render_text("wiz_no_tm", f"🧩 Tileset {tile_map.width}x{tile_map.height}", preview_cx, preview_cy, COLOR_TEXT_CYAN, 10, True, text_cache, anchor_x="center")
-            else:
-                self._render_text("wiz_no_tex", "Layout JSON do Tilemap", preview_cx, preview_cy, COLOR_TEXT_MUTED, 10, False, text_cache, anchor_x="center")
-        else:
-            # Renderização de Imagem Estática com Aspect-Fit
-            tex = None
-            if map_path and not str(map_path).lower().endswith((".json", ".xml", ".txt", ".csv")):
-                resolved = str(os.path.abspath(map_path)) if os.path.isfile(map_path) else map_path
-                if resolved not in texture_cache:
-                    try:
-                        if os.path.isfile(resolved):
-                            texture_cache[resolved] = arcade.load_texture(resolved)
-                        else:
-                            texture_cache[resolved] = None
-                    except Exception:
-                        texture_cache[resolved] = None
-                tex = texture_cache.get(resolved)
-
-            if tex is not None:
-                arcade.draw_texture_rect(tex, arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h))
-                arcade.draw_rect_outline(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (70, 95, 130, 220), 2)
-            else:
-                arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (25, 35, 45, 255))
-                self._render_text("wiz_no_tex", "Miniatura do Mapa", preview_cx, preview_cy, COLOR_TEXT_MUTED, 11, False, text_cache, anchor_x="center")
-
-        # Cartão de Resumo
-        card_y = preview_cy - preview_h / 2 - 16
-        card_h = card_y - 20
-        card_cy = card_y - card_h / 2
-
-        arcade.draw_rect_filled(arcade.XYWH(preview_cx, card_cy, preview_w, card_h), (16, 22, 32, 255))
-        arcade.draw_rect_outline(arcade.XYWH(preview_cx, card_cy, preview_w, card_h), (50, 65, 90, 200), 1)
-
-        self._render_text("wiz_res_t", "RESUMO DO ENCONTRO EM CRIAÇÃO", vx + 32, card_y - 18, COLOR_TEXT_TITLE, 9, True, text_cache)
-
-        num_pcs = len(self.__selected_character_uids)
-        num_mons = sum(self.__monster_counts.values())
-        tot = num_pcs + num_mons
-
-        map_type_label = "🧩 Tileset Modular Dinâmico" if is_tilemap else "🖼️ Imagem Fixa Estática"
-        self._render_text("wiz_res_mtype", f"• Tipo de Mapa: {map_type_label}", vx + 32, card_y - 38, COLOR_ACCENT_GOLD if is_tilemap else COLOR_TEXT_CYAN, 8, True, text_cache)
-        self._render_text("wiz_res_p", f"• Jogadores Selecionados: {num_pcs}", vx + 32, card_y - 56, COLOR_TEXT_CYAN, 8, False, text_cache)
-        self._render_text("wiz_res_m", f"• Monstros Instanciados: {num_mons}", vx + 32, card_y - 74, (255, 138, 128, 255), 8, False, text_cache)
-        self._render_text("wiz_res_g", f"• Grade Tática: {self.__columns} colunas • {self.__feet_per_square} ft/quadrado", vx + 32, card_y - 92, COLOR_TEXT_MAIN, 8, False, text_cache)
-        self._render_text("wiz_res_tot", f"• Total de Combatentes: {tot}", vx + 32, card_y - 110, (46, 204, 113, 255), 9, True, text_cache)
+        PreviewRenderer.draw_preview(self, vx, vy, vw, vh, text_cache, texture_cache)
 
     def _render_text(
         self,
@@ -1191,334 +626,27 @@ class CreatorConfigForm:
         cache: Dict[str, arcade.Text],
         anchor_x: str = "left",
     ) -> None:
-        cached = cache.get(key)
-        if cached is None or cached.text != text or cached.font_size != font_size:
-            cached = arcade.Text(
-                text=text,
-                x=x,
-                y=y,
-                color=color,
-                font_size=font_size,
-                bold=bold,
-                anchor_x=anchor_x,
-                anchor_y="center",
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
-            )
-            cache[key] = cached
-        else:
-            cached.x = x
-            cached.y = y
-            cached.color = color
-            cached.text = text
-        try:
-            cached.draw()
-        except Exception:
-            pass
+        PreviewRenderer.render_text(key, text, x, y, color, font_size, bold, cache, anchor_x=anchor_x)
 
-    # --- Tratamento de Eventos de Mouse e Rolagem ---
+    # --- Delegações de Eventos de Mouse e Teclado ---
 
     def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
-        """Processa a rolagem discreta do mouse sobre o container de PJs ou de monstros."""
-        if self.__pc_scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y):
-            return True
-        return self.__scroll_list.on_mouse_scroll(x, y, scroll_x, scroll_y)
+        return ConfigFormInputHandler.handle_mouse_scroll(self, x, y, scroll_x, scroll_y)
 
     def handle_mouse_press(self, x: float, y: float, panel_w: float, top_y: float) -> Optional[str]:
-        """Processa cliques no formulário e na listagem rolável de monstros."""
-        # 1. Inputs de Texto
-        input_clicked = self._handle_input_clicks(x, y)
-        if input_clicked:
-            return None
-
-        sec_y = top_y - 18
-        lbl_t_y = sec_y - 24
-        box_t_y = lbl_t_y - 18
-        lbl_d_y = box_t_y - 22
-        box_d_y = lbl_d_y - 18
-        map_sec_y = box_d_y - 24
-        tab_y = map_sec_y - 20
-        map_row_y = tab_y - 24
-        grid_y = map_row_y - 28
-        pc_sec_y = grid_y - 28
-        pc_list_top = pc_sec_y - 16
-        count_shown = min(len(self.__available_characters), 5)
-        pc_list_h = count_shown * (self.__pc_item_height + self.__pc_item_spacing)
-        pc_bottom_y = pc_list_top - pc_list_h
-        mon_sec_y = pc_bottom_y - 10
-        search_bar_y = mon_sec_y - 20
-
-        # 2. Abas de Tipo de Mapa [ 🖼️ Mapa por Imagem ] | [ 🧩 Mapa por Tileset ]
-        if self._handle_map_tab_click(x, y, panel_w, tab_y):
-            return None
-
-        # 3. Seletor de Mapa [◀] [Nome] [▶]
-        if self._handle_map_selector_click(x, y, panel_w, map_row_y):
-            return None
-
-        # 4. Steppers de Grade
-        if self._handle_grid_steppers_click(x, y, grid_y):
-            return None
-
-        # 5. Checkboxes de Personagens
-        if self._handle_pc_checkboxes_click(x, y, panel_w, pc_list_top):
-            return None
-
-        # 6. Botão de Lupa [🔍]
-        if self._handle_monster_search_click(x, y, panel_w, search_bar_y):
-            return None
-
-        # 7. Lista Rolável e Scrollbar
-        if self._handle_monster_list_clicks(x, y):
-            return None
-
-        # 8. Botão Avançar "➡️ Posicionar no Mapa"
-        btn_next_y = 32
-        if abs(y - btn_next_y) <= 18 and abs(x - panel_w / 2) <= (panel_w - 40) / 2:
-            is_valid, err = self.validate()
-            if is_valid:
-                self.__error_message = None
-                return "PROCEED_TO_STAGE_2"
-            else:
-                self.__error_message = err
-                return None
-
-        return None
-
-    def _handle_input_clicks(self, x: float, y: float) -> bool:
-        if self.__search_input.handle_mouse_press(x, y):
-            self.__title_input.blur()
-            self.__description_input.blur()
-            if not self.__search_input.text and self.__search_query:
-                self.apply_monster_filter("")
-            return True
-
-        if self.__title_input.handle_mouse_press(x, y):
-            self.__description_input.blur()
-            self.__search_input.blur()
-            return True
-
-        if self.__description_input.handle_mouse_press(x, y):
-            self.__title_input.blur()
-            self.__search_input.blur()
-            return True
-
-        self.__title_input.blur()
-        self.__description_input.blur()
-        self.__search_input.blur()
-        return False
-
-    def _handle_map_tab_click(self, x: float, y: float, panel_w: float, tab_y: float) -> bool:
-        if abs(y - tab_y) <= 12:
-            tab_w = (panel_w - 38) / 2.0
-            tab_img_x = 16.0 + tab_w / 2.0
-            tab_tile_x = 16.0 + tab_w + 6.0 + tab_w / 2.0
-            if abs(x - tab_img_x) <= tab_w / 2.0:
-                self.map_type = "image"
-                return True
-            elif abs(x - tab_tile_x) <= tab_w / 2.0:
-                self.map_type = "tilemap"
-                return True
-        return False
-
-    def _cycle_map(self, delta: int) -> None:
-        """Avança ou retrocede na lista de mapas ativos de acordo com o modo."""
-        if self.__map_type == "tilemap":
-            if self.__available_tilemaps:
-                self.selected_tilemap_index = self.__selected_tilemap_index + delta
-        else:
-            if self.__available_image_maps:
-                self.selected_image_index = self.__selected_image_index + delta
-
-    def _handle_map_selector_click(self, x: float, y: float, panel_w: float, map_row_y: float) -> bool:
-        b_prev_m_x = 30
-        if abs(y - map_row_y) <= 12 and abs(x - b_prev_m_x) <= 13:
-            self._cycle_map(-1)
-            return True
-
-        map_box_w = panel_w - 180
-        map_box_x = 30 + 13 + map_box_w / 2 + 4
-        b_next_m_x = map_box_x + map_box_w / 2 + 17
-        if abs(y - map_row_y) <= 12 and abs(x - b_next_m_x) <= 13:
-            self._cycle_map(1)
-            return True
-
-        return False
-
-    def _handle_grid_steppers_click(self, x: float, y: float, grid_y: float) -> bool:
-        b_c_min_x = 65
-        if abs(y - grid_y) <= 11 and abs(x - b_c_min_x) <= 11:
-            self.columns = max(5, self.__columns - 1)
-            return True
-
-        b_c_plus_x = b_c_min_x + 48
-        if abs(y - grid_y) <= 11 and abs(x - b_c_plus_x) <= 11:
-            self.columns = min(60, self.__columns + 1)
-            return True
-
-        feet_lbl_x = b_c_plus_x + 30
-        b_f_min_x = feet_lbl_x + 45
-        if abs(y - grid_y) <= 11 and abs(x - b_f_min_x) <= 11:
-            self.feet_per_square = max(1, self.__feet_per_square - 5) if self.__feet_per_square > 5 else max(1, self.__feet_per_square - 1)
-            return True
-
-        b_f_plus_x = b_f_min_x + 48
-        if abs(y - grid_y) <= 11 and abs(x - b_f_plus_x) <= 11:
-            self.feet_per_square = self.__feet_per_square + 5 if self.__feet_per_square >= 5 else 5
-            return True
-
-        return False
-
-    def _handle_pc_checkboxes_click(self, x: float, y: float, panel_w: float, pc_list_top: float) -> bool:
-        if not self.__pc_scroll_list.is_point_inside(x, y):
-            return False
-
-        item_match = self.__pc_scroll_list.get_item_at_position(x, y)
-        if item_match is not None:
-            actual_idx, char = item_match
-            cid = char["uid"]
-            self.toggle_character(cid)
-            return True
-
-        visible_items = self.__pc_scroll_list.visible_items
-        for slot_idx, (idx, char) in enumerate(visible_items):
-            slot_cx, slot_cy, slot_w, slot_h = self.__pc_scroll_list.get_slot_rect(slot_idx)
-            left = slot_cx - slot_w / 2.0
-            right = slot_cx + slot_w / 2.0
-            top = slot_cy + slot_h / 2.0
-            bottom = slot_cy - slot_h / 2.0
-            if left <= x <= right and bottom <= y <= top:
-                cid = char["uid"]
-                self.toggle_character(cid)
-                return True
-        return False
-
-    def _handle_monster_search_click(self, x: float, y: float, panel_w: float, search_bar_y: float) -> bool:
-        btn_search_x = panel_w - 16 - 16
-        if abs(y - search_bar_y) <= 12 and abs(x - btn_search_x) <= 16:
-            self.apply_monster_filter(self.__search_input.text)
-            return True
-        return False
-
-    def _handle_monster_list_clicks(self, x: float, y: float) -> bool:
-        if not self.__scroll_list.is_point_inside(x, y):
-            return False
-
-        # Clique na Scrollbar
-        if len(self.__filtered_monsters) > self.__scroll_list.visible_item_count:
-            list_l, list_t, list_w, list_h = self.__scroll_list.bounds
-            track_x = list_l + list_w - 4.0 - 3.0
-            if abs(x - track_x) <= 10:
-                self.__is_dragging_scrollbar = True
-                self.__scrollbar_drag_start_y = y
-                self.__scrollbar_drag_start_offset = self.__scroll_list.start_index
-                track_h = max(10.0, list_h - 8.0)
-                visible_count = self.__scroll_list.visible_item_count
-                thumb_h = max(16.0, track_h * (visible_count / max(1, len(self.__filtered_monsters))))
-                track_travel = max(1.0, track_h - thumb_h)
-                click_ratio = max(0.0, min(1.0, ((list_t - 4.0 - thumb_h / 2.0) - y) / track_travel))
-                self.__scroll_list.start_index = int(round(click_ratio * self.__scroll_list.max_start_index))
-                return True
-
-        # Clique nos itens / steppers dentro do viewport
-        visible_items = self.__scroll_list.visible_items
-        for slot_idx, (idx, mon) in enumerate(visible_items):
-            slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
-            left = slot_cx - slot_w / 2.0
-            right = slot_cx + slot_w / 2.0
-            top = slot_cy + slot_h / 2.0
-            bottom = slot_cy - slot_h / 2.0
-
-            if left <= x <= right and bottom <= y <= top:
-                mid = mon["uid"]
-                card_right = slot_cx + slot_w / 2.0
-                bm_x = card_right - 62
-                bp_x = card_right - 18
-
-                # [-]
-                if abs(x - bm_x) <= 12:
-                    self.decrement_monster(mid)
-                    return True
-
-                # [+]
-                if abs(x - bp_x) <= 12:
-                    self.increment_monster(mid)
-                    return True
-
-                return True
-
-        return False
+        return ConfigFormInputHandler.handle_mouse_press(self, x, y, panel_w, top_y)
 
     def handle_mouse_drag(self, x: float, y: float) -> bool:
-        """Processa arraste da barra de rolagem e seleção de texto nos inputs."""
-        if self.__is_dragging_scrollbar and self.__scroll_list.max_start_index > 0:
-            list_l, list_t, list_w, list_h = self.__scroll_list.bounds
-            total_items = max(1, len(self.__filtered_monsters))
-            visible_count = self.__scroll_list.visible_item_count
-            track_h = max(10.0, list_h - 8.0)
-            thumb_h = max(16.0, track_h * (visible_count / total_items))
-            track_travel = max(1.0, track_h - thumb_h)
-
-            delta_y = self.__scrollbar_drag_start_y - y
-            delta_ratio = delta_y / track_travel
-            new_idx = int(round(self.__scrollbar_drag_start_offset + delta_ratio * self.__scroll_list.max_start_index))
-            self.__scroll_list.start_index = new_idx
-            return True
-
-        if self.__title_input.is_focused:
-            return self.__title_input.handle_mouse_drag(x, y)
-        if self.__description_input.is_focused:
-            return self.__description_input.handle_mouse_drag(x, y)
-        if self.__search_input.is_focused:
-            return self.__search_input.handle_mouse_drag(x, y)
-        return False
+        return ConfigFormInputHandler.handle_mouse_drag(self, x, y)
 
     def handle_mouse_release(self, x: float, y: float) -> None:
-        """Finaliza arraste de scrollbar ou de seleção."""
-        self.__is_dragging_scrollbar = False
-        self.__title_input.handle_mouse_release(x, y)
-        self.__description_input.handle_mouse_release(x, y)
-        self.__search_input.handle_mouse_release(x, y)
+        ConfigFormInputHandler.handle_mouse_release(self, x, y)
 
     def handle_key_press(self, symbol: int, modifiers: int) -> bool:
-        """Processa atalhos de teclado e acionamento da busca por ENTER."""
-        if self.__search_input.is_focused:
-            if symbol in (arcade.key.ENTER, arcade.key.RETURN):
-                self.apply_monster_filter(self.__search_input.text)
-                return True
-            if symbol == arcade.key.ESCAPE:
-                self.__search_input.blur()
-                return True
-            res = self.__search_input.handle_key_press(symbol, modifiers)
-            if not self.__search_input.text and self.__search_query:
-                self.apply_monster_filter("")
-            return res
-
-        if self.__title_input.is_focused:
-            if symbol in (arcade.key.ENTER, arcade.key.TAB):
-                self.__title_input.blur()
-                self.__description_input.focus()
-                return True
-            return self.__title_input.handle_key_press(symbol, modifiers)
-
-        if self.__description_input.is_focused:
-            if symbol in (arcade.key.ENTER, arcade.key.TAB):
-                self.__description_input.blur()
-                self.__search_input.focus()
-                return True
-            return self.__description_input.handle_key_press(symbol, modifiers)
-
-        return False
+        return ConfigFormInputHandler.handle_key_press(self, symbol, modifiers)
 
     def handle_key_release(self, symbol: int, modifiers: int) -> None:
-        self.__title_input.handle_key_release(symbol, modifiers)
-        self.__description_input.handle_key_release(symbol, modifiers)
-        self.__search_input.handle_key_release(symbol, modifiers)
+        ConfigFormInputHandler.handle_key_release(self, symbol, modifiers)
 
     def handle_text_input(self, text: str) -> bool:
-        if self.__search_input.is_focused:
-            return self.__search_input.handle_text_input(text)
-        if self.__title_input.is_focused:
-            return self.__title_input.handle_text_input(text)
-        if self.__description_input.is_focused:
-            return self.__description_input.handle_text_input(text)
-        return False
+        return ConfigFormInputHandler.handle_text_input(self, text)

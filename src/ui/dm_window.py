@@ -1,8 +1,8 @@
 import logging
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any
 import arcade
 from arcade.camera import Camera2D
-from ..manager.session_manager import SessionManager, DisplayState
+from ..manager.session_manager import SessionManager
 from .dm.dm_header import DMHeader
 from .dm.encounters_tab import EncountersTabView
 from .dm.showcase_tab import ShowcaseTabView
@@ -10,6 +10,7 @@ from .dm.combat_tab import CombatTabView
 from .dm.encounter_creator_tab import EncounterCreatorTabView
 from .dm.tactical_minimap import TacticalMiniMap
 from .dm.initiative_modal import InitiativeStagingModal
+from .dm.handlers.dm_window_input_handler import DMWindowInputHandler
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,6 @@ class DMWindow(arcade.Window):
         self.creator_tab = EncounterCreatorTabView(session_manager=self.session_manager, dm_window=self)
         self.mini_map = TacticalMiniMap(window=self, session_manager=self.session_manager, fog_panel=self.combat_tab.fog_panel)
         self.initiative_modal = InitiativeStagingModal(session_manager=self.session_manager)
-
 
         # Estado Global da Janela
         self.active_tab: int = 2 if self.session_manager.is_combat_active else 0
@@ -156,7 +156,6 @@ class DMWindow(arcade.Window):
             logger.info("PlayerWindow já se encontra aberta.")
             return
 
-        # Se a janela já existe e está apenas oculta (warm reuse), reexibe preservando o contexto OpenGL
         if (
             self.player_window is not None
             and getattr(self.player_window, "context", None) is not None
@@ -197,21 +196,18 @@ class DMWindow(arcade.Window):
             logger.info("PlayerWindow ocultada e desconectada da DMWindow.")
 
     def toggle_player_window(self) -> None:
-        """Alterna a exibição (abre ou fecha) da PlayerWindow."""
         if self.is_player_window_open:
             self.close_player_window()
         else:
             self.open_player_window()
 
     def toggle_player_fullscreen(self) -> None:
-        """Alterna entre tela cheia e modo janela na PlayerWindow se estiver ativa."""
         if self.is_player_window_open and self.player_window is not None:
             self.player_window.toggle_fullscreen()
         else:
             logger.warning("Não é possível alternar tela cheia: PlayerWindow está fechada.")
 
     def notify_player_window_closed(self) -> None:
-        """Callback invocado quando a PlayerWindow é fechada externamente (ex: botão 'X' do SO)."""
         logger.info("DMWindow notificada da ocultação da PlayerWindow.")
 
     # --- Sincronização de Estado ---
@@ -310,202 +306,45 @@ class DMWindow(arcade.Window):
         if self.combat_tab.add_token_modal.is_open:
             self.combat_tab.add_token_modal.draw(w, h)
 
-    # --- Tratamento de Eventos de Mouse ---
+    # --- Delegações de Eventos de Mouse e Teclado ---
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
-        self.switch_to()
-        arcade.set_window(self)
-        w, h = self.width, self.height
-        split_x = w * 0.50
-
-        # 1. Se o modal de iniciativas estiver ativo, direciona exclusivamente para ele
-        if self.initiative_modal.is_open:
-            self.initiative_modal.handle_click(
-                x, y, w, h,
-                on_confirmed_callback=lambda: setattr(self, "active_tab", 2)
-            )
-            return
-
-        # 1.5 Se o modal de criação de token estiver ativo, direciona exclusivamente para ele
-        if self.combat_tab.add_token_modal.is_open:
-            self.combat_tab.add_token_modal.handle_click(x, y, w, h)
-            return
-
-        # 2. Cliques no Lado Esquerdo (Controles e Abas)
-        if x < split_x:
-            if self.header.handle_click(
-                x,
-                y,
-                split_x,
-                h,
-                set_tab_callback=lambda idx: setattr(self, "active_tab", idx),
-                on_toggle_player_window=self.toggle_player_window,
-                on_toggle_fullscreen=self.toggle_player_fullscreen,
-            ):
-                return
-
-            header_h = 56
-            tab_bar_h = 42
-            content_top_y = h - header_h - tab_bar_h
-
-            if self.active_tab == 0:
-                self.encounters_tab.handle_click(
-                    x, y, split_x, content_top_y,
-                    on_start_combat_callback=lambda enc_id: self.session_manager.start_encounter(enc_id),
-                    on_edit_encounter_callback=self.open_encounter_for_editing,
-                )
-            elif self.active_tab == 1:
-                self.showcase_tab.handle_click(x, y, split_x, content_top_y)
-            elif self.active_tab == 2:
-                self.combat_tab.handle_click(
-                    x, y, split_x, content_top_y,
-                    open_initiative_modal_callback=self.initiative_modal.open
-                )
-            elif self.active_tab == 3:
-                self.creator_tab.handle_mouse_press(x, y, split_x, h, button=button)
-            return
-
-        # 3. Cliques no Lado Direito
-        if x >= split_x:
-            if self.active_tab == 3:
-                self.creator_tab.handle_mouse_press(x, y, split_x, h, button=button)
-            elif self.session_manager.is_combat_active:
-                self.mini_map.handle_mouse_press(
-                    x, y, split_x, h,
-                    on_select_combatant=lambda uid: setattr(self.combat_tab, "selected_combatant_uid", uid)
-                )
+        DMWindowInputHandler.on_mouse_press(self, x, y, button, modifiers)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
-        """Trata movimento do cursor do mouse, atualizando o overlay de magia em tempo real."""
-        self.switch_to()
-        arcade.set_window(self)
-        split_x = self.width * 0.50
-        if x >= split_x and self.session_manager.is_combat_active:
-            self.mini_map.handle_mouse_motion(x, y)
-        else:
-            self.mini_map.handle_mouse_leave()
+        DMWindowInputHandler.on_mouse_motion(self, x, y, dx, dy)
 
     def on_mouse_drag(self, x: float, y: float, dx: float, dy: float, buttons: int, modifiers: int) -> None:
-        self.switch_to()
-        arcade.set_window(self)
-        split_x = self.width * 0.50
-        if x < split_x and self.active_tab == 2:
-            self.combat_tab.handle_mouse_drag(x, y, dx, dy, buttons, modifiers)
-        if self.active_tab == 3:
-            self.creator_tab.handle_mouse_drag(x, y)
-        elif x >= split_x:
-            self.mini_map.handle_mouse_drag(x, y)
-            if self.session_manager.is_combat_active:
-                self.mini_map.handle_mouse_motion(x, y)
+        DMWindowInputHandler.on_mouse_drag(self, x, y, dx, dy, buttons, modifiers)
 
     def on_mouse_release(self, x: float, y: float, button: int, modifiers: int) -> None:
-        self.switch_to()
-        arcade.set_window(self)
-        split_x = self.width * 0.50
-        if x < split_x and self.active_tab == 2:
-            self.combat_tab.handle_mouse_release(x, y, button, modifiers)
-        if self.active_tab == 3:
-            self.creator_tab.handle_mouse_release(x, y, split_x)
-        else:
-            self.mini_map.handle_mouse_release(x, y, split_x)
+        DMWindowInputHandler.on_mouse_release(self, x, y, button, modifiers)
 
     def on_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> None:
-        self.switch_to()
-        arcade.set_window(self)
-        if self.initiative_modal.is_open:
-            if self.initiative_modal.handle_scroll(x, y, scroll_x, scroll_y):
-                return
-
-        split_x = self.width * 0.50
-        if self.active_tab == 0 and x < split_x:
-            if self.encounters_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y):
-                return
-        elif self.active_tab == 2 and x < split_x:
-            if self.combat_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y):
-                return
-        elif self.active_tab == 3:
-            self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)
-        elif x >= split_x and self.session_manager.is_combat_active:
-            self.mini_map.handle_mouse_scroll(x, y, scroll_x, scroll_y, is_ctrl=self.is_ctrl_held, is_alt=self.is_alt_held)
+        DMWindowInputHandler.on_mouse_scroll(self, x, y, scroll_x, scroll_y)
 
     def on_update(self, delta_time: float) -> None:
-        """Atualização de quadro e lógica periódica dos componentes."""
         if self.active_tab == 3:
             self.creator_tab.on_update(delta_time)
         elif self.active_tab == 2:
             self.combat_tab.on_update(delta_time)
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
-        """Trata atalhos de teclado e digitação no Criador de Encontros e no Painel de Feitiços."""
-        self.switch_to()
-        arcade.set_window(self)
-
-        # Rastreia estado das teclas Ctrl e Alt
-        if symbol in (arcade.key.LCTRL, arcade.key.RCTRL) or bool(modifiers & arcade.key.MOD_CTRL):
-            self.is_ctrl_held = True
-        if symbol in (arcade.key.LALT, arcade.key.RALT) or bool(modifiers & arcade.key.MOD_ALT):
-            self.is_alt_held = True
-
-        # Atalhos Globais da DMWindow para Controle da PlayerWindow
-        if symbol == arcade.key.F10:
-            self.toggle_player_window()
-            return
-
-        if symbol == arcade.key.F11:
-            self.toggle_player_fullscreen()
-            return
-
-        if symbol == arcade.key.ESCAPE:
-            if self.combat_tab.add_token_modal.is_open:
-                self.combat_tab.add_token_modal.close()
-                return
-            if self.mini_map.is_placing_token:
-                self.mini_map.cancel_placing_token()
-                return
-            if self.initiative_modal.is_open:
-                self.initiative_modal.close()
-                return
-
-        if self.active_tab == 3:
-            self.creator_tab.handle_key_press(symbol, modifiers)
-        elif self.active_tab == 2:
-            self.combat_tab.handle_key_press(symbol, modifiers)
+        DMWindowInputHandler.on_key_press(self, symbol, modifiers)
 
     def on_key_release(self, symbol: int, modifiers: int) -> None:
-        """Trata liberação de teclas (como backspace repeat) no Criador e no Painel de Feitiços."""
-        self.switch_to()
-        arcade.set_window(self)
-
-        # Atualiza estado das teclas Ctrl e Alt
-        if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
-            self.is_ctrl_held = False
-        if symbol in (arcade.key.LALT, arcade.key.RALT):
-            self.is_alt_held = False
-
-        if self.active_tab == 3:
-            self.creator_tab.handle_key_release(symbol, modifiers)
-        elif self.active_tab == 2:
-            self.combat_tab.handle_key_release(symbol, modifiers)
+        DMWindowInputHandler.on_key_release(self, symbol, modifiers)
 
     def on_text(self, text: str) -> None:
-        """Trata entrada de texto digitado no Criador e no Painel de Feitiços."""
-        self.switch_to()
-        arcade.set_window(self)
-        if self.active_tab == 3:
-            self.creator_tab.handle_text_input(text)
-        elif self.active_tab == 2:
-            self.combat_tab.handle_text_input(text)
+        DMWindowInputHandler.on_text(self, text)
 
     def on_text_input(self, text: str) -> None:
-        """Compatibilidade para versão do Arcade que usa on_text_input."""
         self.on_text(text)
 
     def pump_events(self) -> None:
-        """Compatibilidade para chamadas externas legadas."""
         pass
 
     def on_close(self) -> None:
-        """Encerra a DMWindow, fechando graciosamente a PlayerWindow e finalizando a aplicação."""
         logger.info("DMWindow sendo fechada. Encerrando aplicação...")
         if self.player_window is not None:
             try:
@@ -515,6 +354,3 @@ class DMWindow(arcade.Window):
             self.player_window = None
         super().on_close()
         arcade.exit()
-
-
-

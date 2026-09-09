@@ -38,8 +38,17 @@ class GridCellHighlighter:
     COLOR_MOVEMENT_RANGE: Tuple[int, int, int, int] = (41, 128, 185, 110)      # Azul luminoso translúcido
     COLOR_OUTLINE_MOVEMENT: Tuple[int, int, int, int] = (52, 152, 219, 220)    # Contorno azul vivo
 
-    def __init__(self, grid_manager: Optional[GridManager] = None) -> None:
+    def __init__(
+        self,
+        grid_manager: Optional[GridManager] = None,
+        fill_color: Optional[Tuple[int, int, int, int]] = None,
+        outline_color: Optional[Tuple[int, int, int, int]] = None,
+        outline_width: float = 1.0,
+    ) -> None:
         self.__grid_manager: Optional[GridManager] = grid_manager
+        self.default_fill_color: Tuple[int, int, int, int] = fill_color or self.COLOR_SPELL_AOE
+        self.default_outline_color: Optional[Tuple[int, int, int, int]] = outline_color
+        self.outline_width: float = outline_width
         self.__highlighted_cells: Dict[Tuple[int, int], Tuple[int, int, int, int]] = {}
         self.__shape_list: Optional[Any] = None
         self.__dirty: bool = True
@@ -61,6 +70,14 @@ class GridCellHighlighter:
     def highlighted_cells(self) -> Dict[Tuple[int, int], Tuple[int, int, int, int]]:
         """Retorna cópia defensiva do dicionário de células destacadas."""
         return self.__highlighted_cells.copy()
+
+    @highlighted_cells.setter
+    def highlighted_cells(
+        self,
+        value: Union[Set[Tuple[int, int]], List[Tuple[int, int]], Dict[Tuple[int, int], Tuple[int, int, int, int]]],
+    ) -> None:
+        """Define o conjunto de células destacadas."""
+        self.set_cells(value, color=self.default_fill_color)
 
     @property
     def cell_count(self) -> int:
@@ -225,11 +242,14 @@ class GridCellHighlighter:
                 pass
 
         # Fallback de desenho direto (compatível com testes e contextos imediatos)
-        for (col, row), color in self.__highlighted_cells.items():
-            cx = draw_x + (col + 0.5) * cw
-            cy = draw_y + (row + 0.5) * ch
-            r, g, b, a = color
-            outline_color = (r, g, b, min(255, int(a * 1.8)))
+        try:
+            for (col, row), color in self.__highlighted_cells.items():
+                cx = draw_x + (col + 0.5) * cw
+                cy = draw_y + (row + 0.5) * ch
+                r, g, b, a = color
+                outline_color = (r, g, b, min(255, int(a * 1.8)))
 
-            arcade.draw_rect_filled(arcade.XYWH(cx, cy, cw, ch), color)
-            arcade.draw_rect_outline(arcade.XYWH(cx, cy, cw, ch), outline_color, 1.0)
+                arcade.draw_rect_filled(arcade.XYWH(cx, cy, cw, ch), color)
+                arcade.draw_rect_outline(arcade.XYWH(cx, cy, cw, ch), outline_color, 1.0)
+        except Exception as e:
+            logger.debug(f"GridCellHighlighter.draw ignorado em ambiente sem janela gráfica: {e}")

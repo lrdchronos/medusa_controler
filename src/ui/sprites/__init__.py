@@ -1,0 +1,11 @@
+from .animated_prop_sprite import AnimatedPropSprite, AnimatedTimeBasedSprite
+from .combat_token import CombatToken
+from .token_badge_renderer import extract_badge_text, draw_tactical_token
+from .procedural_texture_generator import get_procedural_token_texture
+from .sprite_factory import SpriteFactory, resolve_asset_path
+
+UIUtils = SpriteFactory
+create_sprite = SpriteFactory.create_sprite
+create_static_prop = SpriteFactory.create_static_prop
+create_animated_prop = SpriteFactory.create_animated_prop
+create_entity_token = SpriteFactory.create_entity_token_sprite
