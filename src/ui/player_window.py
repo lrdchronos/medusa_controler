@@ -11,6 +11,7 @@ from .initiative_hud import InitiativeHUD
 from .utils.sprite_utils import SpriteFactory, CombatToken
 from .utils.tilemap_renderer import TileMapRenderer
 from .utils.aoe_renderer import AoERenderer
+from .components.grid_cell_highlighter import GridCellHighlighter
 from .renderers.token_status_renderer import TokenStatusRenderer
 from ..domain.models.playablechar import PlayableCharacter
 
@@ -46,6 +47,7 @@ class PlayerWindow(arcade.Window):
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
         self._tilemap_renderer: Optional[TileMapRenderer] = None
+        self._aoe_highlighter: Optional[GridCellHighlighter] = None
 
         # Dicionário de sprites de tokens com interpolação suave (Lerp)
         self.token_sprites: Dict[str, CombatToken] = {}
@@ -515,12 +517,19 @@ class PlayerWindow(arcade.Window):
         # 4. Projeção Tática de Áreas de Efeito de Feitiços (Spell AoE Overlay)
         if combat_manager.grid_manager is not None and combat_manager.grid_manager.map_width > 0:
             scale_factor = draw_w / combat_manager.grid_manager.map_width
+            if self._aoe_highlighter is None:
+                self._aoe_highlighter = GridCellHighlighter(grid_manager=combat_manager.grid_manager)
+            else:
+                self._aoe_highlighter.grid_manager = combat_manager.grid_manager
+
             AoERenderer.draw(
                 template=combat_manager.active_spell_template,
                 grid_manager=combat_manager.grid_manager,
                 draw_x=draw_x,
                 draw_y=draw_y,
                 scale=scale_factor,
+                tilemap_engine=tile_map,
+                highlighter=self._aoe_highlighter,
             )
 
         # 4.5. Camada de Névoa de Guerra (Visão dos Jogadores - Blocos Pretos Sólidos e Opacos)

@@ -10,6 +10,7 @@ from ...domain.models.playablechar import PlayableCharacter
 from ..utils.sprite_utils import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
 from ..utils.aoe_renderer import AoERenderer
+from ..components.grid_cell_highlighter import GridCellHighlighter
 from ..renderers.token_status_renderer import TokenStatusRenderer
 from .fog_control_panel import FogControlPanel, FogTool, BrushMode
 
@@ -40,6 +41,7 @@ class TacticalMiniMap:
         self._texture_cache: Dict[str, arcade.Texture] = {}
         self._text_cache: Dict[str, arcade.Text] = {}
         self._tilemap_renderer: Optional[TileMapRenderer] = None
+        self._aoe_highlighter: Optional[GridCellHighlighter] = None
 
         # Retângulo de desenho calculado para manter a proporção exata: (draw_x, draw_y, draw_w, draw_h)
         self._last_draw_rect: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)
@@ -338,6 +340,8 @@ class TacticalMiniMap:
             draw_x=draw_x,
             draw_y=draw_y,
             scale=scale,
+            tilemap_engine=tile_map,
+            highlighter=self._aoe_highlighter,
         )
 
         # Banner Superior do Mini-Mapa
@@ -454,12 +458,21 @@ class TacticalMiniMap:
             self.handle_mouse_leave()
             return False
 
-    def handle_mouse_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float, is_ctrl: Optional[bool] = None) -> bool:
+    def handle_mouse_scroll(
+        self,
+        x: float,
+        y: float,
+        scroll_x: float,
+        scroll_y: float,
+        is_ctrl: Optional[bool] = None,
+        is_alt: Optional[bool] = None,
+    ) -> bool:
         """
         Trata rotação da roda do mouse sobre o minimapa.
         Se a projeção estiver ativa e o cursor sobre o minimapa:
-          - Passo padrão de 2 graus; se a tecla Ctrl estiver pressionada, passo rápido de 15 graus.
-          - Incrementa ou decrementa rotation_degrees com wrap-around cíclico.
+          - Scroll simples (livre): Rotaciona o ângulo horizontal (yaw) em passos de 2°.
+          - Ctrl + Scroll: Rotaciona o ângulo horizontal (yaw) em passos rápidos de 15°.
+          - Alt + Scroll: Altera a inclinação vertical (pitch) em passos de 15°.
           - Interrompe a propagação do evento.
         """
         grid_mgr = self.combat_manager.grid_manager
@@ -469,10 +482,16 @@ class TacticalMiniMap:
 
         draw_x, draw_y, draw_w, draw_h = self._last_draw_rect
         if draw_x <= x <= draw_x + draw_w and draw_y <= y <= draw_y + draw_h:
-            ctrl_active = is_ctrl if is_ctrl is not None else getattr(self.window, "is_ctrl_held", False)
-            step = 15.0 if ctrl_active else 2.0
-            delta = step if scroll_y > 0 else -step
-            self.combat_manager.rotate_spell(delta)
+            alt_active = is_alt if is_alt is not None else getattr(self.window, "is_alt_held", False)
+            if alt_active:
+                step_pitch = 15.0
+                delta = step_pitch if scroll_y > 0 else -step_pitch
+                self.combat_manager.adjust_spell_pitch(delta)
+            else:
+                ctrl_active = is_ctrl if is_ctrl is not None else getattr(self.window, "is_ctrl_held", False)
+                step_yaw = 15.0 if ctrl_active else 2.0
+                delta = step_yaw if scroll_y > 0 else -step_yaw
+                self.combat_manager.rotate_spell(delta)
             return True
 
         return False

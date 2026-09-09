@@ -4,10 +4,11 @@ import json
 import random
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Callable, Tuple, Union
+from typing import List, Dict, Any, Optional, Callable, Tuple, Union, Set
 from ..domain.models.entity import Entity, EntityType, DynamicToken
 from ..domain.models.tile_map import TileMap
-from ..domain.models.spell_template import SpellTemplate, SpellShape
+from ..domain.models.spell_template import SpellTemplate, SpellShape, AoEShape
+from ..domain.rules.aoe_calculator import calculate_aoe_cells
 from ..domain.models.fog_manager import FogManager
 from ..domain.loaders.encounter_loader import EncounterLoader
 from .grid_manager import GridManager
@@ -765,12 +766,48 @@ class CombatManager:
             self.notify_listeners()
 
     def rotate_spell(self, delta_degrees: float) -> None:
-        """Incrementa/decrementa o ângulo de rotação da magia em passos angulares com wrap-around."""
+        """Incrementa/decrementa o ângulo de rotação horizontal (yaw) da magia em passos angulares com wrap-around."""
         if self.__active_spell_template is not None:
             new_rot = (self.__active_spell_template.rotation_degrees + delta_degrees) % 360.0
             self.__active_spell_template = self.__active_spell_template.with_rotation(new_rot)
             logger.debug(f"Rotação da magia ajustada: {self.__active_spell_template.rotation_degrees:.1f}°")
             self.notify_listeners()
+
+    def set_spell_pitch(self, pitch_degrees: float) -> None:
+        """Define a inclinação vertical (pitch) da magia e notifica ouvintes."""
+        if self.__active_spell_template is not None:
+            self.__active_spell_template = self.__active_spell_template.with_pitch(pitch_degrees)
+            logger.debug(f"Pitch da magia ajustado: {self.__active_spell_template.pitch_degrees:.1f}°")
+            self.notify_listeners()
+
+    def adjust_spell_pitch(self, delta_degrees: float) -> None:
+        """Incrementa/decrementa a inclinação vertical (pitch) da magia."""
+        if self.__active_spell_template is not None:
+            new_pitch = (self.__active_spell_template.pitch_degrees + delta_degrees) % 360.0
+            self.__active_spell_template = self.__active_spell_template.with_pitch(new_pitch)
+            logger.debug(f"Pitch da magia ajustado: {self.__active_spell_template.pitch_degrees:.1f}°")
+            self.notify_listeners()
+
+    def set_spell_origin_z(self, z_feet: float) -> None:
+        """Define a altitude de origem Z da magia em pés e notifica ouvintes."""
+        if self.__active_spell_template is not None:
+            self.__active_spell_template = self.__active_spell_template.with_origin_z(z_feet)
+            logger.debug(f"Altitude Z da magia ajustada: {self.__active_spell_template.origin_z_feet:.1f}ft")
+            self.notify_listeners()
+
+    def adjust_spell_origin_z(self, delta_feet: float) -> None:
+        """Incrementa/decrementa a altitude de origem Z da magia em pés."""
+        if self.__active_spell_template is not None:
+            new_z = max(0.0, self.__active_spell_template.origin_z_feet + delta_feet)
+            self.__active_spell_template = self.__active_spell_template.with_origin_z(new_z)
+            logger.debug(f"Altitude Z da magia ajustada: {self.__active_spell_template.origin_z_feet:.1f}ft")
+            self.notify_listeners()
+
+    def get_spell_aoe_cells(self) -> Set[Tuple[int, int]]:
+        """Retorna o conjunto de células matriciais (col, row) atingidas pela magia ativa."""
+        if self.__active_spell_template is None or not self.__active_spell_template.is_active:
+            return set()
+        return calculate_aoe_cells(self.__active_spell_template, self.__grid_manager, self.__tile_map)
 
     def toggle_spell_active(self, is_active: Optional[bool] = None) -> bool:
         """Alterna ou define o estado de ativação da projeção de magia."""
@@ -784,11 +821,13 @@ class CombatManager:
             # Inicializa um template padrão baseado no grid ativo
             feet = float(self.__grid_data.get("feet_per_square", 5.0))
             self.__active_spell_template = SpellTemplate(
-                shape=SpellShape.CIRCLE,
+                shape=AoEShape.CIRCLE,
                 size_feet=feet * 4.0,
                 width_feet=feet,
                 rotation_degrees=0.0,
                 origin_world=(0.0, 0.0),
+                origin_z_feet=0.0,
+                pitch_degrees=0.0,
                 is_active=True,
                 is_visible=True,
             )

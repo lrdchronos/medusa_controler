@@ -63,6 +63,7 @@ class DMWindow(arcade.Window):
         # Estado Global da Janela
         self.active_tab: int = 2 if self.session_manager.is_combat_active else 0
         self.is_ctrl_held: bool = False
+        self.is_alt_held: bool = False
 
         # Listener Reativo de Sessão
         self.session_manager.add_listener(self._on_session_changed)
@@ -425,7 +426,7 @@ class DMWindow(arcade.Window):
         elif self.active_tab == 3:
             self.creator_tab.handle_mouse_scroll(x, y, scroll_x, scroll_y)
         elif x >= split_x and self.session_manager.is_combat_active:
-            self.mini_map.handle_mouse_scroll(x, y, scroll_x, scroll_y, is_ctrl=self.is_ctrl_held)
+            self.mini_map.handle_mouse_scroll(x, y, scroll_x, scroll_y, is_ctrl=self.is_ctrl_held, is_alt=self.is_alt_held)
 
     def on_update(self, delta_time: float) -> None:
         """Atualização de quadro e lógica periódica dos componentes."""
@@ -439,9 +440,11 @@ class DMWindow(arcade.Window):
         self.switch_to()
         arcade.set_window(self)
 
-        # Rastreia estado da tecla Ctrl
+        # Rastreia estado das teclas Ctrl e Alt
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL) or bool(modifiers & arcade.key.MOD_CTRL):
             self.is_ctrl_held = True
+        if symbol in (arcade.key.LALT, arcade.key.RALT) or bool(modifiers & arcade.key.MOD_ALT):
+            self.is_alt_held = True
 
         # Atalhos Globais da DMWindow para Controle da PlayerWindow
         if symbol == arcade.key.F10:
@@ -473,9 +476,11 @@ class DMWindow(arcade.Window):
         self.switch_to()
         arcade.set_window(self)
 
-        # Atualiza estado da tecla Ctrl
+        # Atualiza estado das teclas Ctrl e Alt
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
             self.is_ctrl_held = False
+        if symbol in (arcade.key.LALT, arcade.key.RALT):
+            self.is_alt_held = False
 
         if self.active_tab == 3:
             self.creator_tab.handle_key_release(symbol, modifiers)

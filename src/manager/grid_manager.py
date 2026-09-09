@@ -175,6 +175,20 @@ class GridManager:
         center_y = self._offset_y + (clamped_row + 0.5) * self._cell_size
         return float(center_x), float(center_y)
 
+    def grid_to_world_bounds(self, col: int, row: int) -> Tuple[float, float, float, float]:
+        """
+        Retorna os limites em coordenadas reais de mundo (min_x, min_y, max_x, max_y)
+        do quadrado da célula especificada, considerando offsets de centralização.
+        """
+        clamped_col = max(0, min(self._columns - 1, int(col)))
+        clamped_row = max(0, min(self._rows - 1, int(row)))
+
+        min_x = self._offset_x + clamped_col * self._cell_size
+        min_y = self._offset_y + clamped_row * self._cell_size
+        max_x = min_x + self._cell_size
+        max_y = min_y + self._cell_size
+        return float(min_x), float(min_y), float(max_x), float(max_y)
+
     def snap_to_grid(self, x: float, y: float) -> Tuple[float, float]:
         """
         Converte diretamente uma coordenada de mundo contínua (x, y)

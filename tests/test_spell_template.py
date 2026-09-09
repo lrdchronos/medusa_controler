@@ -276,8 +276,8 @@ class TestSpellAoEPanelAndRenderer(unittest.TestCase):
         inactive_tpl = SpellTemplate(is_active=False)
         AoERenderer.draw(template=inactive_tpl, grid_manager=grid, draw_x=0, draw_y=0, scale=1.0)
 
-    def test_minimap_scroll_step_standard_and_ctrl(self):
-        """Verifica que o scroll aplica 2° no modo padrão e 15° quando Ctrl estiver pressionado."""
+    def test_minimap_scroll_step_standard_ctrl_and_alt(self):
+        """Verifica que o scroll aplica 2° para yaw no modo livre, 15° com Ctrl e 15° para pitch com Alt."""
         from src.ui.dm.tactical_minimap import TacticalMiniMap
 
         minimap = TacticalMiniMap(window=self.window, session_manager=self.session_manager)
@@ -285,28 +285,37 @@ class TestSpellAoEPanelAndRenderer(unittest.TestCase):
 
         # Configura grid e template ativo no CombatManager
         self.combat_manager.update_grid_manager_dimensions(1000.0, 800.0)
-        tpl = SpellTemplate(shape=SpellShape.LINE, rotation_degrees=0.0, is_active=True)
+        tpl = SpellTemplate(shape=SpellShape.LINE, rotation_degrees=0.0, pitch_degrees=0.0, is_active=True)
         self.combat_manager.set_spell_template(tpl)
 
-        # 1. Scroll padrão (is_ctrl=False): delta = +2°
-        handled = minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=1.0, is_ctrl=False)
+        # 1. Scroll simples (livre): delta = +2° yaw
+        handled = minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=1.0, is_ctrl=False, is_alt=False)
         self.assertTrue(handled)
         self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 2.0)
 
-        # 2. Scroll reverso padrão: delta = -2° -> 0°
-        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=False)
+        # 2. Scroll reverso simples: delta = -2° -> 0° yaw
+        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=False, is_alt=False)
         self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 0.0)
 
-        # 3. Scroll com Ctrl (is_ctrl=True): delta = +15°
-        handled_ctrl = minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=1.0, is_ctrl=True)
+        # 3. Ctrl + Scroll: delta = +15° yaw
+        handled_ctrl = minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=1.0, is_ctrl=True, is_alt=False)
         self.assertTrue(handled_ctrl)
         self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 15.0)
 
-        # 4. Scroll com Ctrl negativo: 15° - 15° = 0° -> -15° = 345°
-        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=True)
+        # 4. Ctrl + Scroll reverso: delta = -15° -> 0°
+        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=True, is_alt=False)
         self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 0.0)
-        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=True)
-        self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 345.0)
+
+        # 5. Alt + Scroll: delta = +15° pitch
+        handled_alt = minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=1.0, is_ctrl=False, is_alt=True)
+        self.assertTrue(handled_alt)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.pitch_degrees, 15.0)
+
+        # 6. Alt + Scroll negativo: 15° - 15° = 0° -> -15° = 345°
+        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=False, is_alt=True)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.pitch_degrees, 0.0)
+        minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=False, is_alt=True)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.pitch_degrees, 345.0)
 
 
 if __name__ == "__main__":
