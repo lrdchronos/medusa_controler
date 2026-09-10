@@ -197,6 +197,30 @@ class GridManager:
         col, row = self.world_to_grid(x, y)
         return self.grid_to_world_center(col, row)
 
+    def snap_to_half_grid(self, x: float, y: float) -> Tuple[float, float]:
+        """
+        Converte coordenadas contínuas de mundo (x, y) para o ponto discreto de meio-quadrado
+        mais próximo (passo de 0.5 * cell_size).
+        Garante exatamente 9 pontos de ancoragem válidos por célula (centro, 4 quinas e 4 pontos médios).
+        """
+        if self._cell_size <= 0.0:
+            return float(x), float(y)
+
+        step = self._cell_size / 2.0
+        local_x = float(x) - self._offset_x
+        local_y = float(y) - self._offset_y
+
+        snapped_local_x = round(local_x / step) * step
+        snapped_local_y = round(local_y / step) * step
+
+        max_x = float(self._columns) * self._cell_size
+        max_y = float(self._rows) * self._cell_size
+
+        clamped_x = max(0.0, min(max_x, snapped_local_x))
+        clamped_y = max(0.0, min(max_y, snapped_local_y))
+
+        return float(self._offset_x + clamped_x), float(self._offset_y + clamped_y)
+
     def is_valid_cell(self, col: int, row: int) -> bool:
         """Verifica se a célula especificada pertence à matriz do mapa."""
         return 0 <= col < self._columns and 0 <= row < self._rows

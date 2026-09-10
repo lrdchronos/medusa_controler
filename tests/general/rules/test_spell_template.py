@@ -216,10 +216,10 @@ class TestCombatManagerSpellSync(unittest.TestCase):
         self.assertEqual(self.notification_count, 1)
         self.assertEqual(self.combat_manager.active_spell_template, tpl)
 
-        # Atualização de origem
+        # Atualização de origem (snap to half-grid: cell_size=76.8, step=38.4 -> (153.6, 268.8))
         self.combat_manager.update_spell_origin(150.0, 250.0)
         self.assertEqual(self.notification_count, 2)
-        self.assertEqual(self.combat_manager.active_spell_template.origin_world, (150.0, 250.0))
+        self.assertEqual(self.combat_manager.active_spell_template.origin_world, (153.6, 268.8))
 
         # Rotação
         self.combat_manager.rotate_spell(30.0)
@@ -581,6 +581,146 @@ class TestSpellAoEPanelAndRenderer(unittest.TestCase):
         )
         self.assertGreater(len(aoe_hl), 0)
         self.assertEqual(len(mov_hl), 0)
+
+
+class TestSpellHalfGridSnap(unittest.TestCase):
+    """Testes unitários para o posicionamento magnético Snap-to-Grid com resolução de meio-quadrado (0.5 * cell_size)."""
+
+    def setUp(self):
+        self.window = arcade.Window(width=1280, height=720, title="Test Window", visible=False)
+        self.session_manager = SessionManager()
+        self.combat_manager = self.session_manager.combat_manager
+
+    def tearDown(self):
+        try:
+            self.window.close()
+        except Exception:
+            pass
+
+    def test_snap_to_half_grid_nine_anchor_points_per_cell(self):
+        """
+        Valida que qualquer célula quadrada (col, row) possui exatamente 9 pontos de ancoragem possíveis:
+        1 centro, 4 quinas e 4 pontos médios das arestas.
+        """
+        # Grid com 25 colunas em 1000px -> cell_size = 40.0px, step = 20.0px
+        grid = GridManager(map_width=1000.0, map_height=800.0, columns=25, feet_per_square=5.0)
+        self.assertEqual(grid.cell_size, 40.0)
+
+        # Célula (col=2, row=3):
+        # min_x = 80.0, max_x = 120.0, center_x = 100.0
+        # min_y = 120.0, max_y = 160.0, center_y = 140.0
+        expected_center = (100.0, 140.0)
+        expected_corners = [
+            (80.0, 120.0),   # Inf-Esq
+            (120.0, 120.0),  # Inf-Dir
+            (80.0, 160.0),   # Sup-Esq
+            (120.0, 160.0),  # Sup-Dir
+        ]
+        expected_midpoints = [
+            (100.0, 120.0),  # Borda Inf
+            (100.0, 160.0),  # Borda Sup
+            (80.0, 140.0),   # Borda Esq
+            (120.0, 140.0),  # Borda Dir
+        ]
+
+        # 1. Teste de travamento exato dos 9 pontos
+        self.assertEqual(grid.snap_to_half_grid(100.0, 140.0), expected_center)
+        for pt in expected_corners:
+            self.assertEqual(grid.snap_to_half_grid(pt[0], pt[1]), pt)
+        for pt in expected_midpoints:
+            self.assertEqual(grid.snap_to_half_grid(pt[0], pt[1]), pt)
+
+        # 2. Teste de atração magnética de coordenadas contínuas arbitrárias
+        # Próximo ao centro: (98.5, 141.2) -> (100.0, 140.0)
+        self.assertEqual(grid.snap_to_half_grid(98.5, 141.2), expected_center)
+        # Próximo à quina inf-esq: (82.0, 121.5) -> (80.0, 120.0)
+        self.assertEqual(grid.snap_to_half_grid(82.0, 121.5), (80.0, 120.0))
+        # Próximo ao ponto médio inferior: (99.0, 122.0) -> (100.0, 120.0)
+        self.assertEqual(grid.snap_to_half_grid(99.0, 122.0), (100.0, 120.0))
+        # Próximo ao ponto médio esquerdo: (81.0, 139.0) -> (80.0, 140.0)
+        self.assertEqual(grid.snap_to_half_grid(81.0, 139.0), (80.0, 140.0))
+
+    def test_snap_to_half_grid_bounds_and_offsets(self):
+        """Valida que o snap respeita offsets de visualização e aplica clamping nas bordas do mapa."""
+        # Grid com offset_x=50.0, offset_y=30.0, cell_size=40.0 (step=20.0)
+        grid = GridManager(
+            map_width=1000.0,
+            map_height=800.0,
+            columns=25,
+            feet_per_square=5.0,
+            offset_x=50.0,
+            offset_y=30.0,
+        )
+
+        # Clamping inferior
+        self.assertEqual(grid.snap_to_half_grid(-20.0, -10.0), (50.0, 30.0))
+        # Clamping superior: max_x = 50 + 1000 = 1050, max_y = 30 + 800 = 830
+        self.assertEqual(grid.snap_to_half_grid(2000.0, 1500.0), (1050.0, 830.0))
+
+        # Ponto com offset: local_x = 73 - 50 = 23 -> round(23/20)*20 = 20 -> 50 + 20 = 70.0
+        # local_y = 52 - 30 = 22 -> round(22/20)*20 = 20 -> 30 + 20 = 50.0
+        self.assertEqual(grid.snap_to_half_grid(73.0, 52.0), (70.0, 50.0))
+
+    def test_spell_projection_controller_and_combat_manager_snapping(self):
+        """Verifica a orquestração entre SpellProjectionController e CombatManager com snap de 0.5 * cell_size."""
+        from src.domain.rules.spell_projection_controller import SpellProjectionController
+
+        grid = GridManager(map_width=1000.0, map_height=1000.0, columns=25, feet_per_square=5.0)
+        tpl = SpellTemplate(shape=SpellShape.CIRCLE, size_feet=20.0, is_active=True)
+
+        # SpellProjectionController com grid_manager
+        updated = SpellProjectionController.update_origin(tpl, 103.4, 142.1, grid)
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated.origin_world, (100.0, 140.0))
+
+        # CombatManager
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 1000.0)
+        self.combat_manager.set_spell_template(tpl)
+        self.combat_manager.update_spell_origin(103.4, 142.1)
+        self.assertEqual(self.combat_manager.active_spell_template.origin_world, (100.0, 140.0))
+
+    def test_minimap_drag_continuous_coords_snap_magnetically(self):
+        """Simula clique e arraste com o mouse no minimapa e valida o travamento magnético da âncora."""
+        from src.ui.dm.tactical_minimap import TacticalMiniMap
+
+        minimap = TacticalMiniMap(window=self.window, session_manager=self.session_manager)
+        minimap._last_draw_rect = (0.0, 0.0, 500.0, 500.0)
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 1000.0)
+
+        tpl = SpellTemplate(shape=SpellShape.SPHERE, size_feet=15.0, is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+
+        # Clique em coordenada fracionária arbitraria no minimapa:
+        # mx=52.0 (entre célula 2 e 3 no minimapa -> world_x ~ 104.0 -> snap para 100.0)
+        # my=73.0 (entre célula 3 e 4 no minimapa -> world_y ~ 146.0 -> snap para 140.0)
+        minimap.on_mouse_press(x=52.0, y=73.0, button=arcade.MOUSE_BUTTON_LEFT, modifiers=0)
+        self.assertEqual(self.combat_manager.active_spell_template.origin_world, (100.0, 140.0))
+
+        # Arraste para outra coordenada contínua arbitraria:
+        # mx=108.0 (world_x ~ 216.0 -> snap para 220.0)
+        # my=152.0 (world_y ~ 304.0 -> snap para 300.0)
+        minimap.on_mouse_drag(x=108.0, y=152.0, dx=56.0, dy=79.0, buttons=arcade.MOUSE_BUTTON_LEFT, modifiers=0)
+        self.assertEqual(self.combat_manager.active_spell_template.origin_world, (220.0, 300.0))
+
+    def test_aoe_cells_calculation_from_half_grid_snapped_anchor(self):
+        """Valida que o cálculo analítico de células afetadas é sincronizado com a âncora discretizada."""
+        from src.domain.rules.aoe_calculator import AoECalculator
+
+        grid = GridManager(map_width=1000.0, map_height=1000.0, columns=25, feet_per_square=5.0)
+        # Célula (10, 10) -> canto inferior-esquerdo em (400.0, 400.0)
+        # Posiciona âncora exatamente na quina (interseção da grade): (400.0, 400.0)
+        tpl = SpellTemplate(
+            shape=SpellShape.SPHERE,
+            size_feet=10.0,  # raio de 2 quadrados (80px)
+            origin_world=(400.0, 400.0),
+            is_active=True,
+        )
+        cells = AoECalculator.calculate_aoe_cells(tpl, grid)
+        # A esfera centrada na quina (400, 400) deve afetar simetricamente as 4 células ao redor da quina
+        self.assertIn((9, 9), cells)
+        self.assertIn((10, 9), cells)
+        self.assertIn((9, 10), cells)
+        self.assertIn((10, 10), cells)
 
 
 if __name__ == "__main__":

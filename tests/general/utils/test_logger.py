@@ -92,6 +92,9 @@ class TestLogger(unittest.TestCase):
         root_logger = logging.getLogger()
         root_logger.addHandler(capture_handler)
 
+        import arcade
+        window = arcade.Window(width=1280, height=720, visible=False)
+
         try:
             # Limpa qualquer log de setup prévio
             capture_handler.records.clear()
@@ -158,6 +161,10 @@ class TestLogger(unittest.TestCase):
             )
         finally:
             root_logger.removeHandler(capture_handler)
+            try:
+                window.close()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

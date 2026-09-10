@@ -665,8 +665,8 @@ class CombatManager:
         self.notify_listeners()
 
     def update_spell_origin(self, world_x: float, world_y: float) -> None:
-        """Atualiza a posição de origem da magia no espaço de mundo contínuo."""
-        updated = SpellProjectionController.update_origin(self.__active_spell_template, world_x, world_y)
+        """Atualiza a posição de origem da magia no espaço de mundo com Snap-to-Grid de meio quadrado."""
+        updated = SpellProjectionController.update_origin(self.__active_spell_template, world_x, world_y, self.grid_manager)
         if updated is not None:
             self.__active_spell_template = updated
             self.notify_listeners()

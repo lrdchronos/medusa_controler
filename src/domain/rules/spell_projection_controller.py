@@ -14,8 +14,15 @@ class SpellProjectionController:
     """
 
     @staticmethod
-    def update_origin(template: Optional[SpellTemplate], world_x: float, world_y: float) -> Optional[SpellTemplate]:
+    def update_origin(
+        template: Optional[SpellTemplate],
+        world_x: float,
+        world_y: float,
+        grid_manager: Optional[Any] = None,
+    ) -> Optional[SpellTemplate]:
         if template is not None:
+            if grid_manager is not None and hasattr(grid_manager, "snap_to_half_grid"):
+                world_x, world_y = grid_manager.snap_to_half_grid(world_x, world_y)
             return template.with_origin((world_x, world_y)).with_visibility(True)
         return None
 

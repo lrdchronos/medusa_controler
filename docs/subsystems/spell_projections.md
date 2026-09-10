@@ -100,12 +100,26 @@ $$z_{\text{teto}} = z_{\text{solo}} + \text{feet\_per\_square}$$
 
 ---
 
-### 3.3. Controles de Mira do Dungeon Master
+### 3.3. Controles de Mira do Dungeon Master & Snap-to-Grid (Meio Quadrado)
+
+O posicionamento da âncora de projeção opera com **Snap-to-Grid discreto de resolução de meio quadrado ($0.5 \times \text{cell\_size}$)** implementado no `GridManager.snap_to_half_grid()`. Ao clicar ou arrastar o cursor, a âncora trava magneticamente no ponto discreto mais próximo, garantindo consistência tática e sincronia total com o grid de D&D 5E.
+
+Para qualquer célula quadrada de lado $S = \text{cell\_size}$, existem exatamente **9 pontos de ancoragem válidos**:
+1. **Centro da Célula:** $((\text{col} + 0.5)S, \, (\text{row} + 0.5)S)$
+2. **4 Quinas (Vértices da Grade):** Interseções das linhas do grid $((\text{col} + i)S, \, (\text{row} + j)S)$ para $i, j \in \{0, 1\}$.
+3. **4 Pontos Médios das Bordas:** Centros das 4 arestas divisórias $((\text{col} + 0.5)S, \, (\text{row} + j)S)$ e $((\text{col} + i)S, \, (\text{row} + 0.5)S)$ para $i, j \in \{0, 1\}$.
+
+#### Fórmula de Discretização:
+$$\text{step} = \frac{S}{2} = 0.5 \times \text{cell\_size}$$
+
+$$\text{snap\_x} = \text{round}\left(\frac{x - \text{offset\_x}}{\text{step}}\right) \times \text{step} + \text{offset\_x}$$
+
+$$\text{snap\_y} = \text{round}\left(\frac{y - \text{offset\_y}}{\text{step}}\right) \times \text{step} + \text{offset\_y}$$
 
 | Ação do Mestre | Entrada / Atalho | Efeito Tático |
 | :--- | :--- | :--- |
-| **Posicionar Âncora** | `Clique Esquerdo` no Mini-Mapa | Move a âncora da magia $(o_x, o_y)$ para o ponto clicado. |
-| **Arrastar Origem em Tempo Real** | `Clique Esquerdo + Arraste` | Desloca a âncora continuamente acompanhando o cursor do mouse. |
+| **Posicionar Âncora (Snap)** | `Clique Esquerdo` no Mini-Mapa | Trava magneticamente a âncora da magia $(o_x, o_y)$ no ponto discreto de meio quadrado mais próximo. |
+| **Arrastar Origem em Tempo Real** | `Clique Esquerdo + Arraste` | Desloca a âncora continuamente travando nos 9 pontos de ancoragem das células percorridas. |
 | **Mirar Direção (Yaw)** | `Clique Direito` ou `Clique Direito + Arraste` | Rotaciona a orientação horizontal para apontar diretamente para o cursor (`atan2`). |
 | **Girar Yaw (Fino)** | `Scroll do Mouse` no Mini-Mapa | Rotaciona a orientação horizontal em passos de $\pm 2^\circ$. |
 | **Girar Yaw (Rápido)**| `Ctrl + Scroll` | Rotaciona a orientação horizontal em passos de $\pm 15^\circ$. |
