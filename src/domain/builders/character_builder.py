@@ -162,6 +162,12 @@ class CharacterBuilder:
             self.with_equipment(data["equipment"])
         if "size" in data:
             self.with_size(data["size"])
+        if "speed" in data:
+            spd = data["speed"]
+            if isinstance(spd, dict):
+                self.with_speed(int(spd.get("walk", 30)))
+            elif isinstance(spd, (int, float)):
+                self.with_speed(int(spd))
         if "position" in data:
             pos = data["position"]
             self.with_position(pos.get("x", 0), pos.get("y", 0))

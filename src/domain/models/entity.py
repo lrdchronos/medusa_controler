@@ -57,6 +57,7 @@ class Entity(ABC):
         self.__is_alive: bool = True
         self.__is_hidden: bool = bool(is_hidden)
         self.__speed: int = speed
+        self.__movement_spent_this_turn: float = 0.0
         self.__position: Dict[str, int] = position.copy() if position else {"x": 0, "y": 0}
         self.__token_sprite: Optional[str] = str(token_sprite) if token_sprite else None
         self.__size: str = self._normalize_size(size)
@@ -199,6 +200,21 @@ class Entity(ABC):
     @property
     def speed(self) -> int:
         return self.__speed
+
+    @property
+    def movement_spent_this_turn(self) -> float:
+        """Quantidade de deslocamento em pés consumida pelo combatente no turno atual."""
+        return self.__movement_spent_this_turn
+
+    @movement_spent_this_turn.setter
+    def movement_spent_this_turn(self, value: float) -> None:
+        """Define defensivamente o deslocamento gasto no turno."""
+        self.__movement_spent_this_turn = max(0.0, float(value))
+
+    @property
+    def available_movement(self) -> float:
+        """Retorna o saldo de deslocamento residual em pés disponível para o turno atual."""
+        return max(0.0, float(self.__speed) - self.__movement_spent_this_turn)
 
     @property
     def size(self) -> str:
@@ -463,6 +479,19 @@ class Entity(ABC):
     def clear_conditions(self) -> None:
         """Limpa todas as condições ativas na entidade."""
         self.__conditions.clear()
+
+    def spend_movement(self, amount_feet: float) -> float:
+        """
+        Debita uma quantidade em pés do deslocamento disponível no turno.
+        Retorna o saldo residual de movimento.
+        """
+        spent = max(0.0, float(amount_feet))
+        self.__movement_spent_this_turn += spent
+        return self.available_movement
+
+    def reset_movement(self) -> None:
+        """Restaura os pontos de deslocamento do turno para o valor total (gasto = 0.0)."""
+        self.__movement_spent_this_turn = 0.0
 
     def toggle_condition(self, condition: str) -> bool:
         """

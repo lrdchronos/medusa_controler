@@ -2,6 +2,11 @@
     "uid": "char_240820261336",
     "name": "Bolo de Morango",
     "level": 3,
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
     "ability_scores": {
         "STR": 18,
         "DEX": 12,

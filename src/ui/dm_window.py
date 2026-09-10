@@ -265,6 +265,8 @@ class DMWindow(arcade.Window):
         self.switch_to()
         arcade.set_window(self)
         self.use()
+        if hasattr(self, "default_camera"):
+            self.default_camera.use()
         self.clear()
 
         w, h = self.width, self.height
@@ -298,6 +300,10 @@ class DMWindow(arcade.Window):
         else:
             self.mini_map.draw(split_x, h, w, self.combat_tab.selected_combatant_uid)
 
+        # Restaura câmera padrão de UI do Mestre após renderizar o minimapa
+        if hasattr(self, "default_camera"):
+            self.default_camera.use()
+
         # 3. Modal Overlay de Staging de Iniciativas
         if self.initiative_modal.is_open:
             self.initiative_modal.draw(w, h)
@@ -324,6 +330,8 @@ class DMWindow(arcade.Window):
         DMWindowInputHandler.on_mouse_scroll(self, x, y, scroll_x, scroll_y)
 
     def on_update(self, delta_time: float) -> None:
+        self.switch_to()
+        arcade.set_window(self)
         if self.active_tab == 3:
             self.creator_tab.on_update(delta_time)
         elif self.active_tab == 2:

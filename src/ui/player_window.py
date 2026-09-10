@@ -46,6 +46,7 @@ class PlayerWindow(arcade.Window):
         self._text_cache: Dict[str, arcade.Text] = {}
         self._tilemap_renderer: Optional[TileMapRenderer] = None
         self._aoe_highlighter: Optional[GridCellHighlighter] = None
+        self._movement_highlighter: Optional[GridCellHighlighter] = None
 
         # Dicionário de sprites de tokens com interpolação suave (Lerp)
         self.token_sprites: Dict[str, CombatToken] = {}
@@ -170,7 +171,7 @@ class PlayerWindow(arcade.Window):
         self.switch_to()
         arcade.set_window(self)
         super().on_resize(width, height)
-        if hasattr(self, "player_camera"):
+        if hasattr(self, "player_camera") and hasattr(self.player_camera, "match_window"):
             self.player_camera.match_window()
         layout = self._calculate_combat_layout(width, height)
         if layout is not None:
@@ -190,20 +191,7 @@ class PlayerWindow(arcade.Window):
         if grid_mgr is None or grid_mgr.columns <= 0 or grid_mgr.rows <= 0:
             return None
 
-        world_w = grid_mgr.map_width
-        world_h = grid_mgr.map_height
-        if world_w <= 0 or world_h <= 0:
-            return None
-
-        scale_factor, draw_w, draw_h, offset_x, offset_y = GridManager.calculate_aspect_fit(
-            viewport_width=float(w),
-            viewport_height=float(h),
-            native_width=world_w,
-            native_height=world_h,
-        )
-
-        draw_x = offset_x
-        draw_y = offset_y
+        draw_x, draw_y, draw_w, draw_h = PlayerViewRenderer.calculate_draw_rect(w, h, grid_mgr)
         cell_w = draw_w / grid_mgr.columns
         cell_h = draw_h / grid_mgr.rows
         return draw_x, draw_y, draw_w, draw_h, cell_w, cell_h, grid_mgr.columns, grid_mgr.rows
@@ -290,6 +278,18 @@ class PlayerWindow(arcade.Window):
             else:
                 self._aoe_highlighter.grid_manager = combat_manager.grid_manager
 
+            if self._movement_highlighter is None:
+                self._movement_highlighter = GridCellHighlighter(grid_manager=combat_manager.grid_manager)
+            else:
+                self._movement_highlighter.grid_manager = combat_manager.grid_manager
+
+        dm_win = self.dm_window
+        sel_uid = getattr(dm_win, "selected_combatant_uid", None) if dm_win else None
+        sel_cell = getattr(getattr(dm_win, "mini_map", None), "selected_target_cell", None) if dm_win else None
+        is_fog_active = False
+        if dm_win and hasattr(dm_win, "combat_tab") and getattr(dm_win.combat_tab, "fog_panel", None):
+            is_fog_active = dm_win.combat_tab.fog_panel.is_tool_active
+
         self._update_tokens(0.0)
         PlayerViewRenderer.draw_combat(
             window_width=w,
@@ -301,6 +301,10 @@ class PlayerWindow(arcade.Window):
             aoe_highlighter=self._aoe_highlighter,
             token_sprites=self.token_sprites,
             hud=self.hud,
+            movement_highlighter=self._movement_highlighter,
+            selected_target_cell=sel_cell,
+            selected_combatant_uid=sel_uid,
+            is_fog_active=is_fog_active,
         )
 
     def on_draw(self) -> None:
@@ -309,6 +313,8 @@ class PlayerWindow(arcade.Window):
         self.switch_to()
         arcade.set_window(self)
         self.use()
+        if hasattr(self, "default_camera"):
+            self.default_camera.use()
         self.clear()
 
         w, h = self.width, self.height

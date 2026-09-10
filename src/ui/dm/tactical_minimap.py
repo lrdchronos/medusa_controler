@@ -39,6 +39,7 @@ class TacticalMiniMap:
         self._text_cache: Dict[str, arcade.Text] = {}
         self._tilemap_renderer: Optional[TileMapRenderer] = None
         self._aoe_highlighter: Optional[GridCellHighlighter] = None
+        self._movement_highlighter: Optional[GridCellHighlighter] = None
 
         self._last_draw_rect: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0)
 
@@ -46,9 +47,20 @@ class TacticalMiniMap:
         self._is_brushing: bool = False
         self._last_fog_cell: Optional[Tuple[int, int]] = None
 
+        # Estado de Arraste e Mira de Magias (Spell AoE)
+        self._is_dragging_spell: bool = False
+        self._is_aiming_spell: bool = False
+
         # Estado de Drag & Drop de Tokens
         self._dragged_combatant_uid: Optional[str] = None
         self._drag_world_pos: Tuple[float, float] = (0.0, 0.0)
+        self._drag_start_pos: Tuple[float, float] = (0.0, 0.0)
+        self._has_dragged: bool = False
+
+        # Estado de Deslocamento Ortogonal (Clique Simples / Duplo)
+        self.selected_target_cell: Optional[Tuple[int, int]] = None
+        self._last_click_cell: Optional[Tuple[int, int]] = None
+        self._last_click_time: float = 0.0
 
         # Estado de Posicionamento Interativo de Token (PLACING_TOKEN)
         self._is_placing_token: bool = False
@@ -85,20 +97,24 @@ class TacticalMiniMap:
         self._on_token_spawn_callback = None
 
     def update_viewport(self) -> None:
-        """Configura a viewport da DMCamera para a metade direita da janela."""
-        w, h = self.window.width, self.window.height
-        left = float(w) * 0.50
-        right = float(w)
-        bottom = 0.0
-        top = float(h)
+        """Configura a viewport e projeção da DMCamera para a metade direita da janela."""
+        w, h = float(self.window.width), float(self.window.height)
+        panel_w = w * 0.50
+        panel_h = h
 
         self.dm_camera.viewport = arcade.types.LRBT(
-            left=left,
-            right=right,
-            bottom=bottom,
-            top=top,
+            left=panel_w,
+            right=w,
+            bottom=0.0,
+            top=h,
         )
-        self.dm_camera.position = (float(w) * 0.25, float(h) * 0.50)
+        self.dm_camera.projection = arcade.types.LRBT(
+            left=-panel_w / 2.0,
+            right=panel_w / 2.0,
+            bottom=-panel_h / 2.0,
+            top=panel_h / 2.0,
+        )
+        self.dm_camera.position = (panel_w / 2.0, panel_h / 2.0)
 
     def _get_texture(self, file_path: Optional[str]) -> Optional[arcade.Texture]:
         if not file_path or not os.path.isfile(file_path):
@@ -162,6 +178,11 @@ class TacticalMiniMap:
             grid_mgr = self.combat_manager.grid_manager
             if grid_mgr is not None and grid_mgr.columns > 0 and grid_mgr.rows > 0:
                 aspect = float(grid_mgr.columns) / float(grid_mgr.rows)
+        elif self.session_manager.display_state == DisplayState.PROJECTION:
+            proj_path = self.session_manager.projected_image_path
+            tex = self._get_texture(proj_path)
+            if tex is not None and getattr(tex, "height", 0) > 0:
+                aspect = float(tex.width) / float(tex.height)
 
         if (avail_w / avail_h) > aspect:
             draw_h = avail_h
@@ -209,6 +230,16 @@ class TacticalMiniMap:
         elif self._aoe_highlighter.grid_manager != self.combat_manager.grid_manager:
             self._aoe_highlighter.grid_manager = self.combat_manager.grid_manager
 
+        if self._movement_highlighter is None:
+            self._movement_highlighter = GridCellHighlighter(
+                grid_manager=self.combat_manager.grid_manager,
+                fill_color=(41, 128, 185, 90),
+                outline_color=(52, 152, 219, 220),
+                outline_width=1.0,
+            )
+        elif self._movement_highlighter.grid_manager != self.combat_manager.grid_manager:
+            self._movement_highlighter.grid_manager = self.combat_manager.grid_manager
+
         self.dm_camera.use()
         MiniMapRenderer.draw_content(
             window_width=self.window.width,
@@ -219,12 +250,17 @@ class TacticalMiniMap:
             text_cache=self._text_cache,
             tilemap_renderer=self._tilemap_renderer,
             aoe_highlighter=self._aoe_highlighter,
+            movement_highlighter=self._movement_highlighter,
+            selected_target_cell=self.selected_target_cell,
+            selected_combatant_uid=selected_combatant_uid,
             is_placing_token=self._is_placing_token,
             placing_token_data=self._placing_token_data,
             hover_grid_cell=self._hover_grid_cell,
             dragged_combatant_uid=self._dragged_combatant_uid,
             drag_world_pos=self._drag_world_pos,
         )
+        if hasattr(self.window, "default_camera"):
+            self.window.default_camera.use()
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> bool:
         return MiniMapInputHandler.on_mouse_press(x, y, button, modifiers, self)

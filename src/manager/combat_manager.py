@@ -36,7 +36,9 @@ class CombatManager:
         self.__tile_map: Optional[TileMap] = None
         self.__environment: Dict[str, Any] = {"is_sunlight": False, "is_raining": False}
         self.__grid_data: Dict[str, Any] = {"columns": 25, "feet_per_square": 5}
-        self.__grid_manager: Optional[GridManager] = None
+        self.__grid_manager: Optional[GridManager] = GridManager(
+            map_width=1920.0, map_height=1080.0, columns=25, feet_per_square=5.0
+        )
 
         self.__combatants: List[Entity] = []
         self.__turn_order: List[Entity] = []
@@ -235,6 +237,18 @@ class CombatManager:
         size = getattr(entity, "size", "Medium")
         return self.is_walkable_for_size(col, row, size)
 
+    def is_difficult_terrain(self, x: int, y: int) -> bool:
+        """Verifica se a célula do grid tático (x, y) é terreno difícil (custo de movimento dobrado)."""
+        if self.__grid_manager is not None and self.__tile_map is not None:
+            if not self.__grid_manager.is_valid_cell(x, y):
+                return False
+            return self.__tile_map.is_difficult_at_grid(
+                x, y, self.__grid_manager.columns, self.__grid_manager.rows
+            )
+        if self.__tile_map is not None:
+            return self.__tile_map.is_difficult(x, y)
+        return False
+
     def load_encounter(self, encounter_id_or_path: str) -> None:
         """Carrega dados do encontro, popula os combatentes e inicializa o GridManager."""
         data = self._encounter_loader.load_encounter(encounter_id_or_path)
@@ -316,6 +330,9 @@ class CombatManager:
                 active_combatants.append(c)
 
         self.__turn_order = active_combatants
+        for c in self.__combatants:
+            c.reset_movement()
+
         if self.__turn_order:
             self.__current_turn_index = 0
             self.__round_number = 1
@@ -362,6 +379,8 @@ class CombatManager:
         self.__turn_order, self.__hidden_combatants = InitiativeTracker.calculate_turn_order(
             self.__combatants, final_scores
         )
+        for c in self.__combatants:
+            c.reset_movement()
 
         if self.__turn_order:
             self.__current_turn_index = 0
@@ -405,6 +424,8 @@ class CombatManager:
         self.__current_turn_index, self.__round_number, active_char = InitiativeTracker.advance_turn(
             self.__turn_order, self.__current_turn_index, self.__round_number
         )
+        if active_char is not None:
+            active_char.reset_movement()
         if self.__current_turn_index != prev_idx:
             active_name = active_char.name if active_char else "Nenhum"
             logger.info("Passar Turno: combatente ativo '%s' (Rodada %d).", active_name, self.__round_number)
@@ -417,6 +438,8 @@ class CombatManager:
         self.__current_turn_index, self.__round_number, active_char = InitiativeTracker.rewind_turn(
             self.__turn_order, self.__current_turn_index, self.__round_number
         )
+        if active_char is not None:
+            active_char.reset_movement()
         if self.__current_turn_index != prev_idx:
             active_name = active_char.name if active_char else "Nenhum"
             logger.info("Retroceder Turno: combatente ativo '%s' (Rodada %d).", active_name, self.__round_number)
@@ -548,6 +571,49 @@ class CombatManager:
             self.notify_listeners()
             return True
         return False
+
+    def reset_combatant_movement(self, uid_or_name: str) -> bool:
+        """Restaura os pontos de deslocamento do turno para o combatente informado."""
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is not None:
+            combatant.reset_movement()
+            logger.info("Deslocamento do combatente '%s' resetado para o valor total (%d ft).", combatant.name, combatant.speed)
+            self.notify_listeners()
+            return True
+        logger.warning("Combatente '%s' não encontrado para reset de movimento.", uid_or_name)
+        return False
+
+    def execute_orthogonal_move(self, uid_or_name: str, target_col: int, target_row: int) -> bool:
+        """
+        Executa uma movimentação ortogonal com validação de custo em pés via MovementCalculator.
+        Debita o custo exato em movement_spent_this_turn e atualiza as coordenadas da entidade.
+        """
+        combatant = self.get_combatant(uid_or_name)
+        if combatant is None:
+            logger.warning("Combatente '%s' não encontrado para movimento ortogonal.", uid_or_name)
+            return False
+
+        from ..domain.rules.movement_calculator import MovementCalculator
+        res = MovementCalculator.calculate_for_entity(combatant, self)
+        target = (int(target_col), int(target_row))
+
+        if not res.is_reachable(target):
+            logger.warning(
+                "Célula (%d, %d) inalcançável para '%s' com o saldo disponível (%.1f ft).",
+                target_col, target_row, combatant.name, combatant.available_movement
+            )
+            return False
+
+        cost = res.get_cost(target) or 0.0
+        combatant.spend_movement(cost)
+        prev_pos = combatant.position
+        combatant.set_position(target_col, target_row)
+        logger.info(
+            "Deslocamento ortogonal: '%s' moveu de (%s, %s) para (%d, %d) consumindo %.1f ft (Restante: %.1f ft).",
+            combatant.name, prev_pos.get('x'), prev_pos.get('y'), target_col, target_row, cost, combatant.available_movement
+        )
+        self.notify_listeners()
+        return True
 
     def toggle_condition(self, uid_or_name: str, condition: str) -> bool:
         """Alterna uma condição no combatente."""

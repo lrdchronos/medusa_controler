@@ -58,12 +58,27 @@ class CombatActionsPanel:
 
     @staticmethod
     def draw_round_info(tab: Any, panel_w: float, bar_y: float) -> float:
-        """Desenha a informação de rodada, combatente do turno e o toast de salvamento."""
+        """Desenha a informação de rodada, combatente do turno, medidor de movimento e o toast de salvamento."""
         info_y = bar_y - 24
         active_char = tab.combat_manager.active_character
         round_num = getattr(tab.combat_manager, "round_number", getattr(tab.combat_manager, "current_round", 1))
-        turn_str = f"⚔️ Rodada: {round_num} • Turno Ativo: {active_char.name if active_char else 'Nenhum'}"
-        tab._get_text("cm_info_turn", turn_str, 16, info_y, (241, 196, 15, 255), 9, bold=True).draw()
+
+        if active_char:
+            avail = getattr(active_char, "available_movement", float(active_char.speed))
+            total = active_char.speed
+            turn_str = f"⚔️ R{round_num} • {active_char.name[:14]} • Mov: {avail:.0f}/{total} ft"
+            tab._get_text("cm_info_turn", turn_str, 16, info_y, (241, 196, 15, 255), 8.5, bold=True).draw()
+
+            # Botão Auxiliar [ 🔄 Reset Mov ]
+            btn_rst_w = 88.0
+            btn_rst_h = 20.0
+            btn_rst_x = panel_w - 16 - btn_rst_w / 2
+            arcade.draw_rect_filled(arcade.XYWH(btn_rst_x, info_y, btn_rst_w, btn_rst_h), (40, 54, 75, 255))
+            arcade.draw_rect_outline(arcade.XYWH(btn_rst_x, info_y, btn_rst_w, btn_rst_h), (52, 152, 219, 200), 1.0)
+            tab._get_text("cm_b_rst_mov", "🔄 Reset Mov", btn_rst_x, info_y, (220, 235, 255, 255), 7.5, bold=True, anchor_x="center").draw()
+        else:
+            turn_str = f"⚔️ Rodada: {round_num} • Turno Ativo: Nenhum"
+            tab._get_text("cm_info_turn", turn_str, 16, info_y, (241, 196, 15, 255), 9, bold=True).draw()
 
         # Notificação Toast Flutuante de Salvamento
         if tab.toast_timer > 0 and tab.toast_message:

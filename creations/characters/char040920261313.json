@@ -2,6 +2,11 @@
     "uid": "char_040920261313",
     "name": "Ornella",
     "level": 3,
+    "speed": {
+        "walk": 30,
+        "fly": 0,
+        "swim": 0
+    },
     "ability_scores": {
         "STR": 13,
         "DEX": 13,

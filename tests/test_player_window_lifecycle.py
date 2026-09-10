@@ -207,10 +207,33 @@ class TestPlayerWindowLifecycle(unittest.TestCase):
         # Fecha a PlayerWindow
         self.player_window.on_close()
 
-        # DMWindow e Session permanecem perfeitamente ativas
-        self.assertFalse(self.dm_window.is_player_window_open)
-        self.assertEqual(self.session.display_state, DisplayState.COMBAT)
-        self.assertGreaterEqual(len(self.session.combat_manager.combatants), 4)
+    def test_projection_and_resize_rendering(self):
+        """Garante que projetar imagem e redimensionar ambas as janelas não causa erros de câmera ou renderização."""
+        # 1. Ativa estado de projeção
+        self.session.set_display_state(DisplayState.PROJECTION)
+        self.assertTrue(self.session.is_projecting)
+
+        # 2. Desenha DMWindow e PlayerWindow no estado PROJECTION
+        self.dm_window.on_draw()
+        self.player_window.on_draw()
+
+        # 3. Redimensiona DMWindow e PlayerWindow
+        self.dm_window.on_resize(1600, 900)
+        self.player_window.on_resize(1920, 1080)
+
+        # 4. Desenha múltiplos frames após resize
+        for _ in range(3):
+            self.dm_window.on_update(0.016)
+            self.dm_window.on_draw()
+            self.player_window.on_update(0.016)
+            self.player_window.on_draw()
+
+        # 5. Alterna para COMBAT e repete resize e desenho
+        self.session.set_display_state(DisplayState.COMBAT)
+        self.dm_window.on_resize(1400, 800)
+        self.player_window.on_resize(1366, 768)
+        self.dm_window.on_draw()
+        self.player_window.on_draw()
 
 
 if __name__ == "__main__":

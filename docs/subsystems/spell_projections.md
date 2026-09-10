@@ -104,7 +104,9 @@ $$z_{\text{teto}} = z_{\text{solo}} + \text{feet\_per\_square}$$
 
 | Ação do Mestre | Entrada / Atalho | Efeito Tático |
 | :--- | :--- | :--- |
-| **Posicionar Origem** | `Clique Esquerdo` no Mini-Mapa | Move a âncora da magia $(o_x, o_y)$ para o ponto clicado. |
+| **Posicionar Âncora** | `Clique Esquerdo` no Mini-Mapa | Move a âncora da magia $(o_x, o_y)$ para o ponto clicado. |
+| **Arrastar Origem em Tempo Real** | `Clique Esquerdo + Arraste` | Desloca a âncora continuamente acompanhando o cursor do mouse. |
+| **Mirar Direção (Yaw)** | `Clique Direito` ou `Clique Direito + Arraste` | Rotaciona a orientação horizontal para apontar diretamente para o cursor (`atan2`). |
 | **Girar Yaw (Fino)** | `Scroll do Mouse` no Mini-Mapa | Rotaciona a orientação horizontal em passos de $\pm 2^\circ$. |
 | **Girar Yaw (Rápido)**| `Ctrl + Scroll` | Rotaciona a orientação horizontal em passos de $\pm 15^\circ$. |
 | **Inclinar Pitch (Vertical)**| `Alt + Scroll` | Inclina a elevação vertical da magia em passos de $\pm 15^\circ$. |
@@ -112,9 +114,20 @@ $$z_{\text{teto}} = z_{\text{solo}} + \text{feet\_per\_square}$$
 
 ---
 
-## 4. Fluxo de Integração & Eventos
+## 4. Hierarquia de Modos e Fluxo de Integração
 
-### 4.1. Otimização com `GridCellHighlighter`
+### 4.1. Hierarquia de Modos de Entrada & Renderização
+1. **Modo Fog ou Modo Spell Ativo:**
+   - Prevalecem sobre comandos de seleção, arrasto livre e movimentação ortogonal de tokens.
+   - **Suprimem / ocultam a zona azul de movimento** (`movement_highlighter.clear()`) tanto no Mini-Mapa do Mestre quanto na Tela dos Jogadores.
+2. **Exclusividade Mútua (Fog vs Spell):**
+   - O Modo Fog e o Modo Spell não podem estar ativos simultaneamente.
+   - Ativar uma ferramenta de Fog desativa automaticamente o Modo Spell.
+   - Ativar o Modo Spell redefine a ferramenta de Fog para `FogTool.NONE`.
+3. **Modo Neutro de Combate:**
+   - Quando nem Fog nem Spell estão ativos, os comandos de clique simples (selecionar destino), clique duplo (confirmar passo ortogonal) e drag-and-drop livre operam normalmente com exibição da zona de alcance azul.
+
+### 4.2. Otimização com `GridCellHighlighter`
 Para evitar queda de desempenho (*FPS drop*) ao destacar centenas de células no grid:
 1. O método `aoe_highlighter.set_cells(aoe_cells)` atualiza o conjunto matricial.
 2. Na primeira chamada de desenho, constrói uma `ShapeElementList` contendo os retângulos preenchidos e contornos em uma **única *draw call* na GPU**.

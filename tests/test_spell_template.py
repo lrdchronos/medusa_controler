@@ -317,6 +317,269 @@ class TestSpellAoEPanelAndRenderer(unittest.TestCase):
         minimap.handle_mouse_scroll(x=700.0, y=200.0, scroll_x=0.0, scroll_y=-1.0, is_ctrl=False, is_alt=True)
         self.assertAlmostEqual(self.combat_manager.active_spell_template.pitch_degrees, 345.0)
 
+    def test_minimap_cursor_click_sets_exact_origin_and_aoe_cells(self):
+        """Simula clique do cursor no Mini-Mapa definindo a âncora da magia na célula clicada e calculando células atingidas."""
+        from src.ui.dm.tactical_minimap import TacticalMiniMap
+
+        minimap = TacticalMiniMap(window=self.window, session_manager=self.session_manager)
+        # Configura layout do minimapa: draw_rect = (50px, 50px, 500px, 500px), 25 colunas -> 20px por célula no minimapa
+        minimap._last_draw_rect = (50.0, 50.0, 500.0, 500.0)
+
+        # Grid de mundo: 1000px x 1000px, 25 colunas -> 40px por célula no mundo (5ft por célula -> 8px/ft)
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 1000.0)
+        grid_mgr = self.combat_manager.grid_manager
+        self.assertIsNotNone(grid_mgr)
+        self.assertEqual(grid_mgr.columns, 25)
+        self.assertAlmostEqual(grid_mgr.cell_size, 40.0)
+
+        # Ativa feitiço de círculo (raio 10ft = 2 quadrados)
+        tpl = SpellTemplate(shape=SpellShape.CIRCLE, size_feet=10.0, is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+
+        # Simula clique do mouse no centro da célula (10, 8) no minimapa:
+        # mx = draw_x + (10 + 0.5) * 20.0 = 50 + 210 = 260.0
+        # my = draw_y + (8 + 0.5) * 20.0 = 50 + 170 = 220.0
+        handled = minimap.on_mouse_press(x=260.0, y=220.0, button=arcade.MOUSE_BUTTON_LEFT, modifiers=0)
+        self.assertTrue(handled)
+
+        # No mundo contínuo:
+        # col_frac = 210 / 20 = 10.5 -> world_x = 10.5 * 40.0 = 420.0
+        # row_frac = 170 / 20 = 8.5 -> world_y = 8.5 * 40.0 = 340.0
+        active_tpl = self.combat_manager.active_spell_template
+        self.assertIsNotNone(active_tpl)
+        self.assertAlmostEqual(active_tpl.origin_world[0], 420.0)
+        self.assertAlmostEqual(active_tpl.origin_world[1], 340.0)
+
+        # Verifica cálculo de células atingidas:
+        cells = self.combat_manager.get_spell_aoe_cells()
+        self.assertIn((10, 8), cells)   # Célula central
+        self.assertIn((10, 9), cells)   # 1 quadrado acima
+        self.assertIn((10, 7), cells)   # 1 quadrado abaixo
+        self.assertIn((11, 8), cells)   # 1 quadrado à direita
+        self.assertIn((9, 8), cells)    # 1 quadrado à esquerda
+        self.assertIn((10, 10), cells)  # 2 quadrados acima (10ft)
+        self.assertNotIn((10, 12), cells) # 4 quadrados acima (fora do alcance de 10ft)
+
+    def test_minimap_cursor_drag_updates_origin_in_realtime(self):
+        """Simula clique e arraste com o mouse atualizando dinamicamente a âncora da magia em tempo real."""
+        from src.ui.dm.tactical_minimap import TacticalMiniMap
+
+        minimap = TacticalMiniMap(window=self.window, session_manager=self.session_manager)
+        minimap._last_draw_rect = (0.0, 0.0, 500.0, 500.0)
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 1000.0)
+
+        tpl = SpellTemplate(shape=SpellShape.SPHERE, size_feet=15.0, is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+
+        # 1. Clique inicial em (100, 100) -> célula (5, 5) no minimapa (20px/cell)
+        minimap.on_mouse_press(x=100.0, y=100.0, button=arcade.MOUSE_BUTTON_LEFT, modifiers=0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.origin_world[0], 200.0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.origin_world[1], 200.0)
+
+        # 2. Arraste contínuo para (200, 300) -> célula (10, 15) no minimapa
+        minimap.on_mouse_drag(x=200.0, y=300.0, dx=100.0, dy=200.0, buttons=arcade.MOUSE_BUTTON_LEFT, modifiers=0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.origin_world[0], 400.0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.origin_world[1], 600.0)
+
+        # 3. Soltura do mouse
+        minimap.on_mouse_release(x=200.0, y=300.0, button=arcade.MOUSE_BUTTON_LEFT, modifiers=0)
+        self.assertFalse(minimap._is_dragging_spell)
+
+    def test_minimap_cursor_right_click_aims_rotation_to_cursor(self):
+        """Simula clique com botão direito mirando a rotação horizontal (yaw) do feitiço em direção ao cursor."""
+        from src.ui.dm.tactical_minimap import TacticalMiniMap
+
+        minimap = TacticalMiniMap(window=self.window, session_manager=self.session_manager)
+        minimap._last_draw_rect = (0.0, 0.0, 500.0, 500.0)
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 1000.0)
+
+        # Origem do feitiço em world=(200.0, 200.0), minimap screen=(100.0, 100.0)
+        tpl = SpellTemplate(shape=SpellShape.CONE, size_feet=30.0, origin_world=(200.0, 200.0), rotation_degrees=0.0, is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+
+        # 1. Botão direito apontando para a direita no minimapa (200.0, 100.0) -> dx > 0, dy = 0 -> 0°
+        minimap.on_mouse_press(x=200.0, y=100.0, button=arcade.MOUSE_BUTTON_RIGHT, modifiers=0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 0.0, places=1)
+
+        # 2. Botão direito apontando para cima no minimapa (100.0, 200.0) -> dx = 0, dy > 0 -> 90°
+        minimap.on_mouse_press(x=100.0, y=200.0, button=arcade.MOUSE_BUTTON_RIGHT, modifiers=0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 90.0, places=1)
+
+        # 3. Arraste com botão direito apontando para a esquerda (0.0, 100.0) -> dx < 0, dy = 0 -> 180°
+        minimap.on_mouse_drag(x=0.0, y=100.0, dx=-100.0, dy=-100.0, buttons=arcade.MOUSE_BUTTON_RIGHT, modifiers=0)
+        self.assertAlmostEqual(self.combat_manager.active_spell_template.rotation_degrees, 180.0, places=1)
+
+    def test_mutual_exclusivity_fog_and_spell(self):
+        """Verifica que o Modo Fog e o Modo Spell não podem estar ativos simultaneamente."""
+        from src.ui.dm.handlers.combat_tab_input_handler import CombatTabInputHandler
+        from src.ui.dm.fog_control_panel import FogControlPanel, FogTool
+        from src.ui.dm.combat_tab import CombatTabView
+
+        tab = CombatTabView(session_manager=self.session_manager)
+        self.assertFalse(tab.spell_aoe_panel.is_active)
+        self.assertFalse(tab.fog_panel.is_tool_active)
+
+        # 1. Ativa Modo Spell
+        tab.spell_aoe_panel.is_active = True
+        tab.spell_aoe_panel.sync_to_combat_manager()
+        self.assertTrue(tab.spell_aoe_panel.is_active)
+        self.assertTrue(self.combat_manager.active_spell_template.is_active)
+
+        # 2. Ativa ferramenta no FogPanel -> Modo Spell deve ser desativado automaticamente
+        tab.fog_panel.active_tool = FogTool.ADD
+        # Simula despacho via CombatTabInputHandler
+        if tab.fog_panel.is_tool_active and tab.spell_aoe_panel.is_active:
+            tab.spell_aoe_panel.is_active = False
+            tab.spell_aoe_panel.sync_to_combat_manager()
+
+        self.assertTrue(tab.fog_panel.is_tool_active)
+        self.assertFalse(tab.spell_aoe_panel.is_active)
+        self.assertFalse(self.combat_manager.active_spell_template.is_active)
+
+        # 3. Reativa Modo Spell -> Ferramenta do FogPanel deve ser desativada automaticamente
+        tab.spell_aoe_panel.is_active = True
+        tab.spell_aoe_panel.sync_to_combat_manager()
+        if tab.spell_aoe_panel.is_active and tab.fog_panel.is_tool_active:
+            tab.fog_panel.active_tool = FogTool.NONE
+
+        self.assertTrue(tab.spell_aoe_panel.is_active)
+        self.assertFalse(tab.fog_panel.is_tool_active)
+        self.assertEqual(tab.fog_panel.active_tool, FogTool.NONE)
+
+    def test_mode_hierarchy_suppresses_movement_overlay(self):
+        """Verifica que quando o modo Spell ou o modo Fog estão ativos, a zona azul de movimento é suprimida."""
+        from src.ui.components.grid_cell_highlighter import GridCellHighlighter
+        from src.domain.models.entity import DynamicToken, EntityType
+
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 800.0)
+        char = DynamicToken(name="Guerreiro", max_hp=20, armor_class=15, speed=30, entity_type=EntityType.PLAYER)
+        self.combat_manager.spawn_combatant(char, (5, 5))
+        self.combat_manager.start_combat()
+
+        mov_hl = GridCellHighlighter(grid_manager=self.combat_manager.grid_manager)
+
+        # 1. Modo Normal: Spell inativo, Fog inativo -> zona de movimento permitida
+        is_spell_active = bool(self.combat_manager.active_spell_template and self.combat_manager.active_spell_template.is_active)
+        is_fog_active = False
+        self.assertFalse(is_spell_active)
+        self.assertFalse(is_fog_active)
+
+        # 2. Ativa Spell -> hierarquia suprime movimento
+        tpl = SpellTemplate(shape=SpellShape.CIRCLE, size_feet=20.0, is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+        is_spell_active = bool(self.combat_manager.active_spell_template and self.combat_manager.active_spell_template.is_active)
+        self.assertTrue(is_spell_active)
+
+        # 3. Limpeza do highlighter de movimento
+        if is_spell_active or is_fog_active:
+            mov_hl.clear()
+        self.assertEqual(len(mov_hl), 0)
+
+    def test_player_view_renderer_spell_and_mode_hierarchy(self):
+        """Valida que PlayerViewRenderer renderiza o feitiço ativo e respeita a supressão de movimento."""
+        from src.ui.renderers.player_view_renderer import PlayerViewRenderer
+        from src.ui.components.grid_cell_highlighter import GridCellHighlighter
+        from src.domain.models.entity import DynamicToken, EntityType
+        from src.ui.initiative_hud import InitiativeHUD
+
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 800.0)
+        char = DynamicToken(name="Mago", max_hp=15, armor_class=12, speed=30, entity_type=EntityType.PLAYER)
+        self.combat_manager.spawn_combatant(char, (5, 5))
+        self.combat_manager.start_combat()
+
+        aoe_hl = GridCellHighlighter(grid_manager=self.combat_manager.grid_manager)
+        mov_hl = GridCellHighlighter(grid_manager=self.combat_manager.grid_manager)
+        hud = InitiativeHUD(combat_manager=self.combat_manager)
+
+        # 1. Modo Normal: Spell inativo -> movimento ativo
+        PlayerViewRenderer.draw_combat(
+            window_width=1024,
+            window_height=768,
+            combat_manager=self.combat_manager,
+            texture_cache={},
+            text_cache={},
+            tilemap_renderer=None,
+            aoe_highlighter=aoe_hl,
+            token_sprites={},
+            hud=hud,
+            movement_highlighter=mov_hl,
+            is_fog_active=False,
+        )
+        self.assertGreater(len(mov_hl), 0)
+        self.assertEqual(len(aoe_hl), 0)
+
+        # 2. Modo Spell ativo -> aoe_hl populado, mov_hl limpo
+        tpl = SpellTemplate(shape=SpellShape.CIRCLE, size_feet=15.0, origin_world=(200.0, 200.0), is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+
+        PlayerViewRenderer.draw_combat(
+            window_width=1024,
+            window_height=768,
+            combat_manager=self.combat_manager,
+            texture_cache={},
+            text_cache={},
+            tilemap_renderer=None,
+            aoe_highlighter=aoe_hl,
+            token_sprites={},
+            hud=hud,
+            movement_highlighter=mov_hl,
+            is_fog_active=False,
+        )
+        self.assertGreater(len(aoe_hl), 0)
+        self.assertEqual(len(mov_hl), 0)
+
+        # 3. Modo Fog ativo (Spell desativado) -> aoe_hl limpo, mov_hl limpo
+        self.combat_manager.set_spell_template(tpl.with_active(False))
+        PlayerViewRenderer.draw_combat(
+            window_width=1024,
+            window_height=768,
+            combat_manager=self.combat_manager,
+            texture_cache={},
+            text_cache={},
+            tilemap_renderer=None,
+            aoe_highlighter=aoe_hl,
+            token_sprites={},
+            hud=hud,
+            movement_highlighter=mov_hl,
+            is_fog_active=True,
+        )
+        self.assertEqual(len(aoe_hl), 0)
+        self.assertEqual(len(mov_hl), 0)
+
+    def test_minimap_renderer_spell_and_mode_hierarchy(self):
+        """Valida que MiniMapRenderer renderiza o feitiço ativo e respeita a supressão de movimento."""
+        from src.ui.renderers.minimap_renderer import MiniMapRenderer
+        from src.ui.components.grid_cell_highlighter import GridCellHighlighter
+        from src.domain.models.entity import DynamicToken, EntityType
+        from src.manager.session_manager import DisplayState
+
+        self.session_manager.set_display_state(DisplayState.COMBAT)
+        self.combat_manager.update_grid_manager_dimensions(1000.0, 800.0)
+        char = DynamicToken(name="Mago", max_hp=15, armor_class=12, speed=30, entity_type=EntityType.PLAYER)
+        self.combat_manager.spawn_combatant(char, (5, 5))
+        self.combat_manager.start_combat()
+
+        aoe_hl = GridCellHighlighter(grid_manager=self.combat_manager.grid_manager)
+        mov_hl = GridCellHighlighter(grid_manager=self.combat_manager.grid_manager)
+
+        # Ativa Spell
+        tpl = SpellTemplate(shape=SpellShape.CONE, size_feet=30.0, origin_world=(200.0, 200.0), is_active=True)
+        self.combat_manager.set_spell_template(tpl)
+
+        MiniMapRenderer.draw_content(
+            window_width=1280,
+            window_height=768,
+            draw_rect=(640.0, 100.0, 500.0, 400.0),
+            session_manager=self.session_manager,
+            texture_cache={},
+            text_cache={},
+            tilemap_renderer=None,
+            aoe_highlighter=aoe_hl,
+            movement_highlighter=mov_hl,
+        )
+        self.assertGreater(len(aoe_hl), 0)
+        self.assertEqual(len(mov_hl), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

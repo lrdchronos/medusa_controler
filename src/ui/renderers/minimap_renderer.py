@@ -6,6 +6,7 @@ import arcade
 from ...manager.session_manager import DisplayState
 from ...domain.models.entity import Entity, EntityType
 from ...domain.models.playablechar import PlayableCharacter
+from ...domain.rules.movement_calculator import MovementCalculator
 from ..sprites.sprite_factory import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
 from ..utils.aoe_renderer import AoERenderer
@@ -31,11 +32,14 @@ class MiniMapRenderer:
         text_cache: Dict[str, arcade.Text],
         tilemap_renderer: Optional[TileMapRenderer],
         aoe_highlighter: Optional[GridCellHighlighter],
-        is_placing_token: bool,
-        placing_token_data: Optional[Dict[str, Any]],
-        hover_grid_cell: Optional[Tuple[int, int]],
-        dragged_combatant_uid: Optional[str],
-        drag_world_pos: Tuple[float, float],
+        movement_highlighter: Optional[GridCellHighlighter] = None,
+        selected_target_cell: Optional[Tuple[int, int]] = None,
+        selected_combatant_uid: Optional[str] = None,
+        is_placing_token: bool = False,
+        placing_token_data: Optional[Dict[str, Any]] = None,
+        hover_grid_cell: Optional[Tuple[int, int]] = None,
+        dragged_combatant_uid: Optional[str] = None,
+        drag_world_pos: Tuple[float, float] = (0.0, 0.0),
     ) -> None:
         draw_x, draw_y, draw_w, draw_h = draw_rect
         display_state = session_manager.display_state
@@ -59,6 +63,9 @@ class MiniMapRenderer:
                 text_cache=text_cache,
                 tilemap_renderer=tilemap_renderer,
                 aoe_highlighter=aoe_highlighter,
+                movement_highlighter=movement_highlighter,
+                selected_target_cell=selected_target_cell,
+                selected_combatant_uid=selected_combatant_uid,
                 is_placing_token=is_placing_token,
                 placing_token_data=placing_token_data,
                 hover_grid_cell=hover_grid_cell,
@@ -108,8 +115,22 @@ class MiniMapRenderer:
             tex = texture_cache.get(resolved)
 
         if tex is not None:
-            arcade.draw_texture_rect(tex, arcade.XYWH(cx, cy, draw_w, draw_h))
-            arcade.draw_rect_outline(arcade.XYWH(cx, cy, draw_w, draw_h), (70, 95, 130, 220), 2)
+            tex_w = float(tex.width)
+            tex_h = float(tex.height)
+            tex_aspect = tex_w / max(1.0, tex_h)
+            avail_w = max(10.0, draw_w)
+            avail_h = max(10.0, draw_h)
+            avail_aspect = avail_w / max(1.0, avail_h)
+
+            if avail_aspect > tex_aspect:
+                img_h = avail_h
+                img_w = img_h * tex_aspect
+            else:
+                img_w = avail_w
+                img_h = img_w / tex_aspect
+
+            arcade.draw_texture_rect(tex, arcade.XYWH(cx, cy, img_w, img_h))
+            arcade.draw_rect_outline(arcade.XYWH(cx, cy, img_w, img_h), (70, 95, 130, 220), 2)
         else:
             arcade.draw_rect_filled(arcade.XYWH(cx, cy, draw_w, draw_h), (25, 35, 45, 255))
             MiniMapRenderer._render_text(
@@ -127,12 +148,15 @@ class MiniMapRenderer:
         text_cache: Dict[str, arcade.Text],
         tilemap_renderer: Optional[TileMapRenderer],
         aoe_highlighter: Optional[GridCellHighlighter],
-        is_placing_token: bool,
-        placing_token_data: Optional[Dict[str, Any]],
-        hover_grid_cell: Optional[Tuple[int, int]],
-        dragged_combatant_uid: Optional[str],
-        drag_world_pos: Tuple[float, float],
-        session_manager: Any,
+        movement_highlighter: Optional[GridCellHighlighter] = None,
+        selected_target_cell: Optional[Tuple[int, int]] = None,
+        selected_combatant_uid: Optional[str] = None,
+        is_placing_token: bool = False,
+        placing_token_data: Optional[Dict[str, Any]] = None,
+        hover_grid_cell: Optional[Tuple[int, int]] = None,
+        dragged_combatant_uid: Optional[str] = None,
+        drag_world_pos: Tuple[float, float] = (0.0, 0.0),
+        session_manager: Any = None,
     ) -> None:
         draw_x, draw_y, draw_w, draw_h = draw_rect
         grid_mgr = combat_manager.grid_manager
@@ -172,20 +196,45 @@ class MiniMapRenderer:
         # 2. Grade Tática
         MiniMapRenderer._draw_grid_overlay(draw_rect, grid_mgr, cell_size)
 
+        # 2.5 Hierarquia de Modos e Zona de Alcance de Movimento Ortogonal (4-Vizinhança)
+        is_fog_tool_active = False
+        dm_win = getattr(session_manager, "dm_window", None) if session_manager else None
+        if dm_win is not None and hasattr(dm_win, "combat_tab") and getattr(dm_win.combat_tab, "fog_panel", None):
+            is_fog_tool_active = dm_win.combat_tab.fog_panel.is_tool_active
+
+        is_spell_active = bool(combat_manager.active_spell_template and combat_manager.active_spell_template.is_active)
+
+        if not is_fog_tool_active and not is_spell_active:
+            MiniMapRenderer._draw_movement_overlay(
+                draw_rect=draw_rect,
+                combat_manager=combat_manager,
+                grid_mgr=grid_mgr,
+                cell_size=cell_size,
+                movement_highlighter=movement_highlighter,
+                selected_target_cell=selected_target_cell,
+                selected_combatant_uid=selected_combatant_uid,
+                text_cache=text_cache,
+            )
+        elif movement_highlighter is not None:
+            movement_highlighter.clear()
+
         # 3. Projeção de Magias (AoE)
-        if combat_manager.active_spell_template and combat_manager.active_spell_template.is_active:
+        if is_spell_active:
             if aoe_highlighter is not None:
                 aoe_cells = combat_manager.get_spell_aoe_cells()
                 aoe_highlighter.highlighted_cells = aoe_cells
-                aoe_highlighter.draw(draw_x, draw_y, cell_size)
+                aoe_highlighter.draw(draw_x=draw_x, draw_y=draw_y, cell_w=cell_size, cell_h=cell_size)
             AoERenderer.draw_spell_overlay(
                 template=combat_manager.active_spell_template,
                 grid_origin_x=draw_x,
                 grid_origin_y=draw_y,
                 cell_size_px=cell_size,
+                grid_manager=grid_mgr,
                 feet_per_square=float(combat_manager.grid_data.get("feet_per_square", 5.0)),
                 is_dm=True,
             )
+        elif aoe_highlighter is not None:
+            aoe_highlighter.clear()
 
         # 4. Névoa de Guerra (Visão do Mestre: Translúcida)
         MiniMapRenderer._draw_fog_overlay(draw_rect, combat_manager.fog_manager, grid_mgr, cell_size)
@@ -215,6 +264,84 @@ class MiniMapRenderer:
             )
 
     @staticmethod
+    def _draw_movement_overlay(
+        draw_rect: Tuple[float, float, float, float],
+        combat_manager: Any,
+        grid_mgr: Any,
+        cell_size: float,
+        movement_highlighter: Optional[GridCellHighlighter],
+        selected_target_cell: Optional[Tuple[int, int]],
+        selected_combatant_uid: Optional[str],
+        text_cache: Dict[str, arcade.Text],
+    ) -> None:
+        """Renderiza a zona azul de alcance ortogonal (4-vizinhança) e a pré-visualização de custo."""
+        if movement_highlighter is None or not combat_manager.has_combat_started:
+            if movement_highlighter is not None:
+                movement_highlighter.clear()
+            return
+
+        active_char = combat_manager.active_character
+        entity_to_move = None
+        if selected_combatant_uid:
+            entity_to_move = combat_manager.get_combatant(selected_combatant_uid)
+        if entity_to_move is None or not entity_to_move.is_alive:
+            entity_to_move = active_char
+
+        if entity_to_move is None or not entity_to_move.is_alive:
+            movement_highlighter.clear()
+            return
+
+        available_mov = getattr(entity_to_move, "available_movement", float(entity_to_move.speed))
+        if available_mov <= 0.0:
+            movement_highlighter.clear()
+            return
+
+        draw_x, draw_y, draw_w, draw_h = draw_rect
+        res = MovementCalculator.calculate_for_entity(entity_to_move, combat_manager)
+
+        if not res.reachable_cells:
+            movement_highlighter.clear()
+            return
+
+        # Cores Canônicas: Azul translúcido (41, 128, 185, 90) e Azul vivo (52, 152, 219, 210)
+        cell_colors: Dict[Tuple[int, int], Tuple[int, int, int, int]] = {}
+        for cell in res.reachable_cells:
+            if selected_target_cell is not None and cell == selected_target_cell:
+                cell_colors[cell] = (52, 152, 219, 210)
+            else:
+                cell_colors[cell] = (41, 128, 185, 90)
+
+        movement_highlighter.set_cells(cell_colors)
+        movement_highlighter.draw(draw_x=draw_x, draw_y=draw_y, cell_w=cell_size, cell_h=cell_size)
+
+        # Destino Selecionado: Borda contrastante e Badge Flutuante de Custo
+        if selected_target_cell is not None and selected_target_cell in res.reachable_cells:
+            sc_x = draw_x + (selected_target_cell[0] + 0.5) * cell_size
+            sc_y = draw_y + (selected_target_cell[1] + 0.5) * cell_size
+
+            arcade.draw_rect_outline(arcade.XYWH(sc_x, sc_y, cell_size, cell_size), (255, 255, 255, 240), 2.0)
+
+            cost = res.get_cost(selected_target_cell) or 0.0
+            remaining = available_mov - cost
+            badge_w = 175.0
+            badge_h = 22.0
+            badge_y = min(draw_y + draw_h - 14, sc_y + cell_size * 0.75 + 10)
+
+            arcade.draw_rect_filled(arcade.XYWH(sc_x, badge_y, badge_w, badge_h), (14, 18, 26, 230))
+            arcade.draw_rect_outline(arcade.XYWH(sc_x, badge_y, badge_w, badge_h), (52, 152, 219, 255), 1.2)
+            MiniMapRenderer._render_text(
+                "mm_cost_badge",
+                f"Custo: {cost:.0f} ft / Restante: {remaining:.0f} ft",
+                sc_x,
+                badge_y,
+                (241, 196, 15, 255),
+                8,
+                True,
+                text_cache,
+                anchor_x="center",
+            )
+
+    @staticmethod
     def _draw_grid_overlay(draw_rect: Tuple[float, float, float, float], grid_mgr: Any, cell_size: float) -> None:
         draw_x, draw_y, draw_w, draw_h = draw_rect
         grid_color = (130, 205, 255, 60)
@@ -230,7 +357,7 @@ class MiniMapRenderer:
         draw_x, draw_y, draw_w, draw_h = draw_rect
         if fog_mgr is None:
             return
-        fog_cells = fog_mgr.get_fog_cells()
+        fog_cells = fog_mgr.get_fogged_cells() if hasattr(fog_mgr, "get_fogged_cells") else fog_mgr.get_fog_cells()
         fog_color = (10, 15, 25, 140)
         fog_border = (30, 45, 70, 180)
 
@@ -254,6 +381,7 @@ class MiniMapRenderer:
     ) -> None:
         draw_x, draw_y, draw_w, draw_h = draw_rect
         active_char = combat_manager.active_character
+        dm_win = getattr(session_manager, "dm_window", None) if session_manager else None
 
         for combatant in combat_manager.combatants:
             c_uid = combatant.uid
@@ -276,7 +404,7 @@ class MiniMapRenderer:
 
             is_player = combatant.is_player or getattr(combatant, "entity_type", None) == EntityType.PLAYER
             is_active = (active_char is not None and active_char.uid == c_uid)
-            is_selected = (session_manager.dm_window is not None and getattr(session_manager.dm_window, "selected_combatant_uid", None) == c_uid)
+            is_selected = (dm_win is not None and getattr(dm_win, "selected_combatant_uid", None) == c_uid)
 
             etype = getattr(combatant, "entity_type", EntityType.PLAYER if is_player else EntityType.MONSTER)
 

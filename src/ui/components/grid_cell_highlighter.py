@@ -209,9 +209,9 @@ class GridCellHighlighter:
         
         :param draw_x: Offset X de início do grid na tela.
         :param draw_y: Offset Y de início do grid na tela.
-        :param scale: Escala uniforme entre coordenadas de mundo e tela.
-        :param cell_w: Largura em pixels da célula na tela (calculada se None via grid_manager).
-        :param cell_h: Altura em pixels da célula na tela (calculada se None via grid_manager).
+        :param scale: Escala uniforme entre coordenadas de mundo e tela (ou tamanho da célula se > 5.0 e cell_w is None).
+        :param cell_w: Largura em pixels da célula na tela.
+        :param cell_h: Altura em pixels da célula na tela.
         """
         if not self.__highlighted_cells:
             return
@@ -220,6 +220,10 @@ class GridCellHighlighter:
         if cell_w is not None and cell_h is not None:
             cw = float(cell_w)
             ch = float(cell_h)
+        elif scale > 5.0 and cell_w is None:
+            # Compatibilidade com chamadas draw(draw_x, draw_y, cell_size)
+            cw = float(scale)
+            ch = float(scale)
         elif self.__grid_manager is not None:
             cw = self.__grid_manager.cell_size * scale
             ch = self.__grid_manager.cell_size * scale

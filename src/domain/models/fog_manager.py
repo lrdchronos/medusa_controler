@@ -26,6 +26,10 @@ class FogManager:
         """Retorna uma cópia defensiva do conjunto de células cobertas pela névoa."""
         return set(self.__fogged_cells)
 
+    def get_fog_cells(self) -> Set[Tuple[int, int]]:
+        """Alias para get_fogged_cells."""
+        return self.get_fogged_cells()
+
     @property
     def count(self) -> int:
         """Quantidade total de células atualmente cobertas pela névoa."""
@@ -40,12 +44,28 @@ class FogManager:
             self.__fogged_cells.add(cell)
             self.notify_listeners()
 
+    def set_cell(self, col: int, row: int) -> None:
+        """Alias para add_fog."""
+        self.add_fog(col, row)
+
+    def add_cell(self, col: int, row: int) -> None:
+        """Alias para add_fog."""
+        self.add_fog(col, row)
+
     def remove_fog(self, col: int, row: int) -> None:
         """Remove uma célula do conjunto de névoa (revelação de área)."""
         cell = (int(col), int(row))
         if cell in self.__fogged_cells:
             self.__fogged_cells.remove(cell)
             self.notify_listeners()
+
+    def clear_cell(self, col: int, row: int) -> None:
+        """Alias para remove_fog."""
+        self.remove_fog(col, row)
+
+    def remove_cell(self, col: int, row: int) -> None:
+        """Alias para remove_fog."""
+        self.remove_fog(col, row)
 
     def fill_all(self, total_cols: int, total_rows: int) -> None:
         """Cobre todas as células da grade tática de 0 até (cols-1, rows-1)."""

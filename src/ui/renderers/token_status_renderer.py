@@ -238,3 +238,22 @@ class TokenStatusRenderer:
                 arcade.XYWH(x, y, sz, sz),
                 pixelated=True,
             )
+
+    @classmethod
+    def draw_status_badges(
+        cls,
+        entity: Any,
+        center_x: float,
+        center_y: float,
+        radius: float,
+        is_dm: bool = True,
+        scale_factor: float = 1.0,
+    ) -> None:
+        """Alias para renderização orbital de badges de status compatível com is_dm e radius."""
+        cls.draw(
+            entity=entity,
+            center_x=center_x,
+            center_y=center_y,
+            token_radius=radius,
+            scale_factor=scale_factor,
+        )

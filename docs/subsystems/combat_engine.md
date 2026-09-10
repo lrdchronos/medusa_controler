@@ -102,14 +102,34 @@ O Mestre pode adicionar novos tokens durante a batalha ativa através do modal `
 
 ---
 
+### 3.5. Sistema de Deslocamento Ortogonal (4-Vizinhança) & Controle de Passos
+1. **Política Estrita sem Diagonais:**
+   - A movimentação tática no grid baseia-se exclusivamente em adjacência ortogonal (Norte, Sul, Leste, Oeste), calculada via [`MovementCalculator`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/src/domain/rules/movement_calculator.py). Nenhuma transição diagonal é permitida sob qualquer hipótese.
+   - **Custos Métricos:** Passo ortogonal base custa $5.0\text{ ft}$ (`feet_per_square`). Terrenos difíceis dobram o custo para $10.0\text{ ft}$. Obstáculos intransponíveis e tokens hostis vivos bloqueiam passagem. Células ocupadas por tokens não podem ser destino final.
+2. **Projeção de Alcance (Zona Azul):**
+   - Ao selecionar o combatente ativo na sua vez, o alcance residual em pés (`available_movement = speed - movement_spent_this_turn`) é projetado no mini-mapa com o componente [`GridCellHighlighter`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/src/ui/components/grid_cell_highlighter.py) em **Azul Translúcido** `RGBA(41, 128, 185, 90)`. Quando o saldo de movimento atinge $0\text{ ft}$, a projeção azul é automaticamente ocultada.
+3. **Controle por Clique Simples (Seleção & Pré-visualização):**
+   - Um clique simples sobre uma célula alcançável a destaca com **Azul Vivo** `RGBA(52, 152, 219, 210)`, contorno contrastante e badge flutuante exibindo `"Custo: X ft / Restante: Y ft"`. Cliques fora da zona desmarcam o alvo.
+4. **Confirmação por Clique Duplo (Execução & Débito de Movimento):**
+   - Um clique duplo sobre a célula alvo selecionada (ou duplo clique direto em célula válida) executa o movimento: debita o custo exato em `entity.movement_spent_this_turn`, posiciona a entidade na célula destino, recalcula o alcance residual e notifica a [`PlayerWindow`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/src/ui/player_window.py).
+5. **Movimentação Drag-and-Drop (Teleporte / Efeitos Forçados / Mestre):**
+   - O reposicionamento manual por arrasto e soltura (*drag-and-drop*) representa teleporte (ex: *Misty Step*, *Dimension Door*), empurrões ou ajustes do Mestre.
+   - **Isenção de Custo:** Arrastar e soltar o token **NÃO** consome pontos de movimento (`movement_spent_this_turn` permanece intacto).
+6. **Ciclo de Turnos & Reset de Movimento:**
+   - Ao avançar ou retroceder turnos (`next_turn()`, `previous_turn()`), o método `entity.reset_movement()` é invocado automaticamente, restaurando o orçamento para $0.0\text{ ft}$ gastos.
+   - O Mestre dispõe do botão auxiliar `[ 🔄 Reset Mov ]` no painel lateral de combate para restaurar pontos em caso de ação acidental.
+
+---
+
 ## 4. Fluxo de Integração & Eventos
 
 1. **Notificação Reativa (Observer Pattern):**
-   - Qualquer mutação em `CombatManager` (`apply_damage`, `apply_heal`, `set_combatant_position`, `toggle_condition`, `next_turn`) invoca `notify_listeners()`.
+   - Qualquer mutação em `CombatManager` (`apply_damage`, `apply_heal`, `set_combatant_position`, `execute_orthogonal_move`, `reset_combatant_movement`, `toggle_condition`, `next_turn`) invoca `notify_listeners()`.
 2. **Sincronização em Tempo Real:**
-   - `DMWindow` atualiza o painel lateral de status e a renderização do mini-mapa.
+   - `DMWindow` atualiza o painel lateral de status, o medidor de movimento em tempo real e a renderização do mini-mapa com alcance azul.
    - `PlayerWindow` atualiza a fita de iniciativas `InitiativeHUD` e calcula a interpolação suave (*Lerp*) de transição de posição dos tokens.
 3. **Logs Semânticos:**
    - `[INFO] [src.manager.combat_manager]: Dano aplicado: 12 em Goblin Sentinela (HP: 0/12)`
+   - `[INFO] [src.domain.rules.movement_calculator]: Movimento ortogonal executado para 'Artemis' em (4, 7) [Custo: 20.0 ft, Restante: 10.0 ft].`
    - `[INFO] [src.domain.rules.combatant_rules]: Combatente 'Ogro Chefe' revelado e posicionado como próximo a agir na fila de turnos.`
    - `[INFO] [src.domain.rules.initiative_tracker]: Passar Turno: combatente ativo 'Artemis' (Rodada 2).`

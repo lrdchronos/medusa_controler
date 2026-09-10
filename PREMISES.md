@@ -20,6 +20,8 @@ Este arquivo define as leis universais e padrões técnicos do projeto Medusa. T
 ## 1. Regras de Ouro da Arquitetura (Invioláveis)
 - **Zero Tkinter:** Toda a UI do sistema (PlayerWindow e DMWindow) usa **Python Arcade e Arcade GUI (`arcade.gui`)**.
 - **Zero `print()`:** Todas as saídas de terminal e depuração DEVEM usar o módulo padrão `logging` (`logger = logging.getLogger(__name__)`).
+  - O nível de logging deve ser INFO.
+  - Logs NÃO DEVEM ser criados dentro de loops executados no loop principal do Arcade, evitando a criação de registros a 60FPS.
 - **Encapsulamento Estrito:**
   - Atributos privados com duplo underscore (`self.__current_hp`).
   - Acesso público exclusivo via `@property` e `@setter` com validação defensiva (Poka-Yoke).

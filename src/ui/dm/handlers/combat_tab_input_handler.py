@@ -115,16 +115,33 @@ class CombatTabInputHandler:
                     tab.session_manager.end_combat(DisplayState.IDLE)
                 return True
 
-        # 2. Cliques no Painel de Feitiços (SpellAoEPanel)
+        # 1.5 Clique no Botão [ 🔄 Reset Mov ]
         info_y = bar_y - 24
+        if abs(y - info_y) <= 12:
+            btn_rst_w = 88.0
+            btn_rst_x = panel_w - 16 - btn_rst_w / 2
+            if abs(x - btn_rst_x) <= btn_rst_w / 2:
+                active_char = tab.combat_manager.active_character
+                if active_char is not None:
+                    tab.combat_manager.reset_combatant_movement(active_char.uid)
+                    return True
+
+        # 2. Cliques no Painel de Feitiços (SpellAoEPanel)
         if tab.spell_aoe_panel.handle_click(x, y, panel_w, info_y - 12):
+            if tab.spell_aoe_panel.is_active and tab.fog_panel.is_tool_active:
+                tab.fog_panel.active_tool = FogTool.NONE
+                logger.info("Modo Spell ativado: Modo Fog desativado automaticamente (exclusividade mútua).")
             return True
 
-        spell_body_h = 82 if not tab.spell_aoe_panel.is_collapsed else 0
+        spell_body_h = 96 if not tab.spell_aoe_panel.is_collapsed else 0
         spell_next_y = info_y - 12 - (28 + spell_body_h) - 8
 
         # 3. Cliques no Painel de Névoa de Guerra (FogControlPanel)
         if tab.fog_panel.handle_click(x, y, panel_w, spell_next_y):
+            if tab.fog_panel.is_tool_active and tab.spell_aoe_panel.is_active:
+                tab.spell_aoe_panel.is_active = False
+                tab.spell_aoe_panel.sync_to_combat_manager()
+                logger.info("Modo Fog ativado: Modo Spell desativado automaticamente (exclusividade mútua).")
             return True
 
         fog_body_h = 68 if not tab.fog_panel.is_collapsed else 0
