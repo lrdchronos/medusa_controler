@@ -41,3 +41,43 @@
 [2026-09-10 09:52:41,034] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
 [2026-09-10 09:52:41,036] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
 [2026-09-10 09:52:41,124] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.
+[2026-09-10 14:23:31,465] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-10 14:23:31,467] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-10 14:23:31,948] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-10 14:23:32,119] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-10 14:23:32,119] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-10 14:23:32,119] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-10 14:23:32,121] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-10 14:23:32,123] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-10 14:23:35,000] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-10 14:23:35,006] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-10 14:23:35,007] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-10 14:23:35,007] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes (0 ocultos) e 0 células de névoa.
+[2026-09-10 14:23:35,030] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-10 14:23:35,041] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-10 14:23:35,079] [INFO] [src.ui.utils.status_icon_atlas]: Atlas de ícones de status carregado com sucesso: 14 ícones recortados de 'assets/sprites/status_icons.png' (176x32px).
+[2026-09-10 14:23:35,372] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-10 14:24:12,241] [INFO] [src.manager.combat_manager]: Iniciativas consolidadas e aplicadas para 16 combatentes ativos (0 ocultos). Turno ativo: 'Kobold 4' (Rodada 1).
+[2026-09-10 14:24:35,255] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Kobold 4 (HP: 4/5)
+[2026-09-10 14:24:36,816] [INFO] [src.manager.combat_manager]: Dano aplicado: 1 em Kobold 4 (HP: 3/5)
+[2026-09-10 14:24:39,453] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 4': (2, 7) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:24:40,783] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 4': (2, 7) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:24:41,217] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 4': (2, 7) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:24:43,339] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 4': (2, 7) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:24:43,448] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 4' movido de (0, 3) para (2, 7).
+[2026-09-10 14:24:43,448] [INFO] [src.ui.dm.tactical_minimap]: Movimento ortogonal executado para 'Kobold 4' em (2, 7) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:24:47,825] [INFO] [src.manager.combat_manager]: Passar Turno: combatente ativo 'Kobold 6' (Rodada 1).
+[2026-09-10 14:24:57,637] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Token 'Kobold 6' (2bbf55d7-bdf9-45de-b056-27cb335f0c3d) selecionado em (2, 3). Pronto para arrasto livre ou clique ortogonal.
+[2026-09-10 14:24:58,544] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (2, 3) para (8, 5).
+[2026-09-10 14:24:58,546] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Drag & Drop livre concluído para 'Kobold 6' (2bbf55d7-bdf9-45de-b056-27cb335f0c3d) para (8, 5).
+[2026-09-10 14:26:02,130] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 6': (13, 4) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:26:02,699] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 6': (13, 4) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:26:03,447] [INFO] [src.ui.dm.tactical_minimap]: Destino ortogonal selecionado para 'Kobold 6': (13, 4) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:26:03,604] [INFO] [src.manager.combat_manager]: Movimento no Grid: 'Kobold 6' movido de (8, 5) para (13, 4).
+[2026-09-10 14:26:03,605] [INFO] [src.ui.dm.tactical_minimap]: Movimento ortogonal executado para 'Kobold 6' em (13, 4) [Custo: 30.0 ft, Restante: 0.0 ft].
+[2026-09-10 14:26:11,003] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 14:26:12,972] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(430.1, 147.5).
+[2026-09-10 14:26:15,555] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=square size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 14:26:20,357] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-10 14:26:20,361] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-10 14:26:20,462] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.

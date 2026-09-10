@@ -146,6 +146,9 @@ class Colors:
     SUCCESS: RGBAColor = (46, 204, 113, 255)       # #2ECC71 - Vida cheia, confirmação, sucesso
     SUCCESS_BG: RGBAColor = (27, 94, 52, 255)      # Fundo para botões e badges de sucesso
     SUCCESS_BORDER: RGBAColor = (46, 204, 113, 255)
+    HEAL_BG: RGBAColor = (39, 174, 96, 255)        # #27AE60 - Fundo para botões de cura e confirmação rápida
+    HEAL_GREEN: RGBAColor = (39, 174, 96, 255)     # Alias semântico para verde esmeralda de cura
+    BTN_SUCCESS_BG: RGBAColor = (39, 174, 96, 255) # Alias de botão de ação positiva/sucesso
 
     WARNING: RGBAColor = (243, 156, 18, 255)       # #F39C12 - Vida média, alertas, neutro
     WARNING_BG: RGBAColor = (120, 80, 15, 255)     # Fundo para alertas e avisos

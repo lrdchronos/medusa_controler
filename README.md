@@ -191,25 +191,33 @@ medusa_controler/
 │   └── utils/                       # Utilitários de Infraestrutura
 │       └── logger.py                # Configuração do Logger (Console + RotatingFileHandler UTF-8)
 │
-├── tests/                           # Suíte de Testes Automatizados (112 testes)
-│   ├── ui/
-│   │   └── test_smart_text_input.py # Testes unitários do componente SmartTextInput
-│   ├── test_combat_manager.py       # Testes de combate, turnos, condições e dano
-│   ├── test_creator_ood.py          # Testes da arquitetura OOD do criador de encontros
-│   ├── test_dm_window_arcade.py     # Testes da interface e navegação da DMWindow
-│   ├── test_domain_models.py        # Testes de encapsulamento de Entity, PC e Monster
-│   ├── test_encounter_builder.py    # Testes do builder e persistência de encontros
-│   ├── test_encounter_map_types.py  # Testes de suporte a múltiplos formatos de mapa
-│   ├── test_grid_manager.py         # Testes de conversão matricial e Snap-to-Grid
-│   ├── test_idle_animation.py       # Testes de animação do sigil místico
-│   ├── test_initiative_staging.py   # Testes do modal de staging de iniciativas
-│   ├── test_loaders_and_builders.py # Testes de I/O de loaders e validações defensivas
-│   ├── test_logger.py               # Testes de formatação, rotação e encoding do logger
-│   ├── test_monster_search_and_scroll.py # Testes de busca e paginação de monstros
-│   ├── test_session_manager.py      # Testes de transição de DisplayState e Observer
-│   ├── test_sprite_utils.py         # Testes da SpriteFactory e tokens circulares
-│   ├── test_tilemap_engine.py       # Testes da engine de Tilemaps, atlas e colisões
-│   └── test_token_interpolation.py  # Testes de interpolação suave (Lerp) dos tokens
+├── tests/                           # Suíte de Testes Automatizados (315 testes)
+│   ├── dm_screen/                   # Testes da interface e recursos do Mestre (DM Screen)
+│   │   ├── test_combat_action_panel.py
+│   │   ├── test_combat_sprint1.py
+│   │   ├── test_combat_token_spawn.py
+│   │   ├── test_creator_ood.py
+│   │   ├── test_dm_header.py
+│   │   ├── test_dm_window_arcade.py
+│   │   ├── test_encounter_crud.py
+│   │   ├── test_encounter_map_types.py
+│   │   ├── test_fog_manager.py
+│   │   ├── test_hidden_initiative.py
+│   │   ├── test_initiative_staging.py
+│   │   ├── test_monster_search_and_scroll.py
+│   │   └── test_spell_aoe_panel.py
+│   │
+│   ├── player_screen/               # Testes da janela e exibição dos Jogadores (Player Screen)
+│   │   ├── test_idle_animation.py
+│   │   ├── test_player_window_lifecycle.py
+│   │   └── test_token_interpolation.py
+│   │
+│   └── general/                     # Testes gerais e desacoplados de interface específica
+│       ├── domain/                  # Entidades, modelos, loaders e builders
+│       ├── managers/                # Gerenciadores de estado (Session, Grid, Combat)
+│       ├── rules/                   # Regras de cálculo (AoE, movimentação, template de magia)
+│       ├── ui/                      # Componentes reutilizáveis, design system e atlas de status
+│       └── utils/                   # Infraestrutura e logging
 │
 ├── main.py                          # Ponto de entrada (Entrypoint) da aplicação
 ├── PREMISES.md                      # Premissas arquiteturais e regras invioláveis de código
@@ -327,7 +335,7 @@ python main.py
 
 ## 🧪 Suíte de Testes Automatizados
 
-O sistema conta com **246 testes unitários e de integração**, cobrindo 100% dos subsistemas críticos:
+O sistema conta com **315 testes unitários e de integração**, cobrindo 100% dos subsistemas críticos:
 
 ```powershell
 # Execução de todos os testes unitários

@@ -1,6 +1,8 @@
 import logging
 from typing import Callable, Any
 from ...utils.status_icon_atlas import StatusIconAtlas
+from ...utils.ui_constants import Dimensions, Spacing
+from ...utils.ui_layout import FlowRow
 from ....manager.session_manager import DisplayState
 
 logger = logging.getLogger(__name__)
@@ -189,63 +191,89 @@ class CombatTabInputHandler:
 
         sel_combatant = tab.combat_manager.get_combatant(tab.selected_combatant_uid or "")
         if sel_combatant:
-            btn_dmg_y = disp_top - 68.0
-            dmg_vals = [-1, -5, -10, -20]
-            dmg_btn_w = (panel_w - 70.0) / 8.0
+            # 2. Barra e Botões de Dano
+            bar_h = float(Spacing.SM)
+            margin_top = float(Spacing.SM)
+            bar_y = (disp_top - 28.0) - margin_top - bar_h / 2.0  # disp_top - 40.0
+            margin_bottom = float(Spacing.SM)
+            dmg_btn_h = Dimensions.BTN_HEIGHT_COMPACT
+            btn_dmg_y = (bar_y - bar_h / 2.0) - margin_bottom - dmg_btn_h / 2.0  # disp_top - 66.0
 
-            # Dano Rápido
-            if abs(y - btn_dmg_y) <= 11:
-                for i, val in enumerate(dmg_vals):
-                    bx = 30.0 + i * (dmg_btn_w + 4.0) + dmg_btn_w / 2.0
+            dmg_vals = [-1, -5, -10, -20]
+            heal_vals = [1, 5, 10, 20]
+            dmg_gap = float(Spacing.TINY)
+            dmg_total_w = panel_w - float(Spacing.LG * 2)
+            dmg_btn_w = (dmg_total_w - 7 * dmg_gap) / 8.0
+
+            # Dano e Cura Rápidos
+            if abs(y - btn_dmg_y) <= dmg_btn_h / 2.0:
+                dmg_row = FlowRow(start_x=float(Spacing.LG), center_y=btn_dmg_y, gap=dmg_gap)
+                for val in dmg_vals:
+                    bx, _ = dmg_row.add(dmg_btn_w)
                     if abs(x - bx) <= dmg_btn_w / 2.0:
                         tab.combat_manager.apply_damage(sel_combatant.uid, abs(val))
                         return True
 
-                # Cura Rápida
-                heal_vals = [1, 5, 10, 20]
-                for i, val in enumerate(heal_vals):
-                    bx = 30.0 + (i + 4) * (dmg_btn_w + 4.0) + dmg_btn_w / 2.0
+                for val in heal_vals:
+                    bx, _ = dmg_row.add(dmg_btn_w)
                     if abs(x - bx) <= dmg_btn_w / 2.0:
                         tab.combat_manager.apply_heal(sel_combatant.uid, val)
                         return True
 
-            custom_y = disp_top - 96.0
-            if abs(y - custom_y) <= 12:
+            custom_y = btn_dmg_y - dmg_btn_h / 2.0 - float(Spacing.SM) - Dimensions.BTN_HEIGHT_COMPACT / 2.0  # disp_top - 102.0
+            btn_act_h = Dimensions.BTN_HEIGHT_COMPACT
+            btn_stepper_w = Dimensions.BTN_SIZE_COMPACT_SM
+            val_box_w = 48.0
+            btn_act_w = 96.0
+
+            if abs(y - custom_y) <= btn_act_h / 2.0:
+                custom_row = FlowRow(start_x=float(Spacing.LG), center_y=custom_y, gap=float(Spacing.SM))
+                b_minus_x, _ = custom_row.add(btn_stepper_w)
+                b_val_x, _ = custom_row.add(val_box_w)
+                b_plus_x, _ = custom_row.add(btn_stepper_w)
+                b_dmg_x, _ = custom_row.add(btn_act_w)
+                b_heal_x, _ = custom_row.add(btn_act_w)
+
                 # Stepper [-]
-                if abs(x - 45.0) <= 13:
+                if abs(x - b_minus_x) <= btn_stepper_w / 2.0:
                     tab.custom_hp_value = max(1, tab.custom_hp_value - 1)
                     return True
 
                 # Stepper [+]
-                if abs(x - 135.0) <= 13:
+                if abs(x - b_plus_x) <= btn_stepper_w / 2.0:
                     tab.custom_hp_value = min(999, tab.custom_hp_value + 1)
                     return True
 
                 # Dano Customizado
-                if abs(x - 215.0) <= 50:
+                if abs(x - b_dmg_x) <= btn_act_w / 2.0:
                     tab.combat_manager.apply_damage(sel_combatant.uid, tab.custom_hp_value)
                     return True
 
                 # Cura Customizada
-                if abs(x - 325.0) <= 50:
+                if abs(x - b_heal_x) <= btn_act_w / 2.0:
                     tab.combat_manager.apply_heal(sel_combatant.uid, tab.custom_hp_value)
                     return True
 
                 # Ocultar / Revelar
-                if abs(x - (panel_w - 75.0)) <= 45:
+                vis_w = 90.0
+                vis_x = panel_w - float(Spacing.LG) - vis_w / 2.0
+                if abs(x - vis_x) <= vis_w / 2.0:
                     tab.combat_manager.toggle_combatant_visibility(sel_combatant.uid)
                     return True
 
             # Cliques nas Condições Táticas D&D 5E (11 Toggles)
-            cond_btn_y = disp_top - 148.0
-            cond_btn_h = 24.0
+            cond_title_y = custom_y - btn_act_h / 2.0 - float(Spacing.SM) - 6.0  # disp_top - 130.0
+            cond_btn_h = Dimensions.BTN_HEIGHT_COMPACT
+            cond_btn_y = cond_title_y - float(Spacing.SM) - cond_btn_h / 2.0  # disp_top - 152.0
+            cond_spacing = float(Spacing.TINY)
+            cond_total_w = panel_w - float(Spacing.LG * 2)
+            cond_names = StatusIconAtlas.get_condition_names()
+            cond_btn_w = (cond_total_w - (len(cond_names) - 1) * cond_spacing) / len(cond_names)
+
             if abs(y - cond_btn_y) <= cond_btn_h / 2.0:
-                cond_names = StatusIconAtlas.get_condition_names()
-                cond_spacing = 3.0
-                cond_total_w = panel_w - 48.0
-                cond_btn_w = (cond_total_w - (len(cond_names) - 1) * cond_spacing) / len(cond_names)
-                for idx, cond_name in enumerate(cond_names):
-                    bx = 24.0 + idx * (cond_btn_w + cond_spacing) + cond_btn_w / 2.0
+                cond_row = FlowRow(start_x=float(Spacing.LG), center_y=cond_btn_y, gap=cond_spacing)
+                for cond_name in cond_names:
+                    bx, _ = cond_row.add(cond_btn_w)
                     if abs(x - bx) <= cond_btn_w / 2.0:
                         tab.combat_manager.toggle_condition(sel_combatant.uid, cond_name)
                         return True
