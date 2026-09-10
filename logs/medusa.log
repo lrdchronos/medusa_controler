@@ -1,0 +1,43 @@
+[2026-09-10 09:50:11,159] [INFO] [MedusaMain]: 🐉 MEDUSA VTT - SISTEMA DE COMBATE E MESA DIGITAL D&D 5E
+[2026-09-10 09:50:11,159] [INFO] [MedusaMain]: SessionManager inicializado no estado DisplayState.IDLE.
+[2026-09-10 09:50:11,645] [INFO] [src.ui.dm_window]: DMWindow (Arcade GUI Modular) inicializada com sucesso.
+[2026-09-10 09:50:11,810] [INFO] [src.ui.player_window]: PlayerWindow instanciada e conectada ao SessionManager.
+[2026-09-10 09:50:11,810] [INFO] [MedusaMain]: Janelas ativas: Tela do Mestre (DMWindow) e Tela dos Jogadores (PlayerWindow).
+[2026-09-10 09:50:11,810] [INFO] [MedusaMain]: Utilize o painel do Mestre para projetar mídias, gerenciar iniciativas ou movimentar tokens no Grid!
+[2026-09-10 09:50:11,812] [INFO] [MedusaMain]: Atalhos Globais: F10 = Abrir/Fechar Tela do Jogador | F11 = Alternar Tela Cheia (Fullscreen).
+[2026-09-10 09:50:11,812] [INFO] [src.ui.player_window]: PlayerWindow redimensionada para 1024x768 (fullscreen=False). Viewport recalculada.
+[2026-09-10 09:50:17,706] [INFO] [src.manager.session_manager]: Iniciando encontro: encounter_04092026132531
+[2026-09-10 09:50:17,711] [INFO] [src.domain.loaders.tile_map_loader]: TileMap carregado com sucesso a partir de 'acampamento_vale.json'.
+[2026-09-10 09:50:17,712] [INFO] [src.domain.models.fog_manager]: Estado de névoa carregado: 0 células ativas.
+[2026-09-10 09:50:17,712] [INFO] [src.manager.combat_manager]: Encontro carregado: 'Retardatarios no caminho' (encounter_04092026132531) [tipo=tilemap] com 16 combatentes (0 ocultos) e 0 células de névoa.
+[2026-09-10 09:50:17,734] [INFO] [src.domain.loaders.tileset_manager]: TilesetManager 'Sprite-007' inicializado: 70 tiles fatiados a partir de 'Sprite-0007.png'.
+[2026-09-10 09:50:17,744] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-10 09:50:17,753] [INFO] [src.ui.utils.status_icon_atlas]: Atlas de ícones de status carregado com sucesso: 14 ícones recortados de 'assets/sprites/status_icons.png' (176x32px).
+[2026-09-10 09:50:18,042] [INFO] [src.ui.utils.tilemap_renderer]: TileMapRenderer montado: 252 ground sprites e 1 prop sprites para mapa 'Sprite-007' (21x12).
+[2026-09-10 09:50:42,777] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:50:44,497] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.000000ft width=5.000000ft active=False rot=0.0°.
+[2026-09-10 09:50:45,045] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=circle size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:50:46,298] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(559.3, 198.6).
+[2026-09-10 09:50:47,468] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(487.4, 221.8).
+[2026-09-10 09:50:48,389] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(495.2, 238.4).
+[2026-09-10 09:50:55,512] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(267.5, 178.7).
+[2026-09-10 09:51:11,050] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=square size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:51:13,575] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(302.8, 178.7).
+[2026-09-10 09:51:14,109] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(302.8, 178.7).
+[2026-09-10 09:51:27,605] [INFO] [src.ui.dm.tactical_minimap]: TacticalMiniMap: Origem da magia posicionada em world=(295.1, 178.7).
+[2026-09-10 09:51:31,054] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=sphere size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:51:32,751] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cube size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:51:34,308] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=cone size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:51:39,742] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.000000ft width=5.000000ft active=True rot=50.0°.
+[2026-09-10 09:51:50,109] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.000000ft width=5.000000ft active=False rot=0.0°.
+[2026-09-10 09:51:50,920] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.000000ft width=5.000000ft active=True rot=0.0°.
+[2026-09-10 09:51:51,434] [INFO] [src.manager.combat_manager]: Template de magia configurado: shape=line size=20.000000ft width=5.000000ft active=False rot=0.0°.
+[2026-09-10 09:51:54,506] [INFO] [src.domain.models.fog_manager]: Névoa de guerra aplicada a todas as 252 células (21x12).
+[2026-09-10 09:51:56,032] [INFO] [src.domain.models.fog_manager]: Névoa de guerra completamente removida do mapa.
+[2026-09-10 09:52:36,491] [INFO] [src.manager.session_manager]: Retornando Tela dos Jogadores para IDLE
+[2026-09-10 09:52:36,493] [INFO] [src.manager.combat_manager]: Resetando estado de combate do encontro: 'Retardatarios no caminho' (encounter_04092026132531).
+[2026-09-10 09:52:36,493] [INFO] [src.domain.models.fog_manager]: Névoa de guerra completamente removida do mapa.
+[2026-09-10 09:52:36,494] [INFO] [src.manager.combat_manager]: Estado do CombatManager resetado com sucesso.
+[2026-09-10 09:52:41,034] [INFO] [src.ui.dm_window]: DMWindow sendo fechada. Encerrando aplicação...
+[2026-09-10 09:52:41,036] [INFO] [src.ui.player_window]: Recursos e listeners da PlayerWindow liberados definitivamente (hard close).
+[2026-09-10 09:52:41,124] [INFO] [src.ui.dm_window]: DMWindow notificada da ocultação da PlayerWindow.

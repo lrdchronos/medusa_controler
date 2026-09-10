@@ -144,8 +144,18 @@ class CombatTabInputHandler:
                 logger.info("Modo Fog ativado: Modo Spell desativado automaticamente (exclusividade mútua).")
             return True
 
-        fog_body_h = 68 if not tab.fog_panel.is_collapsed else 0
-        fog_next_y = spell_next_y - (26 + fog_body_h) - 8
+        if hasattr(tab.fog_panel, "get_next_y") and callable(tab.fog_panel.get_next_y):
+            calc_y = tab.fog_panel.get_next_y(spell_next_y)
+            if isinstance(calc_y, (int, float)):
+                fog_next_y = float(calc_y)
+            else:
+                fog_body_h = 80.0 if not getattr(tab.fog_panel, "is_collapsed", False) else 0.0
+                hdr_h = float(getattr(tab.fog_panel, "header_height", 28.0)) if isinstance(getattr(tab.fog_panel, "header_height", 28.0), (int, float)) else 28.0
+                fog_next_y = spell_next_y - (hdr_h + fog_body_h) - 8.0
+        else:
+            fog_body_h = 80.0 if not getattr(tab.fog_panel, "is_collapsed", False) else 0.0
+            hdr_h = float(getattr(tab.fog_panel, "header_height", 28.0)) if isinstance(getattr(tab.fog_panel, "header_height", 28.0), (int, float)) else 28.0
+            fog_next_y = spell_next_y - (hdr_h + fog_body_h) - 8.0
 
         # 4. Cliques nas Linhas da Tabela de Combatentes (via DiscreteScrollList)
         table_top = fog_next_y

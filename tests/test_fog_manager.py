@@ -266,10 +266,16 @@ class TestFogControlPanel(unittest.TestCase):
 
     def setUp(self):
         self.fog = FogManager()
+        self.save_called = False
+
+        def mock_save() -> bool:
+            self.save_called = True
+            return True
+
         self.panel = FogControlPanel(
             fog_manager=self.fog,
             dimensions_provider=lambda: (10, 8),
-            save_callback=lambda: True,
+            save_callback=mock_save,
         )
 
     def test_initial_panel_state(self):
@@ -277,6 +283,9 @@ class TestFogControlPanel(unittest.TestCase):
         self.assertFalse(self.panel.is_tool_active)
         self.assertEqual(self.panel.brush_mode, BrushMode.SINGLE)
         self.assertFalse(self.panel.is_collapsed)
+        self.assertEqual(self.panel.header_height, 28.0)
+        self.assertEqual(self.panel.body_height, 80.0)
+        self.assertEqual(self.panel.total_height, 108.0)
 
     def test_panel_tool_selection_and_toggling(self):
         self.panel.active_tool = FogTool.ADD
@@ -296,6 +305,145 @@ class TestFogControlPanel(unittest.TestCase):
 
         self.panel.brush_mode = BrushMode.SINGLE
         self.assertEqual(self.panel.brush_mode, BrushMode.SINGLE)
+
+    def test_panel_layout_two_rows_geometry(self):
+        """Valida que o layout em 2 linhas possui geometria desacoplada sem sobreposições."""
+        panel_w = 560.0
+        top_y = 600.0
+        layout = self.panel._compute_layout(panel_w, top_y)
+
+        # Alturas e dimensões
+        self.assertEqual(layout.btn_h, 28.0)
+        self.assertEqual(layout.panel_h, 108.0)
+
+        # Linha 1 e Linha 2 possuem Ys diferentes e isolados
+        self.assertTrue(layout.row1_y > layout.row2_y)
+        vertical_distance = layout.row1_y - layout.row2_y
+        self.assertGreaterEqual(vertical_distance, layout.btn_h + 8.0)
+
+        # Linha 1: 4 botões na mesma baseline
+        for rect in [layout.btn_fill_rect, layout.btn_clear_rect, layout.btn_add_rect, layout.btn_reveal_rect]:
+            cx, cy, w, h = rect
+            self.assertEqual(cy, layout.row1_y)
+            self.assertEqual(h, layout.btn_h)
+            self.assertGreater(w, 0.0)
+
+        # Linha 2: 2 botões na mesma baseline
+        for rect in [layout.btn_mode_rect, layout.btn_save_rect]:
+            cx, cy, w, h = rect
+            self.assertEqual(cy, layout.row2_y)
+            self.assertEqual(h, layout.btn_h)
+            self.assertGreater(w, 0.0)
+
+        # Botão salvar não colide em Y com Linha 1
+        save_top = layout.btn_save_rect[1] + layout.btn_save_rect[3] / 2.0
+        row1_bottom = layout.row1_y - layout.btn_h / 2.0
+        self.assertLessEqual(save_top, row1_bottom - 8.0)
+
+        # next_y calculado fielmente
+        self.assertEqual(layout.next_y, self.panel.get_next_y(top_y))
+
+    def test_panel_handle_click_row1_buttons(self):
+        """Valida acionamento individual dos botões da Linha 1."""
+        panel_w = 560.0
+        top_y = 600.0
+        layout = self.panel._compute_layout(panel_w, top_y)
+
+        # 1. Clique em [ Cobrir Tudo ]
+        fill_cx, fill_cy, _, _ = layout.btn_fill_rect
+        self.assertEqual(self.fog.count, 0)
+        consumed = self.panel.handle_click(fill_cx, fill_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.fog.count, 80)  # 10x8
+
+        # 2. Clique em [ Revelar Tudo ]
+        clr_cx, clr_cy, _, _ = layout.btn_clear_rect
+        consumed = self.panel.handle_click(clr_cx, clr_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.fog.count, 0)
+
+        # 3. Clique em [ ✏️ Adicionar ] (Toggle)
+        add_cx, add_cy, _, _ = layout.btn_add_rect
+        self.assertEqual(self.panel.active_tool, FogTool.NONE)
+        consumed = self.panel.handle_click(add_cx, add_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.panel.active_tool, FogTool.ADD)
+
+        # Toggle off
+        consumed = self.panel.handle_click(add_cx, add_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.panel.active_tool, FogTool.NONE)
+
+        # 4. Clique em [ 🧹 Revelar ] (Toggle)
+        rev_cx, rev_cy, _, _ = layout.btn_reveal_rect
+        consumed = self.panel.handle_click(rev_cx, rev_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.panel.active_tool, FogTool.REVEAL)
+
+    def test_panel_handle_click_row2_buttons(self):
+        """Valida acionamento individual dos botões da Linha 2."""
+        panel_w = 560.0
+        top_y = 600.0
+        layout = self.panel._compute_layout(panel_w, top_y)
+
+        # 1. Alternador de Modo de Pincel
+        mode_cx, mode_cy, _, _ = layout.btn_mode_rect
+        self.assertEqual(self.panel.brush_mode, BrushMode.SINGLE)
+        consumed = self.panel.handle_click(mode_cx, mode_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.panel.brush_mode, BrushMode.CONTINUOUS)
+
+        consumed = self.panel.handle_click(mode_cx, mode_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertEqual(self.panel.brush_mode, BrushMode.SINGLE)
+
+        # 2. Botão Salvar Névoa
+        save_cx, save_cy, _, _ = layout.btn_save_rect
+        self.assertFalse(self.save_called)
+        consumed = self.panel.handle_click(save_cx, save_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertTrue(self.save_called)
+
+    def test_panel_click_isolation_no_cross_firing(self):
+        """Valida que cliques no gap entre linhas e coordenadas cruzadas não disparam ações erradas."""
+        panel_w = 560.0
+        top_y = 600.0
+        layout = self.panel._compute_layout(panel_w, top_y)
+
+        # Clique na coordenada X do Salvar, mas na altura da Linha 1 (onde não há botão de salvar)
+        save_cx = layout.btn_save_rect[0]
+        self.save_called = False
+        self.panel.handle_click(save_cx, layout.row1_y, panel_w, top_y)
+        # Pode ter clicado no botão 4 da Linha 1 (Revelar), mas NÃO no salvar
+        self.assertFalse(self.save_called)
+
+        # Clique no gap vertical entre Linha 1 e Linha 2
+        gap_y = (layout.row1_y + layout.row2_y) / 2.0
+        consumed = self.panel.handle_click(save_cx, gap_y, panel_w, top_y)
+        self.assertFalse(consumed)
+
+    def test_panel_collapsed_and_header_toggle(self):
+        """Valida recolhimento e expansão do painel."""
+        panel_w = 560.0
+        top_y = 600.0
+        layout = self.panel._compute_layout(panel_w, top_y)
+
+        # Clica no cabeçalho para recolher
+        hdr_cx = panel_w / 2.0
+        consumed = self.panel.handle_click(hdr_cx, layout.hdr_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertTrue(self.panel.is_collapsed)
+        self.assertEqual(self.panel.body_height, 0.0)
+        self.assertEqual(self.panel.total_height, 28.0)
+
+        # Quando recolhido, clique na antiga posição dos botões deve ser ignorado
+        consumed = self.panel.handle_click(layout.btn_fill_rect[0], layout.row1_y, panel_w, top_y)
+        self.assertFalse(consumed)
+
+        # Clica novamente no cabeçalho para expandir
+        consumed = self.panel.handle_click(hdr_cx, layout.hdr_cy, panel_w, top_y)
+        self.assertTrue(consumed)
+        self.assertFalse(self.panel.is_collapsed)
 
 
 if __name__ == "__main__":
