@@ -14,6 +14,7 @@ A documentação está modularizada em 3 pilares temáticos:
 docs/
 ├── README.md                      # Índice central e mapa de navegação da documentação
 ├── architecture/                  # Fundamentos e decisões de arquitetura de sistema
+│   ├── ui_design_system.md        # Design System, 8pt Grid, Tokens, Anatomia de Botões e Cores
 │   ├── state_machine.md           # DisplayState (IDLE, PROJECTION, COMBAT) e Sincronização Observer
 │   ├── grid_and_coords.md         # GridManager, pixels_per_foot, aspect-fit/fill e snap-to-grid
 │   └── data_schemas.md            # Schemas JSON (presets/ vs creations/, saves/ e mapas)
@@ -67,9 +68,10 @@ O Medusa VTT é construído sobre os princípios de **Clean Code**, **Domain-Dri
 
 ### 👨‍💻 Para Desenvolvedores & Contribuidores:
 1. Inicie pelas premissas fundamentais em [`PREMISES.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/PREMISES.md).
-2. Compreenda a máquina de estados em [`architecture/state_machine.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/state_machine.md).
-3. Estude a matemática de grade e aspect-fit em [`architecture/grid_and_coords.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/grid_and_coords.md).
-4. Consulte os contratos de subsistema em [`subsystems/combat_engine.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/combat_engine.md) e [`subsystems/spell_projections.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/spell_projections.md).
+2. Compreenda o Design System e tokens de interface em [`architecture/ui_design_system.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/ui_design_system.md).
+3. Compreenda a máquina de estados em [`architecture/state_machine.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/state_machine.md).
+4. Estude a matemática de grade e aspect-fit em [`architecture/grid_and_coords.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/architecture/grid_and_coords.md).
+5. Consulte os contratos de subsistema em [`subsystems/combat_engine.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/combat_engine.md) e [`subsystems/spell_projections.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/subsystems/spell_projections.md).
 
 ### 🎲 Para Mestres de RPG (DMs):
 1. Siga o fluxo de preparação de sessões em [`guides/encounter_workflow.md`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/docs/guides/encounter_workflow.md).
