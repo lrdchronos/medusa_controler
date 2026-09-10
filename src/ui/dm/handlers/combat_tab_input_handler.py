@@ -179,64 +179,64 @@ class CombatTabInputHandler:
 
         sel_combatant = tab.combat_manager.get_combatant(tab.selected_combatant_uid or "")
         if sel_combatant:
-            btn_dmg_y = disp_top - 62
+            btn_dmg_y = disp_top - 68.0
             dmg_vals = [-1, -5, -10, -20]
-            dmg_btn_w = (panel_w - 70) / 8
+            dmg_btn_w = (panel_w - 70.0) / 8.0
 
             # Dano Rápido
             if abs(y - btn_dmg_y) <= 11:
                 for i, val in enumerate(dmg_vals):
-                    bx = 30 + i * (dmg_btn_w + 4) + dmg_btn_w / 2
-                    if abs(x - bx) <= dmg_btn_w / 2:
+                    bx = 30.0 + i * (dmg_btn_w + 4.0) + dmg_btn_w / 2.0
+                    if abs(x - bx) <= dmg_btn_w / 2.0:
                         tab.combat_manager.apply_damage(sel_combatant.uid, abs(val))
                         return True
 
                 # Cura Rápida
                 heal_vals = [1, 5, 10, 20]
                 for i, val in enumerate(heal_vals):
-                    bx = 30 + (i + 4) * (dmg_btn_w + 4) + dmg_btn_w / 2
-                    if abs(x - bx) <= dmg_btn_w / 2:
+                    bx = 30.0 + (i + 4) * (dmg_btn_w + 4.0) + dmg_btn_w / 2.0
+                    if abs(x - bx) <= dmg_btn_w / 2.0:
                         tab.combat_manager.apply_heal(sel_combatant.uid, val)
                         return True
 
-            custom_y = disp_top - 90
+            custom_y = disp_top - 96.0
             if abs(y - custom_y) <= 12:
                 # Stepper [-]
-                if abs(x - 45) <= 13:
+                if abs(x - 45.0) <= 13:
                     tab.custom_hp_value = max(1, tab.custom_hp_value - 1)
                     return True
 
                 # Stepper [+]
-                if abs(x - 135) <= 13:
+                if abs(x - 135.0) <= 13:
                     tab.custom_hp_value = min(999, tab.custom_hp_value + 1)
                     return True
 
                 # Dano Customizado
-                if abs(x - 215) <= 50:
+                if abs(x - 215.0) <= 50:
                     tab.combat_manager.apply_damage(sel_combatant.uid, tab.custom_hp_value)
                     return True
 
                 # Cura Customizada
-                if abs(x - 325) <= 50:
+                if abs(x - 325.0) <= 50:
                     tab.combat_manager.apply_heal(sel_combatant.uid, tab.custom_hp_value)
                     return True
 
                 # Ocultar / Revelar
-                if abs(x - (panel_w - 75)) <= 45:
+                if abs(x - (panel_w - 75.0)) <= 45:
                     tab.combat_manager.toggle_combatant_visibility(sel_combatant.uid)
                     return True
 
             # Cliques nas Condições Táticas D&D 5E (11 Toggles)
-            cond_btn_y = disp_top - 140
-            cond_btn_h = 24
-            if abs(y - cond_btn_y) <= cond_btn_h / 2:
+            cond_btn_y = disp_top - 148.0
+            cond_btn_h = 24.0
+            if abs(y - cond_btn_y) <= cond_btn_h / 2.0:
                 cond_names = StatusIconAtlas.get_condition_names()
-                cond_spacing = 3
-                cond_total_w = panel_w - 48
+                cond_spacing = 3.0
+                cond_total_w = panel_w - 48.0
                 cond_btn_w = (cond_total_w - (len(cond_names) - 1) * cond_spacing) / len(cond_names)
                 for idx, cond_name in enumerate(cond_names):
-                    bx = 24 + idx * (cond_btn_w + cond_spacing) + cond_btn_w / 2
-                    if abs(x - bx) <= cond_btn_w / 2:
+                    bx = 24.0 + idx * (cond_btn_w + cond_spacing) + cond_btn_w / 2.0
+                    if abs(x - bx) <= cond_btn_w / 2.0:
                         tab.combat_manager.toggle_condition(sel_combatant.uid, cond_name)
                         return True
 

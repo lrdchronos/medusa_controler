@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List, Callable, Tuple
 import arcade
 from ...domain.models.entity import EntityType
+from ..utils.ui_constants import Typography
 from ..utils.text_input import SmartTextInput
 from .renderers.add_token_modal_renderer import AddTokenModalRenderer
 from .handlers.add_token_input_handler import AddTokenInputHandler
@@ -106,7 +107,7 @@ class AddTokenModal:
                 bold=bold,
                 anchor_x=anchor_x,
                 anchor_y=anchor_y,
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
+                font_name=Typography.FONT_FAMILY_UI,
             )
             self.text_cache[key] = cached
         else:

@@ -118,6 +118,10 @@ class DiscreteScrollList:
         self.__items = list(new_items)
         self._clamp_start_index()
 
+    def set_items(self, new_items: List[Any]) -> None:
+        """Define a lista de itens gerenciados (método utilitário equivalente à propriedade items)."""
+        self.items = new_items
+
     @property
     def start_index(self) -> int:
         """Índice do primeiro elemento visível na listagem."""
@@ -130,6 +134,15 @@ class DiscreteScrollList:
         except (ValueError, TypeError):
             parsed = 0
         self.__start_index = max(0, min(self.max_start_index, parsed))
+
+    @property
+    def scroll_offset(self) -> int:
+        """Alias para start_index."""
+        return self.__start_index
+
+    @scroll_offset.setter
+    def scroll_offset(self, val: int) -> None:
+        self.start_index = val
 
     @property
     def selected_index(self) -> Optional[int]:

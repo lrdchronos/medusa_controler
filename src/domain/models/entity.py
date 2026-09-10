@@ -235,6 +235,11 @@ class Entity(ABC):
         return self.__conditions.copy()
 
     @property
+    def active_conditions(self) -> Set[str]:
+        """Alias para conditions."""
+        return self.conditions
+
+    @property
     def damage_resistances(self) -> List[str]:
         return self.__damage_resistances.copy()
 

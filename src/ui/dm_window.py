@@ -11,6 +11,7 @@ from .dm.encounter_creator_tab import EncounterCreatorTabView
 from .dm.tactical_minimap import TacticalMiniMap
 from .dm.initiative_modal import InitiativeStagingModal
 from .dm.handlers.dm_window_input_handler import DMWindowInputHandler
+from .utils.ui_constants import Colors
 
 logger = logging.getLogger(__name__)
 
@@ -273,8 +274,8 @@ class DMWindow(arcade.Window):
         split_x = w * 0.50
 
         # Fundo Global Dark Fantasy (#0E1218)
-        arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (14, 18, 24, 255))
-        arcade.draw_line(split_x, 0, split_x, h, (40, 50, 70, 200), 2)
+        arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), Colors.BG_DARK)
+        arcade.draw_line(split_x, 0, split_x, h, Colors.BORDER_DEFAULT, 2)
 
         # 1. Painel Esquerdo: Cabeçalho, Abas e Conteúdo
         content_top_y = self.header.draw(

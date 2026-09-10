@@ -267,7 +267,29 @@ class CanonicalButton:
 
 ---
 
-## 7. Checklist de Qualidade e Poka-Yoke de UI
+## 7. Helpers Reutilizáveis de Layout (`src/ui/utils/ui_layout.py`)
+
+Para evitar cálculos manuais repetitivos e manter a fidelidade ao Grid de 8pt, o módulo [`src/ui/utils/ui_layout.py`](file:///c:/Users/aguia/OneDrive/Documentos/Medusa/medusa_controler/src/ui/utils/ui_layout.py) fornece utilitários puros de layout:
+
+### 7.1. `FlowRow` (Posicionamento Horizontal Dinâmico)
+Gerencia o avanço automático de um cursor horizontal ao dispor botões, labels e inputs em linha:
+- **Construtor:** `FlowRow(start_x: float, center_y: float, gap: float = 8.0, align_center: bool = True)`
+- **`add(width: float) -> tuple[float, float]`:** Retorna `(item_x, center_y)` centralizado no item para renderização direta via `arcade.XYWH` e avança o cursor por `width + gap`.
+- **Propriedades:** `total_width` (soma das larguras dos itens), `total_span` (espaço total ocupado incluindo gaps) e `cursor_x`.
+
+### 7.2. `SmartButton` & `calculate_button_bounds`
+Calcula a largura mínima necessária para que o texto de um botão caiba confortavelmente com padding horizontal seguro:
+- **Assinatura:** `calculate_button_bounds(text: str, font_size: int, padding_x: float = 12.0, min_width: float = 80.0) -> float`
+- Retorna `max(min_width, text_width + 2 * padding_x)`.
+
+### 7.3. `PixelIconDrawer` & `draw_pixel_icon`
+Renderiza sub-texturas de ícones com escala proporcional e filtro pixelated:
+- **Assinatura:** `draw_pixel_icon(texture: arcade.Texture, center_x: float, center_y: float, target_size: float = 24.0) -> None`
+- Aplica escala exata `scale = target_size / texture.width` mantendo `pixelated=True`.
+
+---
+
+## 8. Checklist de Qualidade e Poka-Yoke de UI
 
 Antes de submeter qualquer novo componente visual ou refatoração de tela:
 

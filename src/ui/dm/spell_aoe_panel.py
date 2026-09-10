@@ -4,6 +4,7 @@ import arcade
 from ...manager.session_manager import SessionManager
 from ...domain.models.spell_template import SpellTemplate, AoEShape, SpellShape
 from ..utils.text_input import SmartTextInput
+from ..utils.ui_constants import Typography
 from .renderers.spell_aoe_renderer import SpellAoERenderer
 from .handlers.spell_aoe_input_handler import SpellAoEInputHandler
 
@@ -39,7 +40,7 @@ class SpellAoEPanel:
             placeholder="20",
             initial_text="20",
             max_length=5,
-            font_size=9,
+            font_size=Typography.SIZE_MICRO,
             width=50.0,
             height=22.0,
             padding_left=5.0,
@@ -51,7 +52,7 @@ class SpellAoEPanel:
             placeholder="5",
             initial_text="5",
             max_length=5,
-            font_size=9,
+            font_size=Typography.SIZE_MICRO,
             width=46.0,
             height=22.0,
             padding_left=5.0,
@@ -63,7 +64,7 @@ class SpellAoEPanel:
             placeholder="0",
             initial_text="0",
             max_length=5,
-            font_size=9,
+            font_size=Typography.SIZE_MICRO,
             width=46.0,
             height=22.0,
             padding_left=5.0,
@@ -75,7 +76,7 @@ class SpellAoEPanel:
             placeholder="0",
             initial_text="0",
             max_length=5,
-            font_size=9,
+            font_size=Typography.SIZE_MICRO,
             width=46.0,
             height=22.0,
             padding_left=5.0,
@@ -109,7 +110,7 @@ class SpellAoEPanel:
                 bold=bold,
                 anchor_x=anchor_x,
                 anchor_y=anchor_y,
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
+                font_name=Typography.FONT_FAMILY_UI,
             )
             self._text_cache[key] = cached
         else:

@@ -11,6 +11,7 @@ from ..sprites.sprite_factory import SpriteFactory
 from ..utils.tilemap_renderer import TileMapRenderer
 from ..utils.aoe_renderer import AoERenderer
 from ..components.grid_cell_highlighter import GridCellHighlighter
+from ..utils.ui_constants import Colors, Typography, Dimensions
 from .token_status_renderer import TokenStatusRenderer
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ class MiniMapRenderer:
         # 1. Fundo Geral
         arcade.draw_rect_filled(
             arcade.XYWH(window_width * 0.25, window_height * 0.50, window_width * 0.50, window_height),
-            (10, 14, 20, 255),
+            Colors.BG_DARK,
         )
 
         if display_state == DisplayState.IDLE:
@@ -78,19 +79,19 @@ class MiniMapRenderer:
     def _draw_idle_mirror(window_width: float, window_height: float, text_cache: Dict[str, arcade.Text]) -> None:
         cx = window_width * 0.25
         cy = window_height * 0.50
-        arcade.draw_rect_filled(arcade.XYWH(cx, cy, 320, 100), (20, 26, 36, 220))
-        arcade.draw_rect_outline(arcade.XYWH(cx, cy, 320, 100), (50, 65, 90, 200), 1.5)
+        arcade.draw_rect_filled(arcade.XYWH(cx, cy, 320, 100), Colors.BG_CARD)
+        arcade.draw_rect_outline(arcade.XYWH(cx, cy, 320, 100), Colors.BORDER_DEFAULT, 1.5)
         MiniMapRenderer._render_text(
             "mm_idle_title",
             "🛡️ TELA DOS JOGADORES: IDLE",
             cx, cy + 18,
-            (241, 196, 15, 255), 10, True, text_cache, anchor_x="center"
+            Colors.TEXT_GOLD, Typography.SIZE_SUBHEADER - 1, True, text_cache, anchor_x="center"
         )
         MiniMapRenderer._render_text(
             "mm_idle_sub",
             "(Sigil Místico e Descanso Ativos)",
             cx, cy - 14,
-            (140, 155, 175, 255), 8, False, text_cache, anchor_x="center"
+            Colors.TEXT_MUTED, Typography.SIZE_MICRO, False, text_cache, anchor_x="center"
         )
 
     @staticmethod
@@ -130,14 +131,14 @@ class MiniMapRenderer:
                 img_h = img_w / tex_aspect
 
             arcade.draw_texture_rect(tex, arcade.XYWH(cx, cy, img_w, img_h))
-            arcade.draw_rect_outline(arcade.XYWH(cx, cy, img_w, img_h), (70, 95, 130, 220), 2)
+            arcade.draw_rect_outline(arcade.XYWH(cx, cy, img_w, img_h), Colors.BORDER_DEFAULT, 2)
         else:
-            arcade.draw_rect_filled(arcade.XYWH(cx, cy, draw_w, draw_h), (25, 35, 45, 255))
+            arcade.draw_rect_filled(arcade.XYWH(cx, cy, draw_w, draw_h), Colors.BG_PANEL)
             MiniMapRenderer._render_text(
                 "mm_proj_no_tex",
                 "🖼️ Imagem Projetada",
                 cx, cy,
-                (200, 210, 225, 255), 11, True, text_cache, anchor_x="center"
+                Colors.TEXT_PRIMARY, Typography.SIZE_LABEL, True, text_cache, anchor_x="center"
             )
 
     @staticmethod
@@ -183,10 +184,10 @@ class MiniMapRenderer:
             if tex is not None:
                 arcade.draw_texture_rect(tex, arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h))
             else:
-                arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (25, 35, 45, 255))
+                arcade.draw_rect_filled(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), Colors.BG_PANEL)
 
         # Borda externa do mapa
-        arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), (70, 95, 130, 220), 2)
+        arcade.draw_rect_outline(arcade.XYWH(draw_x + draw_w / 2, draw_y + draw_h / 2, draw_w, draw_h), Colors.BORDER_DEFAULT, 2)
 
         if grid_mgr is None:
             return
@@ -303,7 +304,7 @@ class MiniMapRenderer:
             movement_highlighter.clear()
             return
 
-        # Cores Canônicas: Azul translúcido (41, 128, 185, 90) e Azul vivo (52, 152, 219, 210)
+        # Cores Canônicas: Azul translúcido e Azul vivo
         cell_colors: Dict[Tuple[int, int], Tuple[int, int, int, int]] = {}
         for cell in res.reachable_cells:
             if selected_target_cell is not None and cell == selected_target_cell:
@@ -319,7 +320,7 @@ class MiniMapRenderer:
             sc_x = draw_x + (selected_target_cell[0] + 0.5) * cell_size
             sc_y = draw_y + (selected_target_cell[1] + 0.5) * cell_size
 
-            arcade.draw_rect_outline(arcade.XYWH(sc_x, sc_y, cell_size, cell_size), (255, 255, 255, 240), 2.0)
+            arcade.draw_rect_outline(arcade.XYWH(sc_x, sc_y, cell_size, cell_size), Colors.TEXT_PRIMARY, 2.0)
 
             cost = res.get_cost(selected_target_cell) or 0.0
             remaining = available_mov - cost
@@ -327,15 +328,15 @@ class MiniMapRenderer:
             badge_h = 22.0
             badge_y = min(draw_y + draw_h - 14, sc_y + cell_size * 0.75 + 10)
 
-            arcade.draw_rect_filled(arcade.XYWH(sc_x, badge_y, badge_w, badge_h), (14, 18, 26, 230))
-            arcade.draw_rect_outline(arcade.XYWH(sc_x, badge_y, badge_w, badge_h), (52, 152, 219, 255), 1.2)
+            arcade.draw_rect_filled(arcade.XYWH(sc_x, badge_y, badge_w, badge_h), Colors.BG_DARK)
+            arcade.draw_rect_outline(arcade.XYWH(sc_x, badge_y, badge_w, badge_h), Colors.INFO_BORDER, 1.2)
             MiniMapRenderer._render_text(
                 "mm_cost_badge",
                 f"Custo: {cost:.0f} ft / Restante: {remaining:.0f} ft",
                 sc_x,
                 badge_y,
-                (241, 196, 15, 255),
-                8,
+                Colors.TEXT_GOLD,
+                Typography.SIZE_MICRO - 1,
                 True,
                 text_cache,
                 anchor_x="center",
@@ -344,7 +345,7 @@ class MiniMapRenderer:
     @staticmethod
     def _draw_grid_overlay(draw_rect: Tuple[float, float, float, float], grid_mgr: Any, cell_size: float) -> None:
         draw_x, draw_y, draw_w, draw_h = draw_rect
-        grid_color = (130, 205, 255, 60)
+        grid_color = Colors.GRID_LINE
         for c in range(grid_mgr.columns + 1):
             lx = draw_x + float(c) * cell_size
             arcade.draw_line(lx, draw_y, lx, draw_y + draw_h, grid_color, 1.0)
@@ -358,8 +359,8 @@ class MiniMapRenderer:
         if fog_mgr is None:
             return
         fog_cells = fog_mgr.get_fogged_cells() if hasattr(fog_mgr, "get_fogged_cells") else fog_mgr.get_fog_cells()
-        fog_color = (10, 15, 25, 140)
-        fog_border = (30, 45, 70, 180)
+        fog_color = Colors.FOG_OVERLAY
+        fog_border = Colors.FOG_BORDER
 
         for col, row in fog_cells:
             if 0 <= col < grid_mgr.columns and 0 <= row < grid_mgr.rows:
@@ -460,7 +461,7 @@ class MiniMapRenderer:
         token_radius = max(8.0, (footprint / 2.0) - 2.0)
 
         box_bg = (46, 204, 113, 80) if is_walkable else (231, 76, 60, 100)
-        box_bd = (46, 204, 113, 220) if is_walkable else (231, 76, 60, 240)
+        box_bd = Colors.SUCCESS_BORDER if is_walkable else Colors.DANGER_BORDER
         arcade.draw_rect_filled(arcade.XYWH(cx, cy, footprint, footprint), box_bg)
         arcade.draw_rect_outline(arcade.XYWH(cx, cy, footprint, footprint), box_bd, 2.0)
 
@@ -501,7 +502,7 @@ class MiniMapRenderer:
                 bold=bold,
                 anchor_x=anchor_x,
                 anchor_y="center",
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
+                font_name=Typography.FONT_FAMILY_UI,
             )
             cache[key] = cached
         else:

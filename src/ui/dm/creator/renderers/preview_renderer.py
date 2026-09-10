@@ -5,15 +5,17 @@ import arcade
 from .....domain.models.tile_map import TileMap
 from ....utils.tilemap_renderer import TileMapRenderer
 from .....manager.grid_manager import GridManager
+from ....utils.ui_constants import Colors, Typography, Dimensions, Spacing
 
 logger = logging.getLogger(__name__)
 
-COLOR_TEXT_TITLE = (241, 196, 15, 255)
-COLOR_TEXT_MAIN = (200, 210, 225, 255)
-COLOR_TEXT_MUTED = (140, 155, 175, 255)
-COLOR_TEXT_WHITE = (255, 255, 255, 255)
-COLOR_TEXT_CYAN = (100, 200, 255, 255)
-COLOR_ACCENT_GOLD = (241, 196, 15, 255)
+# Compatibilidade retroativa com tokens do Design System
+COLOR_TEXT_TITLE = Colors.TEXT_GOLD
+COLOR_TEXT_MAIN = Colors.TEXT_PRIMARY
+COLOR_TEXT_MUTED = Colors.TEXT_MUTED
+COLOR_TEXT_WHITE = Colors.TEXT_PRIMARY
+COLOR_TEXT_CYAN = Colors.TEXT_CYAN
+COLOR_ACCENT_GOLD = Colors.ACCENT_GOLD
 
 
 class PreviewRenderer:
@@ -45,7 +47,7 @@ class PreviewRenderer:
                 bold=bold,
                 anchor_x=anchor_x,
                 anchor_y="center",
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
+                font_name=Typography.FONT_FAMILY_UI,
             )
             cache[key] = cached
         else:
@@ -69,11 +71,11 @@ class PreviewRenderer:
         texture_cache: Dict[str, arcade.Texture],
     ) -> None:
         """Desenha a área de pré-visualização do lado direito na Etapa 1."""
-        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh / 2, vw, vh), (12, 16, 22, 255))
+        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh / 2, vw, vh), Colors.BG_DARK)
 
-        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, 36), (18, 24, 34, 255))
-        arcade.draw_line(vx, vy + vh - 36, vx + vw, vy + vh - 36, (50, 65, 90, 200), 1)
-        PreviewRenderer.render_text("wiz_prev_hdr", "🗺️ PRÉ-VISUALIZAÇÃO DO MAPA & COMBATENTES", vx + 16, vy + vh - 18, COLOR_TEXT_TITLE, 10, True, text_cache)
+        arcade.draw_rect_filled(arcade.XYWH(vx + vw / 2, vy + vh - 18, vw, 36), Colors.BG_PANEL)
+        arcade.draw_line(vx, vy + vh - 36, vx + vw, vy + vh - 36, Colors.BORDER_DEFAULT, 1)
+        PreviewRenderer.render_text("wiz_prev_hdr", "🗺️ PRÉ-VISUALIZAÇÃO DO MAPA & COMBATENTES", vx + 16, vy + vh - 18, Colors.TEXT_GOLD, Typography.SIZE_LABEL - 1, True, text_cache)
 
         cur_map = form.current_map_info
         map_path = cur_map.get("path")
@@ -85,7 +87,7 @@ class PreviewRenderer:
         preview_cy = vy + vh - 36 - preview_h / 2 - 16
 
         # Fundo do Preview
-        arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (18, 24, 34, 255))
+        arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), Colors.BG_PANEL)
 
         if is_tilemap and map_path:
             tile_map = None
@@ -122,14 +124,14 @@ class PreviewRenderer:
 
                     renderer.update_layout(draw_x, draw_y, cell_w, cell_h)
                     renderer.draw(pixelated=True)
-                    arcade.draw_rect_outline(arcade.XYWH(draw_x + rend_w / 2, draw_y + rend_h / 2, rend_w, rend_h), (70, 95, 130, 220), 1.5)
+                    arcade.draw_rect_outline(arcade.XYWH(draw_x + rend_w / 2, draw_y + rend_h / 2, rend_w, rend_h), Colors.BORDER_DEFAULT, 1.5)
 
                     # Grade tática configurada independente sobreposta ao preview
                     grid_cols = max(1, form.columns)
                     grid_rows = max(1, round(grid_cols * (rend_h / rend_w)))
                     grid_cell_w = rend_w / float(grid_cols)
                     grid_cell_h = rend_h / float(grid_rows)
-                    grid_color = (130, 205, 255, 75)
+                    grid_color = Colors.GRID_LINE
                     for c in range(grid_cols + 1):
                         lx = draw_x + float(c) * grid_cell_w
                         arcade.draw_line(lx, draw_y, lx, draw_y + rend_h, grid_color, 1.0)
@@ -137,9 +139,9 @@ class PreviewRenderer:
                         ly = draw_y + float(r) * grid_cell_h
                         arcade.draw_line(draw_x, ly, draw_x + rend_w, ly, grid_color, 1.0)
                 else:
-                    PreviewRenderer.render_text("wiz_no_tm", f"🧩 Tileset {tile_map.width}x{tile_map.height}", preview_cx, preview_cy, COLOR_TEXT_CYAN, 10, True, text_cache, anchor_x="center")
+                    PreviewRenderer.render_text("wiz_no_tm", f"🧩 Tileset {tile_map.width}x{tile_map.height}", preview_cx, preview_cy, Colors.TEXT_CYAN, Typography.SIZE_LABEL - 1, True, text_cache, anchor_x="center")
             else:
-                PreviewRenderer.render_text("wiz_no_tex", "Layout JSON do Tilemap", preview_cx, preview_cy, COLOR_TEXT_MUTED, 10, False, text_cache, anchor_x="center")
+                PreviewRenderer.render_text("wiz_no_tex", "Layout JSON do Tilemap", preview_cx, preview_cy, Colors.TEXT_MUTED, Typography.SIZE_LABEL - 1, False, text_cache, anchor_x="center")
         else:
             tex = None
             if map_path and not str(map_path).lower().endswith((".json", ".xml", ".txt", ".csv")):
@@ -156,28 +158,28 @@ class PreviewRenderer:
 
             if tex is not None:
                 arcade.draw_texture_rect(tex, arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h))
-                arcade.draw_rect_outline(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (70, 95, 130, 220), 2)
+                arcade.draw_rect_outline(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), Colors.BORDER_DEFAULT, 2)
             else:
-                arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), (25, 35, 45, 255))
-                PreviewRenderer.render_text("wiz_no_tex", "Miniatura do Mapa", preview_cx, preview_cy, COLOR_TEXT_MUTED, 11, False, text_cache, anchor_x="center")
+                arcade.draw_rect_filled(arcade.XYWH(preview_cx, preview_cy, preview_w, preview_h), Colors.BTN_DEFAULT_BG)
+                PreviewRenderer.render_text("wiz_no_tex", "Miniatura do Mapa", preview_cx, preview_cy, Colors.TEXT_MUTED, Typography.SIZE_LABEL, False, text_cache, anchor_x="center")
 
         # Cartão de Resumo
         card_y = preview_cy - preview_h / 2 - 16
         card_h = card_y - 20
         card_cy = card_y - card_h / 2
 
-        arcade.draw_rect_filled(arcade.XYWH(preview_cx, card_cy, preview_w, card_h), (16, 22, 32, 255))
-        arcade.draw_rect_outline(arcade.XYWH(preview_cx, card_cy, preview_w, card_h), (50, 65, 90, 200), 1)
+        arcade.draw_rect_filled(arcade.XYWH(preview_cx, card_cy, preview_w, card_h), Colors.BG_CARD)
+        arcade.draw_rect_outline(arcade.XYWH(preview_cx, card_cy, preview_w, card_h), Colors.BORDER_DEFAULT, 1)
 
-        PreviewRenderer.render_text("wiz_res_t", "RESUMO DO ENCONTRO EM CRIAÇÃO", vx + 32, card_y - 18, COLOR_TEXT_TITLE, 9, True, text_cache)
+        PreviewRenderer.render_text("wiz_res_t", "RESUMO DO ENCONTRO EM CRIAÇÃO", vx + 32, card_y - 18, Colors.TEXT_GOLD, Typography.SIZE_MICRO, True, text_cache)
 
         num_pcs = len(form.selected_character_uids)
         num_mons = sum(form.monster_counts.values())
         tot = num_pcs + num_mons
 
         map_type_label = "🧩 Tileset Modular Dinâmico" if is_tilemap else "🖼️ Imagem Fixa Estática"
-        PreviewRenderer.render_text("wiz_res_mtype", f"• Tipo de Mapa: {map_type_label}", vx + 32, card_y - 38, COLOR_ACCENT_GOLD if is_tilemap else COLOR_TEXT_CYAN, 8, True, text_cache)
-        PreviewRenderer.render_text("wiz_res_p", f"• Jogadores Selecionados: {num_pcs}", vx + 32, card_y - 56, COLOR_TEXT_CYAN, 8, False, text_cache)
-        PreviewRenderer.render_text("wiz_res_m", f"• Monstros Instanciados: {num_mons}", vx + 32, card_y - 74, (255, 138, 128, 255), 8, False, text_cache)
-        PreviewRenderer.render_text("wiz_res_g", f"• Grade Tática: {form.columns} colunas • {form.feet_per_square} ft/quadrado", vx + 32, card_y - 92, COLOR_TEXT_MAIN, 8, False, text_cache)
-        PreviewRenderer.render_text("wiz_res_tot", f"• Total de Combatentes: {tot}", vx + 32, card_y - 110, (46, 204, 113, 255), 9, True, text_cache)
+        PreviewRenderer.render_text("wiz_res_mtype", f"• Tipo de Mapa: {map_type_label}", vx + 32, card_y - 38, Colors.TEXT_GOLD if is_tilemap else Colors.TEXT_CYAN, Typography.SIZE_MICRO - 1, True, text_cache)
+        PreviewRenderer.render_text("wiz_res_p", f"• Jogadores Selecionados: {num_pcs}", vx + 32, card_y - 56, Colors.TEXT_CYAN, Typography.SIZE_MICRO - 1, False, text_cache)
+        PreviewRenderer.render_text("wiz_res_m", f"• Monstros Instanciados: {num_mons}", vx + 32, card_y - 74, Colors.TEXT_CRIMSON, Typography.SIZE_MICRO - 1, False, text_cache)
+        PreviewRenderer.render_text("wiz_res_g", f"• Grade Tática: {form.columns} colunas • {form.feet_per_square} ft/quadrado", vx + 32, card_y - 92, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, False, text_cache)
+        PreviewRenderer.render_text("wiz_res_tot", f"• Total de Combatentes: {tot}", vx + 32, card_y - 110, Colors.SUCCESS, Typography.SIZE_MICRO, True, text_cache)

@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Optional, Dict, Tuple, Callable
 import arcade
 from ...domain.models.fog_manager import FogManager
+from ..utils.ui_constants import Colors, Typography, Dimensions, Spacing
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class FogControlPanel:
                 bold=bold,
                 anchor_x=anchor_x,
                 anchor_y=anchor_y,
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
+                font_name=Typography.FONT_FAMILY_UI,
             )
             self._text_cache[key] = cached
         else:
@@ -141,7 +142,7 @@ class FogControlPanel:
         Renderiza a barra de ferramentas de névoa de guerra.
         Retorna a coordenada vertical inferior (next_y) para o próximo elemento da interface.
         """
-        hdr_h = 26
+        hdr_h = Dimensions.HEADER_HEIGHT_SUB
         body_h = 68 if not self.__is_collapsed else 0
         total_h = hdr_h + body_h
         center_y = top_y - total_h / 2
@@ -150,29 +151,29 @@ class FogControlPanel:
         self._last_bounds = (12.0, top_y - total_h, panel_w - 24.0, total_h)
 
         # Fundo do Painel
-        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, center_y, panel_w - 24, total_h), (18, 24, 34, 255))
-        arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, center_y, panel_w - 24, total_h), (50, 65, 90, 200), 1)
+        arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, center_y, panel_w - 24, total_h), Colors.BG_PANEL)
+        arcade.draw_rect_outline(arcade.XYWH(panel_w / 2, center_y, panel_w - 24, total_h), Colors.BORDER_DEFAULT, 1)
 
         # Cabeçalho
-        hdr_bg = (28, 36, 48, 255)
+        hdr_bg = Colors.BG_CARD
         arcade.draw_rect_filled(arcade.XYWH(panel_w / 2, hdr_cy, panel_w - 24, hdr_h), hdr_bg)
-        arcade.draw_line(12, top_y - hdr_h, panel_w - 12, top_y - hdr_h, (50, 65, 90, 200), 1)
+        arcade.draw_line(12, top_y - hdr_h, panel_w - 12, top_y - hdr_h, Colors.BORDER_DEFAULT, 1)
 
         # Título do Cabeçalho e Contador
         cell_count = self.__fog_manager.count
         hdr_title = f"🌫️ NÉVOA DE GUERRA ({cell_count} cel)"
-        self._get_text("fog_hdr_t", hdr_title, 22, hdr_cy, (241, 196, 15, 255), 8, bold=True).draw()
+        self._get_text("fog_hdr_t", hdr_title, 22, hdr_cy, Colors.TEXT_GOLD, Typography.SIZE_MICRO, bold=True).draw()
 
         # Feedback temporário ou Indicador de Ferramenta Ativa
         if self.__feedback_message:
-            self._get_text("fog_fb", self.__feedback_message, panel_w - 55, hdr_cy, (46, 204, 113, 255), 7, bold=True, anchor_x="right").draw()
+            self._get_text("fog_fb", self.__feedback_message, panel_w - 55, hdr_cy, Colors.SUCCESS, Typography.SIZE_MICRO - 1, bold=True, anchor_x="right").draw()
         elif self.is_tool_active:
             status_txt = "🖌️ Adicionando" if self.__active_tool == FogTool.ADD else "🧹 Revelando"
-            self._get_text("fog_act_st", status_txt, panel_w - 55, hdr_cy, (241, 196, 15, 255), 7, bold=True, anchor_x="right").draw()
+            self._get_text("fog_act_st", status_txt, panel_w - 55, hdr_cy, Colors.TEXT_GOLD, Typography.SIZE_MICRO - 1, bold=True, anchor_x="right").draw()
 
         # Botão Recolher/Expandir
         col_icon = "▲" if not self.__is_collapsed else "▼"
-        self._get_text("fog_col_btn", col_icon, panel_w - 28, hdr_cy, (180, 190, 205, 255), 9, bold=True, anchor_x="center").draw()
+        self._get_text("fog_col_btn", col_icon, panel_w - 28, hdr_cy, Colors.TEXT_SECONDARY, Typography.SIZE_MICRO, bold=True, anchor_x="center").draw()
 
         if self.__is_collapsed:
             return top_y - total_h - 8
@@ -187,33 +188,33 @@ class FogControlPanel:
 
         # 1. Cobrir Tudo
         b_fill_x = 18 + btn_w4 / 2
-        arcade.draw_rect_filled(arcade.XYWH(b_fill_x, row1_y, btn_w4, btn_h), (35, 45, 60, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b_fill_x, row1_y, btn_w4, btn_h), (70, 90, 120, 200), 1)
-        self._get_text("fog_b_fill", "⬛ Cobrir Tudo", b_fill_x, row1_y, (220, 225, 235, 255), 7, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b_fill_x, row1_y, btn_w4, btn_h), Colors.BTN_DEFAULT_BG)
+        arcade.draw_rect_outline(arcade.XYWH(b_fill_x, row1_y, btn_w4, btn_h), Colors.BTN_DEFAULT_BORDER, 1)
+        self._get_text("fog_b_fill", "⬛ Cobrir Tudo", b_fill_x, row1_y, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, bold=True, anchor_x="center").draw()
 
         # 2. Revelar Tudo
         b_clr_x = 18 + btn_w4 + 4 + btn_w4 / 2
-        arcade.draw_rect_filled(arcade.XYWH(b_clr_x, row1_y, btn_w4, btn_h), (35, 45, 60, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b_clr_x, row1_y, btn_w4, btn_h), (70, 90, 120, 200), 1)
-        self._get_text("fog_b_clr", "⬜ Revelar Tudo", b_clr_x, row1_y, (220, 225, 235, 255), 7, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b_clr_x, row1_y, btn_w4, btn_h), Colors.BTN_DEFAULT_BG)
+        arcade.draw_rect_outline(arcade.XYWH(b_clr_x, row1_y, btn_w4, btn_h), Colors.BTN_DEFAULT_BORDER, 1)
+        self._get_text("fog_b_clr", "⬜ Revelar Tudo", b_clr_x, row1_y, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, bold=True, anchor_x="center").draw()
 
         # 3. Adicionar Névoa (Toggle)
         b_add_x = 18 + 2 * (btn_w4 + 4) + btn_w4 / 2
         is_add = (self.__active_tool == FogTool.ADD)
-        add_bg = (40, 60, 90, 255) if is_add else (35, 45, 60, 255)
-        add_bd = (241, 196, 15, 255) if is_add else (70, 90, 120, 200)
+        add_bg = Colors.PURPLE_BG if is_add else Colors.BTN_DEFAULT_BG
+        add_bd = Colors.ACCENT_GOLD if is_add else Colors.BTN_DEFAULT_BORDER
         arcade.draw_rect_filled(arcade.XYWH(b_add_x, row1_y, btn_w4, btn_h), add_bg)
         arcade.draw_rect_outline(arcade.XYWH(b_add_x, row1_y, btn_w4, btn_h), add_bd, 1.5 if is_add else 1.0)
-        self._get_text("fog_b_add", "🖌️ Adicionar", b_add_x, row1_y, (241, 196, 15, 255) if is_add else (220, 225, 235, 255), 7, bold=True, anchor_x="center").draw()
+        self._get_text("fog_b_add", "🖌️ Adicionar", b_add_x, row1_y, Colors.TEXT_GOLD if is_add else Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, bold=True, anchor_x="center").draw()
 
         # 4. Revelar Área (Toggle)
         b_rev_x = 18 + 3 * (btn_w4 + 4) + btn_w4 / 2
         is_rev = (self.__active_tool == FogTool.REVEAL)
-        rev_bg = (60, 40, 70, 255) if is_rev else (35, 45, 60, 255)
-        rev_bd = (241, 196, 15, 255) if is_rev else (70, 90, 120, 200)
+        rev_bg = Colors.PURPLE_BG if is_rev else Colors.BTN_DEFAULT_BG
+        rev_bd = Colors.ACCENT_GOLD if is_rev else Colors.BTN_DEFAULT_BORDER
         arcade.draw_rect_filled(arcade.XYWH(b_rev_x, row1_y, btn_w4, btn_h), rev_bg)
         arcade.draw_rect_outline(arcade.XYWH(b_rev_x, row1_y, btn_w4, btn_h), rev_bd, 1.5 if is_rev else 1.0)
-        self._get_text("fog_b_rev", "🧹 Revelar", b_rev_x, row1_y, (241, 196, 15, 255) if is_rev else (220, 225, 235, 255), 7, bold=True, anchor_x="center").draw()
+        self._get_text("fog_b_rev", "🧹 Revelar", b_rev_x, row1_y, Colors.TEXT_GOLD if is_rev else Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, bold=True, anchor_x="center").draw()
 
         # Linha 2: Alternador de Modo de Pincel e Botão Salvar Névoa
         row2_y = row1_y - 24
@@ -223,17 +224,17 @@ class FogControlPanel:
         b_mode_x = 18 + btn_w2 / 2
         is_cont = (self.__brush_mode == BrushMode.CONTINUOUS)
         mode_txt = "🖌️ Pincel: Contínuo (Drag)" if is_cont else "🎯 Pincel: Célula Única"
-        mode_bg = (45, 55, 75, 255) if is_cont else (30, 40, 55, 255)
-        mode_bd = (52, 152, 219, 255) if is_cont else (70, 90, 120, 200)
+        mode_bg = Colors.BTN_PRIMARY_BG if is_cont else Colors.BTN_DEFAULT_BG
+        mode_bd = Colors.INFO_BORDER if is_cont else Colors.BTN_DEFAULT_BORDER
         arcade.draw_rect_filled(arcade.XYWH(b_mode_x, row2_y, btn_w2, btn_h), mode_bg)
         arcade.draw_rect_outline(arcade.XYWH(b_mode_x, row2_y, btn_w2, btn_h), mode_bd, 1.2)
-        self._get_text("fog_b_mode", mode_txt, b_mode_x, row2_y, (230, 240, 255, 255), 7, bold=True, anchor_x="center").draw()
+        self._get_text("fog_b_mode", mode_txt, b_mode_x, row2_y, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, bold=True, anchor_x="center").draw()
 
         # Botão Salvar Névoa no Disco
         b_save_x = 18 + btn_w2 + 6 + btn_w2 / 2
-        arcade.draw_rect_filled(arcade.XYWH(b_save_x, row2_y, btn_w2, btn_h), (27, 77, 62, 255))
-        arcade.draw_rect_outline(arcade.XYWH(b_save_x, row2_y, btn_w2, btn_h), (46, 204, 113, 200), 1.2)
-        self._get_text("fog_b_save", "💾 Salvar Névoa", b_save_x, row2_y, (163, 228, 215, 255), 7, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(b_save_x, row2_y, btn_w2, btn_h), Colors.SUCCESS)
+        arcade.draw_rect_outline(arcade.XYWH(b_save_x, row2_y, btn_w2, btn_h), Colors.SUCCESS_BORDER, 1.2)
+        self._get_text("fog_b_save", "💾 Salvar Névoa", b_save_x, row2_y, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO - 1, bold=True, anchor_x="center").draw()
 
         return top_y - total_h - 8
 

@@ -25,9 +25,13 @@ class Spacing:
 
     # Aliases semânticos para clareza em layouts
     GAP_TINY: int = 4
+    GAP_SM: int = 8
     GAP_SMALL: int = 8
+    GAP_MD: int = 16
     GAP_MEDIUM: int = 16
+    GAP_LG: int = 24
     GAP_LARGE: int = 24
+    GAP_XL: int = 32
     GAP_XLARGE: int = 32
     CONTAINER_PADDING: int = 16
 
@@ -56,6 +60,8 @@ class Dimensions:
 
     # Estruturas Globais e Painéis
     HEADER_HEIGHT: float = 56.0          # Altura da barra superior do Mestre (DMHeader)
+    HEADER_HEIGHT_SUB: float = 28.0      # Altura de sub-cabeçalhos e barras colapsáveis
+    HEADER_HEIGHT_COMPACT: float = 28.0
     TAB_BAR_HEIGHT: float = 40.0         # Altura das abas de navegação
     MODAL_MIN_WIDTH: float = 360.0       # Largura mínima de modais e caixas de diálogo
     MODAL_PADDING: float = 16.0          # Padding interno obrigatório em modais
@@ -101,6 +107,7 @@ class Colors:
     BG_PANEL: RGBAColor = (20, 26, 36, 255)        # #141A24 - Fundo de painéis e barras de controle
     BG_PANEL_ALT: RGBAColor = (26, 34, 46, 255)    # Fundo alternado para listas e cabeçalhos
     BG_CARD: RGBAColor = (30, 40, 55, 255)         # #1E2837 - Cards de itens, combatentes e monstros
+    BG_CARD_ALT: RGBAColor = (35, 48, 68, 255)     # Fundo destacado / alternado de card selecionado
     BG_CARD_HOVER: RGBAColor = (38, 50, 70, 255)   # Destaque de hover em cards
     BG_MODAL: RGBAColor = (18, 24, 32, 245)        # Fundo semi-opaco para janelas modais
     BG_OVERLAY: RGBAColor = (0, 0, 0, 180)         # Overlay escurecido de fundo para modais
@@ -115,14 +122,25 @@ class Colors:
     BORDER_SUBTLE: RGBAColor = (40, 50, 65, 120)   # Borda sutil interna / divisores
     BORDER_MUTED: RGBAColor = (30, 40, 55, 150)    # Divisor suave de linhas
     BORDER_FOCUS: RGBAColor = (241, 196, 15, 255)  # Borda em estado de foco (Ouro Místico)
+    BORDER_GOLD: RGBAColor = (241, 196, 15, 200)   # Borda de acento dourado
+
+    # Botões e Controles Padrão
+    BTN_DEFAULT_BG: RGBAColor = (35, 45, 60, 255)  # Fundo padrão de botões neutros
+    BTN_DEFAULT_BORDER: RGBAColor = (70, 90, 120, 200) # Borda padrão de botões neutros
+    BTN_DEFAULT_HOVER: RGBAColor = (45, 58, 78, 255)
+    BTN_PRIMARY_BG: RGBAColor = (41, 128, 185, 255)# Fundo de botão de ação primária (Azul)
 
     # Tipografia e Cores de Texto
     TEXT_PRIMARY: RGBAColor = (240, 244, 248, 255) # Texto principal de alto contraste
     TEXT_SECONDARY: RGBAColor = (189, 195, 199, 255)# Texto secundário e descrições
-    TEXT_MUTED: RGBAColor = (120, 140, 160, 255)   # Textos desabilitados, hints e placeholders
+    TEXT_MUTED: RGBAColor = (140, 155, 175, 255)   # Textos desabilitados, hints e placeholders
     TEXT_HIGHLIGHT: RGBAColor = (241, 196, 15, 255)# Texto com ênfase dourada
+    TEXT_GOLD: RGBAColor = (241, 196, 15, 255)     # Alias de texto dourado
     TEXT_WHITE: RGBAColor = (255, 255, 255, 255)   # Branco puro para títulos de botões
     TEXT_DARK: RGBAColor = (20, 26, 36, 255)       # Texto escuro para botões com fundo claro
+    TEXT_CYAN: RGBAColor = (100, 200, 255, 255)    # Azul ciano para identificação de jogadores/magia
+    TEXT_CRIMSON: RGBAColor = (255, 138, 128, 255) # Carmim claro para identificação de monstros
+    TEXT_DISABLED: RGBAColor = (90, 105, 125, 160) # Texto esmaecido / desabilitado
 
     # Feedback Semântico
     SUCCESS: RGBAColor = (46, 204, 113, 255)       # #2ECC71 - Vida cheia, confirmação, sucesso
@@ -140,6 +158,17 @@ class Colors:
     INFO: RGBAColor = (52, 152, 219, 255)          # #3498DB - Seleção ativa, turnos, informações
     INFO_BG: RGBAColor = (31, 78, 121, 255)        # Fundo para itens selecionados
     INFO_BORDER: RGBAColor = (93, 173, 226, 255)
+
+    PURPLE_BG: RGBAColor = (142, 68, 173, 255)     # Fundo de botões místicos/iniciativa
+    PURPLE_BORDER: RGBAColor = (155, 89, 182, 255)
+
+    ORANGE_BG: RGBAColor = (211, 84, 0, 255)       # Fundo de salvar/alerta quente
+    ORANGE_BORDER: RGBAColor = (230, 126, 34, 255)
+
+    # Cores de Grid e Névoa no Mapa
+    GRID_LINE: RGBAColor = (130, 205, 255, 60)
+    FOG_OVERLAY: RGBAColor = (10, 15, 25, 140)
+    FOG_BORDER: RGBAColor = (30, 45, 70, 180)
 
     # Parâmetros de Modificação de Estado
     DISABLED_ALPHA_FACTOR: float = 0.40            # Redução de opacidade para estado desabilitado (40%)

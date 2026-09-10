@@ -4,6 +4,7 @@ import arcade
 from ...manager.session_manager import SessionManager
 from ...domain.models.playablechar import PlayableCharacter
 from ..components.discrete_scroll_list import DiscreteScrollList
+from ..utils.ui_constants import Colors, Typography, Dimensions, Spacing
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class InitiativeStagingModal:
         self.text_cache: Dict[str, arcade.Text] = {}
 
         self.__item_height: int = 36
-        self.__spacing: int = 4
+        self.__spacing: int = Spacing.TINY
         self.__visible_count: int = 6
         self.__scroll_list = DiscreteScrollList(
             item_height=self.__item_height,
@@ -71,7 +72,7 @@ class InitiativeStagingModal:
                 bold=bold,
                 anchor_x=anchor_x,
                 anchor_y=anchor_y,
-                font_name=("Consolas", "Calibri", "Segoe UI", "Arial"),
+                font_name=Typography.FONT_FAMILY_UI,
             )
             self.text_cache[key] = cached
         else:
@@ -87,7 +88,7 @@ class InitiativeStagingModal:
             return
 
         # Fundo escuro translúcido
-        arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), (0, 0, 0, 180))
+        arcade.draw_rect_filled(arcade.XYWH(w / 2, h / 2, w, h), Colors.BG_OVERLAY)
 
         modal_w = 540
         modal_h = 440
@@ -95,16 +96,16 @@ class InitiativeStagingModal:
         modal_cy = h / 2
 
         # Caixa do Modal
-        arcade.draw_rect_filled(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (20, 25, 35, 255))
-        arcade.draw_rect_outline(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), (241, 196, 15, 255), 2)
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), Colors.BG_MODAL)
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx, modal_cy, modal_w, modal_h), Colors.ACCENT_GOLD, 2)
 
         # Lista de Participantes e Scores via DiscreteScrollList (apenas revelados/visíveis)
         combatants = [c for c in self.combat_manager.combatants if not c.is_hidden]
 
         # Cabeçalho do Modal
-        self._get_text("mod_title", "🎲 STAGING DE INICIATIVAS (D&D 5E)", modal_cx, modal_cy + modal_h / 2 - 26, (241, 196, 15, 255), 13, bold=True, anchor_x="center").draw()
+        self._get_text("mod_title", "🎲 STAGING DE INICIATIVAS (D&D 5E)", modal_cx, modal_cy + modal_h / 2 - 26, Colors.TEXT_GOLD, Typography.SIZE_SUBHEADER, bold=True, anchor_x="center").draw()
         sub_text = f"Ajuste os valores rolados manualmente antes de iniciar a rodada ({len(combatants)} participantes ativos):"
-        self._get_text("mod_sub", sub_text, modal_cx, modal_cy + modal_h / 2 - 50, (180, 190, 205, 255), 9, bold=False, anchor_x="center").draw()
+        self._get_text("mod_sub", sub_text, modal_cx, modal_cy + modal_h / 2 - 50, Colors.TEXT_SECONDARY, Typography.SIZE_MICRO, bold=False, anchor_x="center").draw()
 
         list_y = modal_cy + modal_h / 2 - 70
         list_w = modal_w - 40
@@ -117,35 +118,35 @@ class InitiativeStagingModal:
         visible_items = self.__scroll_list.visible_items
         for slot_idx, (actual_idx, combatant) in enumerate(visible_items):
             slot_cx, slot_cy, slot_w, slot_h = self.__scroll_list.get_slot_rect(slot_idx)
-            arcade.draw_rect_filled(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), (30, 38, 52, 255))
-            arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), (50, 65, 90, 200), 1)
+            arcade.draw_rect_filled(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), Colors.BG_CARD)
+            arcade.draw_rect_outline(arcade.XYWH(slot_cx, slot_cy, slot_w, slot_h), Colors.BORDER_DEFAULT, 1)
 
-            name_c = (100, 200, 255, 255) if isinstance(combatant, PlayableCharacter) else (255, 138, 128, 255)
-            self._get_text(f"mod_n_{combatant.uid}", combatant.name[:18], slot_cx - slot_w / 2 + 15, slot_cy, name_c, 10, bold=True, anchor_x="left").draw()
+            name_c = Colors.TEXT_CYAN if isinstance(combatant, PlayableCharacter) else Colors.TEXT_CRIMSON
+            self._get_text(f"mod_n_{combatant.uid}", combatant.name[:18], slot_cx - slot_w / 2 + 15, slot_cy, name_c, Typography.SIZE_LABEL - 1, bold=True, anchor_x="left").draw()
 
             mod_s = f"DEX: +{combatant.initiative_mod}" if combatant.initiative_mod >= 0 else f"DEX: {combatant.initiative_mod}"
-            self._get_text(f"mod_m_{combatant.uid}", mod_s, slot_cx + 20, slot_cy, (160, 175, 195, 255), 9, bold=False, anchor_x="center").draw()
+            self._get_text(f"mod_m_{combatant.uid}", mod_s, slot_cx + 20, slot_cy, Colors.TEXT_MUTED, Typography.SIZE_MICRO, bold=False, anchor_x="center").draw()
 
             # Steppers de Ajuste [-] [Score] [+]
             score_val = self.draft_initiatives.get(combatant.uid, 10)
 
             # Botão [-]
             btn_minus_x = slot_cx + slot_w / 2 - 80
-            arcade.draw_rect_filled(arcade.XYWH(btn_minus_x, slot_cy, 26, 24), (45, 55, 70, 255))
-            arcade.draw_rect_outline(arcade.XYWH(btn_minus_x, slot_cy, 26, 24), (70, 90, 120, 200), 1)
-            self._get_text(f"mod_bm_{combatant.uid}", "[-]", btn_minus_x, slot_cy, (241, 196, 15, 255), 9, bold=True, anchor_x="center").draw()
+            arcade.draw_rect_filled(arcade.XYWH(btn_minus_x, slot_cy, 26, 24), Colors.BTN_DEFAULT_BG)
+            arcade.draw_rect_outline(arcade.XYWH(btn_minus_x, slot_cy, 26, 24), Colors.BTN_DEFAULT_BORDER, 1)
+            self._get_text(f"mod_bm_{combatant.uid}", "[-]", btn_minus_x, slot_cy, Colors.TEXT_GOLD, Typography.SIZE_MICRO, bold=True, anchor_x="center").draw()
 
             # Caixa do Valor
             val_x = slot_cx + slot_w / 2 - 45
-            arcade.draw_rect_filled(arcade.XYWH(val_x, slot_cy, 36, 24), (15, 20, 28, 255))
-            arcade.draw_rect_outline(arcade.XYWH(val_x, slot_cy, 36, 24), (241, 196, 15, 200), 1)
-            self._get_text(f"mod_val_{combatant.uid}", str(score_val), val_x, slot_cy, (255, 255, 255, 255), 10, bold=True, anchor_x="center").draw()
+            arcade.draw_rect_filled(arcade.XYWH(val_x, slot_cy, 36, 24), Colors.BG_DARK)
+            arcade.draw_rect_outline(arcade.XYWH(val_x, slot_cy, 36, 24), Colors.BORDER_GOLD, 1)
+            self._get_text(f"mod_val_{combatant.uid}", str(score_val), val_x, slot_cy, Colors.TEXT_PRIMARY, Typography.SIZE_LABEL - 1, bold=True, anchor_x="center").draw()
 
             # Botão [+]
             btn_plus_x = slot_cx + slot_w / 2 - 10
-            arcade.draw_rect_filled(arcade.XYWH(btn_plus_x, slot_cy, 26, 24), (45, 55, 70, 255))
-            arcade.draw_rect_outline(arcade.XYWH(btn_plus_x, slot_cy, 26, 24), (70, 90, 120, 200), 1)
-            self._get_text(f"mod_bp_{combatant.uid}", "[+]", btn_plus_x, slot_cy, (241, 196, 15, 255), 9, bold=True, anchor_x="center").draw()
+            arcade.draw_rect_filled(arcade.XYWH(btn_plus_x, slot_cy, 26, 24), Colors.BTN_DEFAULT_BG)
+            arcade.draw_rect_outline(arcade.XYWH(btn_plus_x, slot_cy, 26, 24), Colors.BTN_DEFAULT_BORDER, 1)
+            self._get_text(f"mod_bp_{combatant.uid}", "[+]", btn_plus_x, slot_cy, Colors.TEXT_GOLD, Typography.SIZE_MICRO, bold=True, anchor_x="center").draw()
 
         # Indicador de Rolagem da lista caso haja mais combatentes do que visíveis
         if len(combatants) > self.__scroll_list.visible_item_count:
@@ -155,19 +156,19 @@ class InitiativeStagingModal:
         btn_y = modal_cy - modal_h / 2 + 40
 
         # Rolar Novamente
-        arcade.draw_rect_filled(arcade.XYWH(modal_cx - 160, btn_y, 110, 34), (142, 68, 173, 255))
-        arcade.draw_rect_outline(arcade.XYWH(modal_cx - 160, btn_y, 110, 34), (155, 89, 182, 255), 1)
-        self._get_text("mod_b_reroll", "🎲 Rolar de Novo", modal_cx - 160, btn_y, (255, 255, 255, 255), 9, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx - 160, btn_y, 110, 34), Colors.PURPLE_BG)
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx - 160, btn_y, 110, 34), Colors.PURPLE_BORDER, 1)
+        self._get_text("mod_b_reroll", "🎲 Rolar de Novo", modal_cx - 160, btn_y, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO, bold=True, anchor_x="center").draw()
 
         # Cancelar
-        arcade.draw_rect_filled(arcade.XYWH(modal_cx - 40, btn_y, 90, 34), (192, 57, 43, 255))
-        arcade.draw_rect_outline(arcade.XYWH(modal_cx - 40, btn_y, 90, 34), (231, 76, 60, 255), 1)
-        self._get_text("mod_b_cancel", "❌ Cancelar", modal_cx - 40, btn_y, (255, 255, 255, 255), 9, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx - 40, btn_y, 90, 34), Colors.DANGER)
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx - 40, btn_y, 90, 34), Colors.DANGER_BORDER, 1)
+        self._get_text("mod_b_cancel", "❌ Cancelar", modal_cx - 40, btn_y, Colors.TEXT_PRIMARY, Typography.SIZE_MICRO, bold=True, anchor_x="center").draw()
 
         # Confirmar e Iniciar Combate
-        arcade.draw_rect_filled(arcade.XYWH(modal_cx + 120, btn_y, 190, 34), (39, 174, 96, 255))
-        arcade.draw_rect_outline(arcade.XYWH(modal_cx + 120, btn_y, 190, 34), (46, 204, 113, 255), 2)
-        self._get_text("mod_b_confirm", "✅ Confirmar & Iniciar", modal_cx + 120, btn_y, (255, 255, 255, 255), 10, bold=True, anchor_x="center").draw()
+        arcade.draw_rect_filled(arcade.XYWH(modal_cx + 120, btn_y, 190, 34), Colors.SUCCESS)
+        arcade.draw_rect_outline(arcade.XYWH(modal_cx + 120, btn_y, 190, 34), Colors.SUCCESS_BORDER, 2)
+        self._get_text("mod_b_confirm", "✅ Confirmar & Iniciar", modal_cx + 120, btn_y, Colors.TEXT_PRIMARY, Typography.SIZE_LABEL - 1, bold=True, anchor_x="center").draw()
 
     def handle_scroll(self, x: float, y: float, scroll_x: float, scroll_y: float) -> bool:
         """Processa a rolagem discreta da lista de combatentes no modal."""

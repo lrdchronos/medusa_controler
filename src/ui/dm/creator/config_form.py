@@ -8,27 +8,7 @@ from ...utils.tilemap_renderer import TileMapRenderer
 from ...components.discrete_scroll_list import DiscreteScrollList
 from ....domain.rules.preset_filters import filter_monster_presets
 from .renderers.preview_renderer import PreviewRenderer
-from .renderers.config_form_renderer import (
-    ConfigFormRenderer,
-    COLOR_BG_PRIMARY,
-    COLOR_ACCENT_GOLD,
-    COLOR_PC_BLUE,
-    COLOR_MONSTER_RED,
-    COLOR_PANEL_BG,
-    COLOR_PANEL_BORDER,
-    COLOR_CARD_BG,
-    COLOR_CARD_BG_SELECTED,
-    COLOR_TEXT_TITLE,
-    COLOR_TEXT_MAIN,
-    COLOR_TEXT_MUTED,
-    COLOR_TEXT_WHITE,
-    COLOR_TEXT_CYAN,
-    COLOR_BTN_BG,
-    COLOR_BTN_BORDER,
-    COLOR_SUCCESS_BG,
-    COLOR_SUCCESS_BORDER,
-    COLOR_ERROR_BG,
-)
+from .renderers.config_form_renderer import ConfigFormRenderer
 from .handlers.config_form_input_handler import ConfigFormInputHandler
 
 logger = logging.getLogger(__name__)
